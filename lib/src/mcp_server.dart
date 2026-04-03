@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:dart_mcp/server.dart';
 import 'package:flutter_daemon/flutter_daemon.dart';
+import 'package:unique_names_generator/unique_names_generator.dart';
 
 /// The MCP server for flutter-agent-tools.
 base class FlutterAgentServer extends MCPServer with ToolsSupport {
@@ -17,17 +18,46 @@ base class FlutterAgentServer extends MCPServer with ToolsSupport {
       ) {
     registerTool(echoTool, _echo);
     registerTool(flutterLaunchAppTool, _flutterLaunchApp);
+    registerTool(flutterCloseAppTool, _flutterCloseApp);
   }
 
-  final _sessions = <String, FlutterApplication>{};
-  final _random = Random();
+  FlutterDaemon? _daemon;
+  FlutterDaemon get _daemonInstance => _daemon ??= FlutterDaemon();
 
-  String _newSessionId() => List.generate(
-    8,
-    (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
-  ).join();
+  final Map<String, FlutterApplication> _sessions = {};
 
-  final echoTool = Tool(
+  @override
+  Future<void> shutdown() async {
+    await Future.wait(_sessions.values.map((app) => app.stop()));
+    _sessions.clear();
+    await _daemon?.dispose();
+    await super.shutdown();
+  }
+
+  final Random _random = Random();
+  final UniqueNamesGenerator _nameGenerator = UniqueNamesGenerator(
+    config: Config(
+      length: 2,
+      dictionaries: [adjectives, animals],
+      separator: '-',
+    ),
+  );
+
+  String _newSessionId() {
+    final suffix =
+        List.generate(
+          2,
+          (_) => _random
+              .nextInt(256)
+              .toRadixString(16)
+              .toUpperCase()
+              .padLeft(2, '0'),
+        ).join();
+
+    return [_nameGenerator.generate(), suffix].join('-');
+  }
+
+  final Tool echoTool = Tool(
     name: 'echo',
     description: 'Returns the provided text unchanged.',
     inputSchema: Schema.object(
@@ -43,7 +73,7 @@ base class FlutterAgentServer extends MCPServer with ToolsSupport {
     return CallToolResult(content: [TextContent(text: text)]);
   }
 
-  final flutterLaunchAppTool = Tool(
+  final Tool flutterLaunchAppTool = Tool(
     name: 'flutter_launch_app',
     description:
         'Builds and launches the Flutter app, returning a session ID for use '
@@ -78,8 +108,7 @@ base class FlutterAgentServer extends MCPServer with ToolsSupport {
       if (target != null) ...['--target', target],
     ];
 
-    final daemon = FlutterDaemon();
-    final application = await daemon.run(
+    final application = await _daemonInstance.run(
       arguments: arguments,
       workingDirectory: workingDirectory,
     );
@@ -90,5 +119,33 @@ base class FlutterAgentServer extends MCPServer with ToolsSupport {
     return CallToolResult(
       content: [TextContent(text: 'Launched. Session ID: $sessionId')],
     );
+  }
+
+  final Tool flutterCloseAppTool = Tool(
+    name: 'flutter_close_app',
+    description: 'Stops a running Flutter app and releases its session.',
+    inputSchema: Schema.object(
+      properties: {
+        'session_id': Schema.string(
+          description: 'The session ID returned by flutter_launch_app.',
+        ),
+      },
+      required: ['session_id'],
+    ),
+  );
+
+  Future<CallToolResult> _flutterCloseApp(CallToolRequest request) async {
+    final sessionId = request.arguments!['session_id'] as String;
+    final application = _sessions.remove(sessionId);
+
+    if (application == null) {
+      return CallToolResult(
+        isError: true,
+        content: [TextContent(text: 'No session found for ID: $sessionId')],
+      );
+    }
+
+    await application.stop();
+    return CallToolResult(content: [TextContent(text: 'App stopped.')]);
   }
 }
