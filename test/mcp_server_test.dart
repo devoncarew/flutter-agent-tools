@@ -22,10 +22,7 @@ void main() {
       );
 
       expect(result.isError, true);
-      expect(
-        (result.content.first as TextContent).text,
-        contains('unknown'),
-      );
+      expect((result.content.first as TextContent).text, contains('unknown'));
     });
   });
 }
