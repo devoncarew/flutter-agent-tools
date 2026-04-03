@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 import 'test_utils.dart';
 
 void main() {
-  group('echo tool', () {
+  group('flutter_close_app tool', () {
     late TestEnvironment<TestMCPClient, FlutterAgentServer> env;
 
     setUp(() async {
@@ -13,13 +13,16 @@ void main() {
       await env.initializeServer();
     });
 
-    test('returns input text unchanged', () async {
+    test('returns an error for an unknown session ID', () async {
       final result = await env.serverConnection.callTool(
-        CallToolRequest(name: 'echo', arguments: {'text': 'hello'}),
+        CallToolRequest(
+          name: 'flutter_close_app',
+          arguments: {'session_id': 'unknown'},
+        ),
       );
 
-      expect(result.isError, isNot(true));
-      expect((result.content.first as TextContent).text, 'hello');
+      expect(result.isError, true);
+      expect((result.content.first as TextContent).text, contains('unknown'));
     });
   });
 }
