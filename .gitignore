@@ -1,0 +1,8 @@
+# Claude Code
+.claude/settings.local.json
+
+# Dart / Flutter
+.dart_tool/
+build/
+pubspec.lock
+doc/api/
