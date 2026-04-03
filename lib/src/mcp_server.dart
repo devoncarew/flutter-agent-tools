@@ -4,7 +4,10 @@ import 'dart:math';
 import 'package:dart_mcp/server.dart';
 import 'package:unique_names_generator/unique_names_generator.dart';
 
-import 'flutter_run.dart';
+import 'flutter_run_session.dart';
+
+// TODO: We'll likely need to listen to the vm service protocol event
+// 'Flutter.Error' to get structured framework / layout errors.
 
 /// The MCP server for flutter-agent-tools.
 base class FlutterAgentServer extends MCPServer
@@ -23,6 +26,7 @@ base class FlutterAgentServer extends MCPServer
     registerTool(flutterLaunchAppTool, _flutterLaunchApp);
     registerTool(flutterPerformReloadTool, _flutterPerformReload);
     registerTool(flutterCloseAppTool, _flutterCloseApp);
+    registerTool(flutterDebugPaintTool, _flutterDebugPaint);
   }
 
   final Map<String, FlutterRunSession> _sessions = {};
@@ -118,7 +122,7 @@ base class FlutterAgentServer extends MCPServer
     }
 
     // TODO: test log messages we get for sterr
-    // TODO: test log messages we get for exception
+    // TODO: test log messages we get for exceptions
 
     final (LoggingLevel? level, String? message) = _convertToLog(event);
     if (level != null && message != null) {
@@ -218,6 +222,56 @@ base class FlutterAgentServer extends MCPServer
     session.stop();
 
     return CallToolResult(content: [TextContent(text: 'App stopped.')]);
+  }
+
+  final Tool flutterDebugPaintTool = Tool(
+    name: 'flutter_debug_paint',
+    description:
+        'Gets or sets the debug paint overlay for a running Flutter app. '
+        'Debug paint draws layout debug lines over the UI. '
+        'Omit "enabled" to read the current value.',
+    inputSchema: Schema.object(
+      properties: {
+        'session_id': Schema.string(
+          description: 'The session ID returned by flutter_launch_app.',
+        ),
+        'enabled': Schema.bool(
+          description: 'Enable or disable debug paint. Omit to read.',
+        ),
+      },
+      required: ['session_id'],
+    ),
+  );
+
+  Future<CallToolResult> _flutterDebugPaint(CallToolRequest request) async {
+    final String sessionId = request.arguments!['session_id'] as String;
+    final FlutterRunSession? session = _sessions[sessionId];
+
+    if (session == null) {
+      return CallToolResult(
+        isError: true,
+        content: [TextContent(text: 'No session found for ID: $sessionId')],
+      );
+    }
+
+    final bool? enabled = request.arguments!['enabled'] as bool?;
+    if (enabled == null) {
+      final bool current = await session.getDebugPaint();
+      return CallToolResult(
+        content: [
+          TextContent(
+            text: 'Debug paint is ${current ? 'enabled' : 'disabled'}.',
+          ),
+        ],
+      );
+    } else {
+      await session.setDebugPaint(enabled);
+      return CallToolResult(
+        content: [
+          TextContent(text: 'Debug paint ${enabled ? 'enabled' : 'disabled'}.'),
+        ],
+      );
+    }
   }
 
   (LoggingLevel?, String?) _convertToLog(FlutterEvent event) {

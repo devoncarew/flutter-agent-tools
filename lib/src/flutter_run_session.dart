@@ -102,6 +102,56 @@ class FlutterRunSession {
     await _sendCommand('app.stop', {'appId': _appId!});
   }
 
+  /// Returns whether debug paint is currently enabled.
+  Future<bool> getDebugPaint() async {
+    final Response response = await _callExtension('ext.flutter.debugPaint');
+    return response.json!['enabled'] == 'true';
+  }
+
+  /// Enables or disables debug paint (layout debug lines overlay).
+  Future<void> setDebugPaint(bool enabled) async {
+    await _callExtension(
+      'ext.flutter.debugPaint',
+      args: {'enabled': enabled.toString()},
+    );
+  }
+
+  /// Calls a VM service extension on the first isolate that has it registered.
+  ///
+  /// Throws a [StateError] if no isolate has the extension registered.
+  Future<Response> _callExtension(
+    String method, {
+    Map<String, dynamic>? args,
+  }) async {
+    final VmService vmService = _vmService!;
+    final String isolateId = await _isolateIdForExtension(method);
+    return vmService.callServiceExtension(
+      method,
+      isolateId: isolateId,
+      args: args,
+    );
+  }
+
+  /// Returns the isolate ID of the first isolate that has [extension] registered.
+  ///
+  /// TODO: Optimize this — currently it calls getVM() and getIsolate() on every
+  /// invocation. We should cache the isolate ID (keyed by extension) and
+  /// invalidate the cache on hot restart. To do that correctly we'll need to
+  /// listen to VM service events (e.g. IsolateStart / IsolateExit, or the
+  /// Extension event) so we know when isolates change and re-register their
+  /// extensions after a hot restart.
+  Future<String> _isolateIdForExtension(String extension) async {
+    final VmService vmService = _vmService!;
+    final VM vm = await vmService.getVM();
+    for (final IsolateRef ref in vm.isolates ?? []) {
+      final Isolate isolate = await vmService.getIsolate(ref.id!);
+      if (isolate.extensionRPCs?.contains(extension) == true) {
+        return ref.id!;
+      }
+    }
+    throw StateError('No isolate found with extension: $extension');
+  }
+
   Future<Map<String, dynamic>> _sendCommand(
     String method,
     Map<String, dynamic> params,
