@@ -6,7 +6,8 @@ import 'package:flutter_daemon/flutter_daemon.dart';
 import 'package:unique_names_generator/unique_names_generator.dart';
 
 /// The MCP server for flutter-agent-tools.
-base class FlutterAgentServer extends MCPServer with ToolsSupport {
+base class FlutterAgentServer extends MCPServer
+    with ToolsSupport, LoggingSupport {
   FlutterAgentServer(super.channel)
     : super.fromStreamChannel(
         implementation: Implementation(
@@ -16,8 +17,10 @@ base class FlutterAgentServer extends MCPServer with ToolsSupport {
         instructions:
             'Tools for AI agents working on Dart and Flutter projects.',
       ) {
-    registerTool(echoTool, _echo);
+    loggingLevel = LoggingLevel.info;
+
     registerTool(flutterLaunchAppTool, _flutterLaunchApp);
+    registerTool(flutterPerformReloadTool, _flutterPerformReload);
     registerTool(flutterCloseAppTool, _flutterCloseApp);
   }
 
@@ -25,9 +28,12 @@ base class FlutterAgentServer extends MCPServer with ToolsSupport {
   FlutterDaemon get _daemonInstance => _daemon ??= FlutterDaemon();
 
   final Map<String, FlutterApplication> _sessions = {};
+  final Map<String, StreamSubscription<FlutterDaemonEvent>> _subscriptions = {};
 
   @override
   Future<void> shutdown() async {
+    await Future.wait(_subscriptions.values.map((s) => s.cancel()));
+    _subscriptions.clear();
     await Future.wait(_sessions.values.map((app) => app.stop()));
     _sessions.clear();
     await _daemon?.dispose();
@@ -47,30 +53,10 @@ base class FlutterAgentServer extends MCPServer with ToolsSupport {
     final suffix =
         List.generate(
           2,
-          (_) => _random
-              .nextInt(256)
-              .toRadixString(16)
-              .toUpperCase()
-              .padLeft(2, '0'),
+          (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
         ).join();
 
     return [_nameGenerator.generate(), suffix].join('-');
-  }
-
-  final Tool echoTool = Tool(
-    name: 'echo',
-    description: 'Returns the provided text unchanged.',
-    inputSchema: Schema.object(
-      properties: {
-        'text': Schema.string(description: 'The text to echo back.'),
-      },
-      required: ['text'],
-    ),
-  );
-
-  FutureOr<CallToolResult> _echo(CallToolRequest request) {
-    final text = request.arguments!['text'] as String;
-    return CallToolResult(content: [TextContent(text: text)]);
   }
 
   final Tool flutterLaunchAppTool = Tool(
@@ -115,10 +101,41 @@ base class FlutterAgentServer extends MCPServer with ToolsSupport {
 
     final sessionId = _newSessionId();
     _sessions[sessionId] = application;
+    _watchSession(sessionId, application);
 
     return CallToolResult(
       content: [TextContent(text: 'Launched. Session ID: $sessionId')],
     );
+  }
+
+  void _watchSession(String sessionId, FlutterApplication application) {
+    const loggerId = 'flutter_agent_tools';
+
+    _subscriptions[sessionId] = application.events.listen((event) {
+      if (event.event == 'app.stop') {
+        _releaseSession(sessionId);
+
+        this.log(
+          LoggingLevel.info,
+          '[$sessionId] App stopped; session released.',
+          logger: loggerId,
+        );
+      } else {
+        final (level, message) = _convertToLog(event);
+        if (level != null) {
+          this.log(
+            level,
+            '[$sessionId] ${event.event}: $message',
+            logger: loggerId,
+          );
+        }
+      }
+    });
+  }
+
+  void _releaseSession(String sessionId) {
+    _sessions.remove(sessionId);
+    _subscriptions.remove(sessionId)?.cancel();
   }
 
   final Tool flutterCloseAppTool = Tool(
@@ -134,6 +151,45 @@ base class FlutterAgentServer extends MCPServer with ToolsSupport {
     ),
   );
 
+  final Tool flutterPerformReloadTool = Tool(
+    name: 'flutter_perform_reload',
+    description:
+        'Hot reloads or hot restarts a running Flutter app. '
+        'Prefer hot reload for iterative changes; use hot restart when state '
+        'needs to be fully reset.',
+    inputSchema: Schema.object(
+      properties: {
+        'session_id': Schema.string(
+          description: 'The session ID returned by flutter_launch_app.',
+        ),
+        'full_restart': Schema.bool(
+          description:
+              'If true, performs a hot restart instead of a hot reload. '
+              'Defaults to false.',
+        ),
+      },
+      required: ['session_id'],
+    ),
+  );
+
+  Future<CallToolResult> _flutterPerformReload(CallToolRequest request) async {
+    final sessionId = request.arguments!['session_id'] as String;
+    final application = _sessions[sessionId];
+
+    if (application == null) {
+      return CallToolResult(
+        isError: true,
+        content: [TextContent(text: 'No session found for ID: $sessionId')],
+      );
+    }
+
+    final fullRestart = request.arguments!['full_restart'] as bool? ?? false;
+    await application.restart(fullRestart: fullRestart);
+
+    final action = fullRestart ? 'Hot restart' : 'Hot reload';
+    return CallToolResult(content: [TextContent(text: '$action complete.')]);
+  }
+
   Future<CallToolResult> _flutterCloseApp(CallToolRequest request) async {
     final sessionId = request.arguments!['session_id'] as String;
     final application = _sessions.remove(sessionId);
@@ -145,7 +201,51 @@ base class FlutterAgentServer extends MCPServer with ToolsSupport {
       );
     }
 
-    await application.stop();
+    _releaseSession(sessionId);
+
+    // We don't await this call.
+    application.stop();
+
     return CallToolResult(content: [TextContent(text: 'App stopped.')]);
+  }
+
+  (LoggingLevel?, String?) _convertToLog(FlutterDaemonEvent event) {
+    final params = event.params;
+
+    // By default, flatten the map.
+    var message = params.keys
+        .map((k) {
+          final v = params[k];
+          return '$k: ${v is String ? "'$v'" : v}';
+        })
+        .join(', ');
+
+    // event.event
+
+    switch (event.event) {
+      case 'app.progress':
+        {
+          switch (params['progressId']) {
+            case 'devFS.update':
+              {
+                // Filter all app.progress / devFS.update events.
+                return (null, null);
+              }
+            case 'hot.reload':
+              {
+                // We get a start and a stop event; filter the first and promote
+                // the second.
+
+                if (params['finished'] == true) {
+                  return (LoggingLevel.notice, 'Hot reload finished.');
+                } else {
+                  return (null, null);
+                }
+              }
+          }
+        }
+    }
+
+    return (LoggingLevel.info, message);
   }
 }

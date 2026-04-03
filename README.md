@@ -32,8 +32,8 @@ exceptions from the Dart VM Service.
 <!-- flutter commands -->
 | Command | Description |
 |---------|-------------|
-| `echo` | Returns the provided text unchanged. |
 | `flutter_launch_app` | Builds and launches the Flutter app, returning a session ID for use with subsequent flutter_* tools. |
+| `flutter_perform_reload` | Hot reloads or hot restarts a running Flutter app. Prefer hot reload for iterative changes; use hot restart when state needs to be fully reset. |
 | `flutter_close_app` | Stops a running Flutter app and releases its session. |
 <!-- flutter commands -->
 
