@@ -42,7 +42,7 @@ base class FlutterAgentServer extends MCPServer
     config: Config(
       length: 2,
       dictionaries: [adjectives, animals],
-      separator: '-',
+      separator: '_',
     ),
   );
 
@@ -86,55 +86,61 @@ base class FlutterAgentServer extends MCPServer
     final String? device = args['device'] as String?;
     final String? target = args['target'] as String?;
 
+    final String sessionId = _newSessionId();
+
     final FlutterRunSession session = await FlutterRunSession.start(
       workingDirectory: workingDirectory,
+      eventListener: (event) => _handleEvent(sessionId, event),
       deviceId: device,
       target: target,
     );
 
-    final String sessionId = _newSessionId();
     _sessions[sessionId] = session;
-    _watchSession(sessionId, session);
 
     return CallToolResult(
       content: [TextContent(text: 'Launched. Session ID: $sessionId')],
     );
   }
 
-  void _watchSession(String sessionId, FlutterRunSession session) {
-    const String loggerId = 'flutter_agent_tools';
+  static const String _loggerId = 'flutter_agent_tools';
 
-    _subscriptions[sessionId] = session.events.listen((event) {
-      if (event.event == 'app.stop') {
-        _releaseSession(sessionId);
+  void _handleEvent(String sessionId, FlutterEvent event) {
+    if (event.event == 'app.stop') {
+      _releaseSession(sessionId);
 
-        this.log(
-          LoggingLevel.info,
-          '[$sessionId] App stopped; session released.',
-          logger: loggerId,
-        );
+      this.log(
+        LoggingLevel.info,
+        '[$sessionId] App stopped; session released.',
+        logger: _loggerId,
+      );
 
-        return;
-      }
+      return;
+    }
 
-      final (LoggingLevel? level, String? message) = _convertToLog(event);
-      if (level != null && message != null) {
-        if (event.event == 'app.log') {
-          // We special case stdio output a bit.
-          const stdioPrefix = 'flutter: ';
+    // TODO: test log messages we get for sterr
+    // TODO: test log messages we get for exception
 
-          if (message.startsWith(stdioPrefix)) {
-            final msg = message.substring(stdioPrefix.length);
-            this.log(level, '[stdio] $msg', logger: loggerId);
-          } else {
-            // It's system output.
-            this.log(level, '[flutter] $message', logger: loggerId);
-          }
+    final (LoggingLevel? level, String? message) = _convertToLog(event);
+    if (level != null && message != null) {
+      if (event.event == 'app.log') {
+        // We special case stdio output a bit.
+        const appOutputPrefix = 'flutter: ';
+
+        if (message.startsWith(appOutputPrefix)) {
+          final msg = message.substring(appOutputPrefix.length);
+          this.log(level, '[app] $msg', logger: _loggerId);
         } else {
-          this.log(level, '[${event.event}] $message', logger: loggerId);
+          // It's system output.
+          this.log(level, '[system] $message', logger: _loggerId);
         }
+      } else {
+        this.log(level, '[${event.event}] $message', logger: _loggerId);
       }
-    });
+    }
+  }
+
+  void debugLog(String message) {
+    this.log(LoggingLevel.info, '[debug] $message', logger: _loggerId);
   }
 
   void _releaseSession(String sessionId) {

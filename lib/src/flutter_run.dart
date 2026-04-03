@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service_io.dart';
+
 /// An event emitted by a running Flutter app via the `flutter run --machine`
 /// daemon protocol.
 class FlutterEvent {
@@ -17,7 +20,7 @@ class FlutterEvent {
 /// The session provides [events] for monitoring app lifecycle and output,
 /// [restart] for hot reload/restart, and [stop] to terminate the app.
 class FlutterRunSession {
-  FlutterRunSession._(this._process) {
+  FlutterRunSession._(this._process, this._eventListener) {
     _process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
@@ -32,14 +35,21 @@ class FlutterRunSession {
   String? _appId;
 
   final Completer<void> _startedCompleter = Completer<void>();
-  final StreamController<FlutterEvent> _eventController =
-      StreamController<FlutterEvent>.broadcast();
   final List<String> _stderrLines = [];
   int _nextId = 0;
   final Map<int, Completer<Map<String, dynamic>>> _pending = {};
 
-  /// Events emitted by the running Flutter app.
-  Stream<FlutterEvent> get events => _eventController.stream;
+  final EventCallback _eventListener;
+  bool _sessionEnded = false;
+
+  String? _vmServiceUri;
+  VmService? _vmService;
+
+  // ignore: unused_field
+  String? _devToolsUri;
+
+  // ignore: unused_field
+  String? _dtdToolsUri;
 
   /// Launches `flutter run --machine` in [workingDirectory] and waits until
   /// the app has fully started.
@@ -47,6 +57,7 @@ class FlutterRunSession {
   /// Throws a [StateError] if the process exits before the app starts.
   static Future<FlutterRunSession> start({
     required String workingDirectory,
+    required EventCallback eventListener,
     String? deviceId,
     String? target,
   }) async {
@@ -63,7 +74,10 @@ class FlutterRunSession {
       workingDirectory: workingDirectory,
     );
 
-    final FlutterRunSession session = FlutterRunSession._(process);
+    final FlutterRunSession session = FlutterRunSession._(
+      process,
+      eventListener,
+    );
     await session._startedCompleter.future;
     return session;
   }
@@ -107,9 +121,9 @@ class FlutterRunSession {
     final String trimmed = line.trim();
     if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) {
       // Convert regular stdio output to log messages.
-      if (!_eventController.isClosed) {
+      if (!_sessionEnded) {
         // The params field will be a map with the fields appId and log.
-        _eventController.add(
+        _eventListener(
           FlutterEvent('app.log', {'appId': _appId, 'log': trimmed}),
         );
       }
@@ -156,15 +170,36 @@ class FlutterRunSession {
         _appId = params['appId'] as String?;
       } else if (event == 'app.started') {
         if (!_startedCompleter.isCompleted) _startedCompleter.complete();
+      } else if (event == 'app.debugPort') {
+        _vmServiceUri = params['wsUri'] as String?;
+        _connectVmService(_vmServiceUri!);
+      } else if (event == 'app.devTools') {
+        _devToolsUri = params['uri'] as String?;
+      } else if (event == 'app.dtd') {
+        _dtdToolsUri = params['uri'] as String?;
       }
 
-      // TODO: listen for app.debugPort and read out the wsUri (vm service
-      // protocol) field
-
-      if (!_eventController.isClosed) {
-        _eventController.add(FlutterEvent(event, params));
+      if (!_sessionEnded) {
+        _eventListener(FlutterEvent(event, params));
       }
     }
+  }
+
+  Future<void> _connectVmService(String wsUri) async {
+    _vmService = await vmServiceConnectUri(wsUri);
+  }
+
+  /// Returns the VM service extension RPCs registered across all live isolates.
+  Future<List<String>> listServiceExtensions() async {
+    final VmService vmService = _vmService!;
+    final VM vm = await vmService.getVM();
+    final List<String> extensions = [];
+    for (final IsolateRef ref in vm.isolates ?? []) {
+      final Isolate isolate = await vmService.getIsolate(ref.id!);
+      extensions.addAll(isolate.extensionRPCs ?? []);
+    }
+    extensions.sort();
+    return extensions;
   }
 
   void _handleDone() {
@@ -179,6 +214,12 @@ class FlutterRunSession {
       c.completeError(StateError('flutter run process exited'));
     }
     _pending.clear();
-    if (!_eventController.isClosed) _eventController.close();
+
+    _sessionEnded = true;
+
+    _vmService?.dispose();
+    _vmService = null;
   }
 }
+
+typedef EventCallback = void Function(FlutterEvent);
