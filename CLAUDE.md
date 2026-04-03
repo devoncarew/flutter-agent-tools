@@ -10,13 +10,20 @@ observe a running Flutter app.
 ```
 flutter-agent-tools/
 ├── .claude-plugin/
-│   └── plugin.json          # Plugin manifest (name, version, MCP server declarations)
+│   └── plugin.json              # Plugin manifest (name, version, MCP server declarations)
+├── bin/
+│   └── mcp_server.dart          # MCP server entry point
 ├── hooks/
-│   └── hooks.json           # PreToolUse hook configuration
+│   └── hooks.json               # PreToolUse hook configuration
+├── lib/
+│   ├── mcp_server.dart          # Library export
+│   └── src/
+│       └── mcp_server.dart      # FlutterAgentServer (MCPServer + ToolsSupport)
 ├── scripts/
-│   ├── dep_health_check.sh  # Bash hook: validates packages before flutter pub add
-│   └── pubspec_guard.sh     # Write/Edit hook: guards direct pubspec.yaml edits (stub)
-├── server/                  # Dart MCP server (not yet scaffolded)
+│   ├── dep_health_check.sh      # Bash hook: validates packages before flutter pub add
+│   └── pubspec_guard.sh         # Write/Edit hook: guards direct pubspec.yaml edits (stub)
+├── analysis_options.yaml
+├── pubspec.yaml
 ├── CLAUDE.md
 ├── DESIGN.md
 └── README.md
@@ -32,9 +39,10 @@ flutter-agent-tools/
 - `pubspec_guard.sh`: PreToolUse hook on Write/Edit targeting pubspec.yaml.
   Currently a no-op stub.
 
-### MCP Server (Dart, not yet scaffolded)
+### MCP Server (Dart, scaffolded)
 
-Located in `server/`. A Dart executable that will expose MCP tools for the
+A Dart CLI package at the repo root. Entry point is `bin/mcp_server.dart`;
+server logic lives in `lib/src/mcp_server.dart`. Exposes MCP tools for the
 Package API Inspector and Flutter UI Agent. Declared in `plugin.json` under
 `mcpServers`.
 
@@ -51,7 +59,7 @@ Package API Inspector and Flutter UI Agent. Declared in `plugin.json` under
 - Plugin scaffold: done
 - `dep_health_check.sh`: functional (pub.dev validation, discontinuation check, age heuristic)
 - `pubspec_guard.sh`: stub only
-- MCP server (`server/`): not yet started
+- MCP server: scaffolded (echo tool only; real tools not yet implemented)
 
 ## Development
 
