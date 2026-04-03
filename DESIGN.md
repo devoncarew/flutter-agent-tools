@@ -1,0 +1,178 @@
+# Design: Flutter Agent Tools
+
+## Problem Statement
+
+AI coding agents working on Dart and Flutter projects face two structural
+failure modes:
+
+1. **Training cutoff drift.** Agents hallucinate outdated or discontinued
+package APIs. When they attempt to self-correct by reading raw source from
+`.pub-cache`, they consume large amounts of context window on implementation
+details rather than public API surface.
+
+2. **No runtime visibility.** Static analysis alone is insufficient for Flutter
+development. Agents cannot observe layout failures, verify state changes, or
+diagnose render issues without being able to "see" the running app.
+
+## Distribution
+
+The suite is distributed as a **Claude Code plugin**, installable with a single
+command. This gives:
+
+- **Developers:** low-friction installation; no manual server setup or prompt
+  engineering required.
+- **Agents:** tools are automatically available via native Claude Code
+  primitives (Hooks, MCP) without requiring explicit instruction.
+
+## Tool 1: Dependency Health Hook
+
+**Mechanism:** Claude Code `PreToolUse` hook
+
+**Trigger points:**
+- `Bash` tool calls matching `flutter pub add` or `dart pub add`
+- `Write`/`Edit` tool calls targeting `pubspec.yaml`
+
+**Behavior:**
+- Queries the pub.dev API to validate each package before it is added.
+- **Blocks** if a package is officially marked discontinued, and reports the
+  official replacement if one is listed.
+- **Warns** (without blocking) if a package appears abandoned by heuristics (see
+  below).
+- **Fails open** on infrastructure errors (network timeout, missing
+  dependencies) — the hook should never block the agent due to its own tooling
+  failures.
+
+**Abandonment heuristics** (beyond the official `isDiscontinued` flag):
+- Last publish date older than ~3 years (blunt; useful as a secondary signal
+  only).
+- The package's own dependencies pin to severely outdated versions of core
+  ecosystem packages (e.g., a very old `package:meta`). This is a stronger
+  signal and worth implementing in a future iteration.
+- README or repository signals (fork status, archived repo). Lower priority;
+  requires additional API calls.
+
+**Implementation:** Shell script (`dep_health_check.sh`) receiving JSON on stdin
+from Claude Code. Requires `curl` and `jq`.
+
+**Current state:** Functional for the `flutter pub add` path. The `pubspec.yaml`
+Write/Edit guard is a stub — it requires diffing the incoming file content to
+isolate newly added packages, which is more complex.
+
+## Tool 2: Package API Inspector
+
+**Mechanism:** MCP server command
+
+**Motivation:** Agents reading raw `.pub-cache` source to discover a package API
+is highly token-inefficient. They read implementation files, private members,
+and method bodies — none of which are needed.
+
+**Behavior:**
+- Accepts a package name and optional version.
+- Locates the package source (from `.pub-cache` or by fetching it).
+- Generates a Markdown summary of the **public API only**: class names, public
+  constructors, public methods and fields with their signatures, and top-level
+  declarations. Method bodies and private members are omitted.
+- Returns the summary directly to the agent as an MCP tool result.
+
+**Design reference:** Modeled on the architecture of the
+[`jot`](https://github.com/devoncarew/jot) tool.
+
+**Open questions:**
+- Should the output be generated from source (parsed AST) or from the package's
+  generated docs (dartdoc JSON)? Dartdoc JSON may be more reliable but requires
+  the package to have been analyzed. AST parsing gives more control.
+- How should version resolution work? Default to the version already in the
+  project's `pubspec.lock`; allow explicit override.
+- Should output be cached? Summaries for a given package+version are stable —
+  caching on disk would avoid redundant work across sessions.
+
+## Tool 3: Flutter UI Agent
+
+**Mechanism:** MCP server commands
+
+**Motivation:** A Playwright analogue for Flutter. Enables agents to observe and
+interact with a running Flutter app for layout debugging, state verification,
+and end-to-end workflow validation.
+
+**Behavior:**
+
+*Launch:*
+- Automatically builds and launches the Flutter app without manual setup from
+  the developer.
+- Target device is configurable: Flutter desktop (lowest friction), headless
+  test device, simulator, or any connected device.
+- Returns a session ID used by subsequent commands.
+
+*Introspection and interaction (via Dart VM Service):*
+- Query semantic/interactive elements (rather than dumping the full widget tree,
+  which is token-heavy).
+- Tap an element by semantics label.
+- Inject text into a field.
+- Scroll to bring off-screen elements into view.
+- Pull unhandled exceptions from the runtime.
+
+**Design reference:**
+- [Playwright MCP](https://playwright.dev/docs/getting-started-mcp) — overall model.
+- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17) — use cases and requirements.
+
+**Open questions:**
+- What is the right abstraction for "launch"? Wrapping `flutter run` with VM
+  service attachment, or building a headless test harness?
+- Widget tree queries should target semantic elements to stay token-efficient.
+  What is the right query interface — a selector syntax, a natural-language
+  description, or a structured filter?
+- Screenshot capture would be high-value for debugging. Feasibility depends on
+  the target device type.
+
+## MCP Server Architecture
+
+Both Tool 2 and Tool 3 are exposed through a single Dart MCP server. Using Dart
+is the natural fit given the domain and avoids introducing a Node.js runtime
+dependency.
+
+**Anticipated tool surface:**
+
+```
+// Tool 2
+packages_summarize_api(package: String, version: String?) → String
+
+// Tool 3
+flutter_launch_app(target: String?, device: String?) → String  // returns session_id
+flutter_query_ui(session_id: String, query: String) → String
+flutter_tap(session_id: String, semantics_label: String) → void
+flutter_inject_text(session_id: String, semantics_label: String, text: String) → void
+flutter_scroll_to(session_id: String, semantics_label: String) → void
+flutter_get_exceptions(session_id: String) → List<String>
+flutter_take_screenshot() → String
+```
+
+**Declared in `plugin.json`:**
+```json
+"mcpServers": {
+  "flutter-agent": {
+    "command": "dart",
+    "args": ["run", "flutter_agent_tools:mcp_server"]
+  }
+}
+```
+
+## Deferred / Open Questions
+
+- **App state and authentication (Tool 3):** Navigating apps that require login
+  or specific seeded data before reaching the UI under test is unsolved. A
+  future design may define an `.agent_state.md` convention for specifying
+  startup states, mock data, or auth bypasses.
+- **pubspec.yaml guard (Tool 1):** The Write/Edit hook path requires diffing
+  file content to extract newly added packages. Needs a dedicated design pass.
+- **Abandonment heuristics (Tool 1):** The dependency-graph signal (checking a
+  package's own deps for staleness) is more reliable than publish date and
+  should replace it as the primary heuristic.
+- **Plugin marketplace publication:** Distribution mechanism beyond
+  `--plugin-dir` local testing is not yet planned.
+
+## References
+
+- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17) — Flutter UI agent use cases
+- [flight_check issue #2](https://github.com/devoncarew/flight_check/issues/2) — pub outdated hook generalization
+- [Playwright MCP](https://playwright.dev/docs/getting-started-mcp)
+- [Playwright MCP (Simon Willison walkthrough)](https://til.simonwillison.net/claude-code/playwright-mcp-claude-code)

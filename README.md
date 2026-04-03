@@ -1,14 +1,15 @@
 # flutter-agent-tools
 
-A Claude Code plugin that helps AI coding agents write better Dart and Flutter code.
+A Claude Code plugin that helps AI coding agents write better Dart and Flutter
+code.
 
 ## Tools
 
-### Dependency Health Hook *(implemented)*
+### Dependency Health Hook
 
 A `PreToolUse` hook that intercepts `flutter pub add` / `dart pub add` commands
-and validates packages against pub.dev before they are added. Blocks discontinued
-packages and suggests official replacements.
+and validates packages against pub.dev before they are added. Blocks
+discontinued packages and suggests official replacements.
 
 **Requires:** `curl`, `jq`
 
@@ -22,11 +23,11 @@ A `PreToolUse` hook that intercepts direct `Write`/`Edit` operations on
 An MCP command that returns a token-efficient Markdown summary of a package's
 public API — without requiring the agent to read raw source from `.pub-cache`.
 
-### 🖥 Flutter UI Agent *(planned)*
+### Flutter UI Agent *(planned)*
 
-MCP commands for building, launching, and introspecting a running Flutter app
-at runtime: query semantic elements, inject text, trigger taps, and pull
-unhandled exceptions from the Dart VM Service.
+MCP commands for building, launching, and introspecting a running Flutter app at
+runtime: query semantic elements, inject text, trigger taps, and pull unhandled
+exceptions from the Dart VM Service.
 
 ## Installation
 
@@ -52,6 +53,9 @@ echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
 
 ## Links
 
-- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17) — Flutter UI agent use cases
-- [flight_check issue #2](https://github.com/devoncarew/flight_check/issues/2) — pub outdated hook generalization
-- [Playwright MCP](https://playwright.dev/docs/getting-started-mcp) — inspiration for Tool 3
+- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17) —
+  Flutter UI agent use cases
+- [flight_check issue #2](https://github.com/devoncarew/flight_check/issues/2) —
+  pub outdated hook generalization
+- [Playwright MCP](https://playwright.dev/docs/getting-started-mcp) —
+  inspiration for Tool 3
