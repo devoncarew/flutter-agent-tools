@@ -49,7 +49,7 @@ while IFS= read -r token; do
   # Skip flags (--dev, --sdk, etc.)
   [[ "$token" == --* ]] && continue
   # Strip version constraint (everything after ':' or '^' or '@')
-  pkg=$(echo "$token" | sed 's/[:\^@].*//')
+  pkg="${token%%[:^@]*}"
   [[ -n "$pkg" ]] && packages+=("$pkg")
 done < <(echo "$command_str" \
   | sed -E 's/(flutter|dart)\s+pub\s+add\s*//' \
