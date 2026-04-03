@@ -29,6 +29,14 @@ MCP commands for building, launching, and introspecting a running Flutter app at
 runtime: query semantic elements, inject text, trigger taps, and pull unhandled
 exceptions from the Dart VM Service.
 
+<!-- flutter commands -->
+| Command | Description |
+|---------|-------------|
+| `echo` | Returns the provided text unchanged. |
+| `flutter_launch_app` | Builds and launches the Flutter app, returning a session ID for use with subsequent flutter_* tools. |
+| `flutter_close_app` | Stops a running Flutter app and releases its session. |
+<!-- flutter commands -->
+
 ## Installation
 
 ```sh
