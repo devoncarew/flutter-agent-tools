@@ -2,15 +2,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:dart_mcp/server.dart';
-import 'package:flutter_daemon/flutter_daemon.dart';
 import 'package:unique_names_generator/unique_names_generator.dart';
 
-// TODO: We want to switch from using the persistent daemon process to using
-// `flutter run --machine`. This supports a subset of the daemon protocol -
-// also json over stdio - and was designed for this run-one-app use case.
-// This means we'll stop using package:flutter_daemon (and will likely roll our
-// own, miniimal library). The protocol is documented at:
-// https://github.com/flutter/flutter/blob/master/packages/flutter_tools/doc/daemon.md
+import 'flutter_run.dart';
 
 /// The MCP server for flutter-agent-tools.
 base class FlutterAgentServer extends MCPServer
@@ -31,19 +25,15 @@ base class FlutterAgentServer extends MCPServer
     registerTool(flutterCloseAppTool, _flutterCloseApp);
   }
 
-  FlutterDaemon? _daemon;
-  FlutterDaemon get _daemonInstance => _daemon ??= FlutterDaemon();
-
-  final Map<String, FlutterApplication> _sessions = {};
-  final Map<String, StreamSubscription<FlutterDaemonEvent>> _subscriptions = {};
+  final Map<String, FlutterRunSession> _sessions = {};
+  final Map<String, StreamSubscription<FlutterEvent>> _subscriptions = {};
 
   @override
   Future<void> shutdown() async {
     await Future.wait(_subscriptions.values.map((s) => s.cancel()));
     _subscriptions.clear();
-    await Future.wait(_sessions.values.map((app) => app.stop()));
+    await Future.wait(_sessions.values.map((session) => session.stop()));
     _sessions.clear();
-    await _daemon?.dispose();
     await super.shutdown();
   }
 
@@ -57,13 +47,13 @@ base class FlutterAgentServer extends MCPServer
   );
 
   String _newSessionId() {
-    final suffix =
+    final String suffix =
         List.generate(
           2,
           (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
         ).join();
 
-    return [_nameGenerator.generate(), suffix].join('-');
+    return [_nameGenerator.generate(), suffix].join('_');
   }
 
   final Tool flutterLaunchAppTool = Tool(
@@ -91,35 +81,30 @@ base class FlutterAgentServer extends MCPServer
   );
 
   Future<CallToolResult> _flutterLaunchApp(CallToolRequest request) async {
-    final args = request.arguments!;
-    final workingDirectory = args['working_directory'] as String;
-    final device = args['device'] as String?;
-    final target = args['target'] as String?;
+    final Map<String, dynamic> args = request.arguments!;
+    final String workingDirectory = args['working_directory'] as String;
+    final String? device = args['device'] as String?;
+    final String? target = args['target'] as String?;
 
-    final arguments = [
-      if (device != null) ...['--device-id', device],
-      if (target != null) ...['--target', target],
-    ];
-
-    final application = await _daemonInstance.run(
-      arguments: arguments,
+    final FlutterRunSession session = await FlutterRunSession.start(
       workingDirectory: workingDirectory,
+      deviceId: device,
+      target: target,
     );
 
-    final sessionId = _newSessionId();
-
-    _sessions[sessionId] = application;
-    _watchSession(sessionId, application);
+    final String sessionId = _newSessionId();
+    _sessions[sessionId] = session;
+    _watchSession(sessionId, session);
 
     return CallToolResult(
       content: [TextContent(text: 'Launched. Session ID: $sessionId')],
     );
   }
 
-  void _watchSession(String sessionId, FlutterApplication application) {
-    const loggerId = 'flutter_agent_tools';
+  void _watchSession(String sessionId, FlutterRunSession session) {
+    const String loggerId = 'flutter_agent_tools';
 
-    _subscriptions[sessionId] = application.events.listen((event) {
+    _subscriptions[sessionId] = session.events.listen((event) {
       if (event.event == 'app.stop') {
         _releaseSession(sessionId);
 
@@ -128,14 +113,25 @@ base class FlutterAgentServer extends MCPServer
           '[$sessionId] App stopped; session released.',
           logger: loggerId,
         );
-      } else {
-        final (level, message) = _convertToLog(event);
-        if (level != null) {
-          this.log(
-            level,
-            '[$sessionId] ${event.event}: $message',
-            logger: loggerId,
-          );
+
+        return;
+      }
+
+      final (LoggingLevel? level, String? message) = _convertToLog(event);
+      if (level != null && message != null) {
+        if (event.event == 'app.log') {
+          // We special case stdio output a bit.
+          const stdioPrefix = 'flutter: ';
+
+          if (message.startsWith(stdioPrefix)) {
+            final msg = message.substring(stdioPrefix.length);
+            this.log(level, '[stdio] $msg', logger: loggerId);
+          } else {
+            // It's system output.
+            this.log(level, '[flutter] $message', logger: loggerId);
+          }
+        } else {
+          this.log(level, '[${event.event}] $message', logger: loggerId);
         }
       }
     });
@@ -181,28 +177,29 @@ base class FlutterAgentServer extends MCPServer
   );
 
   Future<CallToolResult> _flutterPerformReload(CallToolRequest request) async {
-    final sessionId = request.arguments!['session_id'] as String;
-    final application = _sessions[sessionId];
+    final String sessionId = request.arguments!['session_id'] as String;
+    final FlutterRunSession? session = _sessions[sessionId];
 
-    if (application == null) {
+    if (session == null) {
       return CallToolResult(
         isError: true,
         content: [TextContent(text: 'No session found for ID: $sessionId')],
       );
     }
 
-    final fullRestart = request.arguments!['full_restart'] as bool? ?? false;
-    await application.restart(fullRestart: fullRestart);
+    final bool fullRestart =
+        request.arguments!['full_restart'] as bool? ?? false;
+    await session.restart(fullRestart: fullRestart);
 
-    final action = fullRestart ? 'Hot restart' : 'Hot reload';
+    final String action = fullRestart ? 'Hot restart' : 'Hot reload';
     return CallToolResult(content: [TextContent(text: '$action complete.')]);
   }
 
   Future<CallToolResult> _flutterCloseApp(CallToolRequest request) async {
-    final sessionId = request.arguments!['session_id'] as String;
-    final application = _sessions.remove(sessionId);
+    final String sessionId = request.arguments!['session_id'] as String;
+    final FlutterRunSession? session = _sessions.remove(sessionId);
 
-    if (application == null) {
+    if (session == null) {
       return CallToolResult(
         isError: true,
         content: [TextContent(text: 'No session found for ID: $sessionId')],
@@ -212,25 +209,32 @@ base class FlutterAgentServer extends MCPServer
     _releaseSession(sessionId);
 
     // We don't await this call.
-    application.stop();
+    session.stop();
 
     return CallToolResult(content: [TextContent(text: 'App stopped.')]);
   }
 
-  (LoggingLevel?, String?) _convertToLog(FlutterDaemonEvent event) {
-    final params = event.params;
+  (LoggingLevel?, String?) _convertToLog(FlutterEvent event) {
+    final Map<String, dynamic> params = event.params;
 
     // By default, flatten the map.
-    var message = params.keys
-        .map((k) {
-          final v = params[k];
+    String message = params.keys
+        .map((String k) {
+          final Object? v = params[k];
           return '$k: ${v is String ? "'$v'" : v}';
         })
         .join(', ');
 
     switch (event.event) {
+      case 'app.log':
+        {
+          message = params['log'] as String? ?? message;
+          final bool isError = params['error'] as bool? ?? false;
+          return (isError ? LoggingLevel.warning : LoggingLevel.info, message);
+        }
       case 'app.progress':
         {
+          // The `progressId` field identifies the app.progress type.
           switch (params['progressId']) {
             case 'devFS.update':
               {
@@ -241,9 +245,18 @@ base class FlutterAgentServer extends MCPServer
               {
                 // We get a start and a stop event; filter the first and promote
                 // the second.
-
                 if (params['finished'] == true) {
                   return (LoggingLevel.notice, 'Hot reload finished.');
+                } else {
+                  return (null, null);
+                }
+              }
+            case 'hot.restart':
+              {
+                // We get a start and a stop event; filter the first and promote
+                // the second.
+                if (params['finished'] == true) {
+                  return (LoggingLevel.notice, 'Hot restart finished.');
                 } else {
                   return (null, null);
                 }
