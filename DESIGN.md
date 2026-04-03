@@ -66,25 +66,89 @@ isolate newly added packages, which is more complex.
 is highly token-inefficient. They read implementation files, private members,
 and method bodies — none of which are needed.
 
-**Behavior:**
-- Accepts a package name and optional version.
-- Locates the package source (from `.pub-cache` or by fetching it).
-- Generates a Markdown summary of the **public API only**: class names, public
-  constructors, public methods and fields with their signatures, and top-level
-  declarations. Method bodies and private members are omitted.
-- Returns the summary directly to the agent as an MCP tool result.
+A more subtle failure mode also occurs: agents frequently rely on their own
+training-data summaries of a package's API, which are often subtly wrong
+(incorrect parameter names, missing required vs. optional distinctions, wrong
+constructor shapes). This causes first-attempt code to fail, triggering a
+correction loop that consumes more tokens than reading the source would have.
+A reliable, accurate API dump eliminates this loop entirely.
+
+**Observed agent behaviour during development of this plugin:**
+During development we needed the APIs for `dart_mcp`, `flutter_daemon`, and
+`unique_names_generator`. In each case the pattern was:
+1. Agent fetched pub.dev or produced a training-data summary — approximately
+   right but with meaningful errors (wrong `registerTool` signature, wrong
+   `log()` signature, missing name clash with `dart:developer`).
+2. We had to go back to the pub cache to read actual source and fix the errors.
+
+A Package API Inspector that returns accurate signatures up front would have
+eliminated step 2 in every case.
+
+**Output format: simplified Dart stubs**
+
+Responses are Dart source files with method bodies removed and private
+declarations omitted — analogous to TypeScript's `.d.ts` declaration files.
+This format is preferred over Markdown because:
+- The agent is writing Dart; no translation step means fewer transcription
+  errors. Seeing `Future<void> restart({bool? fullRestart, String? reason})`
+  is unambiguous in a way that a prose description is not.
+- Dart's type system captures nullability, required vs. optional, positional
+  vs. named, generic bounds, and function types exactly. Markdown approximates
+  them.
+- Import lines appear as literal Dart imports — the exact lines the agent
+  will write.
+- Doc comments and `/// ```dart` usage examples are co-located with their
+  declarations, matching how Dart packages already document themselves.
+
+**Interaction model: agent-directed, progressive detail**
+
+Rather than returning a single large dump, the tool accepts a `kind` parameter
+so the agent requests only what it needs at each step:
+
+| `kind` | Returns |
+|--------|---------|
+| `package_summary` | Version, entry-point import, one-paragraph README orientation, list of public libraries and top-level exported names. Enough to orient and decide what to look at next. |
+| `library_stub` | Full public API for one library as a Dart stub file: all exported classes, mixins, extensions, top-level functions and constants, with signatures but no bodies. Mixin-contributed methods are inlined and attributed. |
+| `class_stub` | Stub for a single named class/mixin/extension, including inherited and mixin-contributed members. Useful when the agent knows exactly what it needs. |
+| `example` | Contents of a specific example file from `example/` or inline `/// ```dart` samples extracted from a class or library. |
+
+The typical call sequence for an unfamiliar package:
+1. `package_summary` — orient, identify the relevant library.
+2. `library_stub` — get all signatures for that library.
+3. `class_stub` or `example` — drill into a specific class or usage pattern
+   if signatures alone aren't enough.
+
+**Inputs:**
+- `package`: package name (required).
+- `kind`: one of the values above (required).
+- `library` / `class`: target for `library_stub`, `class_stub`, `example`
+  (required for those kinds).
+- `version`: defaults to the version resolved in `pubspec.lock`; override
+  allowed for packages not yet in the lockfile.
+
+**Source:** `.pub-cache` only — already downloaded, always matches the
+resolved version, no network required.
+
+**What the inspector does NOT cover:**
+- String constants used as protocol/event identifiers (e.g. `'app.started'`
+  in the Flutter daemon protocol). These live in implementation code, not the
+  public API surface.
+- Runtime behaviour, error conditions, or semantic nuance not captured in
+  signatures or doc comments.
 
 **Design reference:** Modeled on the architecture of the
 [`jot`](https://github.com/devoncarew/jot) tool.
 
-**Open questions:**
-- Should the output be generated from source (parsed AST) or from the package's
-  generated docs (dartdoc JSON)? Dartdoc JSON may be more reliable but requires
-  the package to have been analyzed. AST parsing gives more control.
-- How should version resolution work? Default to the version already in the
-  project's `pubspec.lock`; allow explicit override.
-- Should output be cached? Summaries for a given package+version are stable —
-  caching on disk would avoid redundant work across sessions.
+**Implementation notes:**
+- **AST-based** (via `package:analyzer`) is preferred over dartdoc JSON.
+  Dartdoc requires a prior analysis pass and may not be present; the analyzer
+  element model is always derivable from source and correctly resolves mixin
+  contributions.
+- **Version resolution**: read from `pubspec.lock` in the current working
+  directory.
+- **Caching**: the pub cache directory is already versioned
+  (`{package}-{version}/`), so source is stable. Parse-result caching is a
+  nice-to-have for large packages like `package:analyzer` itself.
 
 ## Tool 3: Flutter UI Agent
 
@@ -134,7 +198,7 @@ dependency.
 
 ```
 // Tool 2
-packages_summarize_api(package: String, version: String?) → String
+package_info(package: String, kind: String, library: String?, class: String?, version: String?) → String
 
 // Tool 3
 flutter_launch_app(target: String?, device: String?) → String  // returns session_id

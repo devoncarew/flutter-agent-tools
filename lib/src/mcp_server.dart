@@ -5,6 +5,13 @@ import 'package:dart_mcp/server.dart';
 import 'package:flutter_daemon/flutter_daemon.dart';
 import 'package:unique_names_generator/unique_names_generator.dart';
 
+// TODO: We want to switch from using the persistent daemon process to using
+// `flutter run --machine`. This supports a subset of the daemon protocol -
+// also json over stdio - and was designed for this run-one-app use case.
+// This means we'll stop using package:flutter_daemon (and will likely roll our
+// own, miniimal library). The protocol is documented at:
+// https://github.com/flutter/flutter/blob/master/packages/flutter_tools/doc/daemon.md
+
 /// The MCP server for flutter-agent-tools.
 base class FlutterAgentServer extends MCPServer
     with ToolsSupport, LoggingSupport {
@@ -100,6 +107,7 @@ base class FlutterAgentServer extends MCPServer
     );
 
     final sessionId = _newSessionId();
+
     _sessions[sessionId] = application;
     _watchSession(sessionId, application);
 
@@ -219,8 +227,6 @@ base class FlutterAgentServer extends MCPServer
           return '$k: ${v is String ? "'$v'" : v}';
         })
         .join(', ');
-
-    // event.event
 
     switch (event.event) {
       case 'app.progress':

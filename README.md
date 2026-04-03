@@ -11,19 +11,19 @@ A `PreToolUse` hook that intercepts `flutter pub add` / `dart pub add` commands
 and validates packages against pub.dev before they are added. Blocks
 discontinued packages and suggests official replacements.
 
-**Requires:** `curl`, `jq`
+Requires: `curl`, `jq`
 
-### pubspec.yaml Guard *(stub)*
+### pubspec.yaml Guard (stub)
 
 A `PreToolUse` hook that intercepts direct `Write`/`Edit` operations on
 `pubspec.yaml` and validates newly-added dependencies. Not yet implemented.
 
-### Package API Inspector *(planned)*
+### Package API Inspector (planned)
 
 An MCP command that returns a token-efficient Markdown summary of a package's
 public API — without requiring the agent to read raw source from `.pub-cache`.
 
-### Flutter UI Agent *(planned)*
+### Flutter UI Agent (planned)
 
 MCP commands for building, launching, and introspecting a running Flutter app at
 runtime: query semantic elements, inject text, trigger taps, and pull unhandled
