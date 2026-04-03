@@ -36,7 +36,7 @@ exceptions from the Dart VM Service.
 /plugin install flutter-agent-tools
 
 # Or test locally:
-claude --plugin-dir /path/to/flutter-agent-tools
+claude --plugin-dir </path/to>/flutter-agent-tools
 ```
 
 ## Development
