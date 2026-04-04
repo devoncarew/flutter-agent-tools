@@ -73,11 +73,11 @@ A more subtle failure mode also occurs: agents frequently rely on their own
 training-data summaries of a package's API, which are often subtly wrong
 (incorrect parameter names, missing required vs. optional distinctions, wrong
 constructor shapes). This causes first-attempt code to fail, triggering a
-correction loop that consumes more tokens than reading the source would have.
-A reliable, accurate API dump eliminates this loop entirely.
+correction loop that consumes more tokens than reading the source would have. A
+reliable, accurate API dump eliminates this loop entirely.
 
-**Observed agent behaviour during development of this plugin:**
-During development we needed the APIs for `dart_mcp`, `flutter_daemon`, and
+**Observed agent behaviour during development of this plugin:** During
+development we needed the APIs for `dart_mcp`, `flutter_daemon`, and
 `unique_names_generator`. In each case the pattern was:
 
 1. Agent fetched pub.dev or produced a training-data summary — approximately
@@ -91,17 +91,16 @@ eliminated step 2 in every case.
 **Output format: simplified Dart stubs**
 
 Responses are Dart source files with method bodies removed and private
-declarations omitted — analogous to TypeScript's `.d.ts` declaration files.
-This format is preferred over Markdown because:
+declarations omitted — analogous to TypeScript's `.d.ts` declaration files. This
+format is preferred over Markdown because:
 
 - The agent is writing Dart; no translation step means fewer transcription
-  errors. Seeing `Future<void> restart({bool? fullRestart, String? reason})`
-  is unambiguous in a way that a prose description is not.
-- Dart's type system captures nullability, required vs. optional, positional
-  vs. named, generic bounds, and function types exactly. Markdown approximates
-  them.
-- Import lines appear as literal Dart imports — the exact lines the agent
-  will write.
+  errors. Seeing `Future<void> restart({bool? fullRestart, String? reason})` is
+  unambiguous in a way that a prose description is not.
+- Dart's type system captures nullability, required vs. optional, positional vs.
+  named, generic bounds, and function types exactly. Markdown approximates them.
+- Import lines appear as literal Dart imports — the exact lines the agent will
+  write.
 - Doc comments and `/// ```dart` usage examples are co-located with their
   declarations, matching how Dart packages already document themselves.
 
@@ -121,8 +120,8 @@ The typical call sequence for an unfamiliar package:
 
 1. `package_summary` — orient, identify the relevant library.
 2. `library_stub` — get all signatures for that library.
-3. `class_stub` or `example` — drill into a specific class or usage pattern
-   if signatures alone aren't enough.
+3. `class_stub` or `example` — drill into a specific class or usage pattern if
+   signatures alone aren't enough.
 
 **Inputs:**
 
@@ -133,13 +132,13 @@ The typical call sequence for an unfamiliar package:
 - `version`: defaults to the version resolved in `pubspec.lock`; override
   allowed for packages not yet in the lockfile.
 
-**Source:** `.pub-cache` only — already downloaded, always matches the
-resolved version, no network required.
+**Source:** `.pub-cache` only — already downloaded, always matches the resolved
+version, no network required.
 
 **What the inspector does NOT cover:**
 
-- String constants used as protocol/event identifiers (e.g. `'app.started'`
-  in the Flutter daemon protocol). These live in implementation code, not the
+- String constants used as protocol/event identifiers (e.g. `'app.started'` in
+  the Flutter daemon protocol). These live in implementation code, not the
   public API surface.
 - Runtime behaviour, error conditions, or semantic nuance not captured in
   signatures or doc comments.
@@ -149,9 +148,9 @@ resolved version, no network required.
 
 **Implementation notes:**
 
-- **AST-based** (via `package:analyzer`) is preferred over dartdoc JSON.
-  Dartdoc requires a prior analysis pass and may not be present; the analyzer
-  element model is always derivable from source and correctly resolves mixin
+- **AST-based** (via `package:analyzer`) is preferred over dartdoc JSON. Dartdoc
+  requires a prior analysis pass and may not be present; the analyzer element
+  model is always derivable from source and correctly resolves mixin
   contributions.
 - **Version resolution**: read from `pubspec.lock` in the current working
   directory.
@@ -188,8 +187,10 @@ _Introspection and interaction (via Dart VM Service):_
 
 **Design reference:**
 
-- [Playwright MCP](https://playwright.dev/docs/getting-started-mcp) — overall model.
-- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17) — use cases and requirements.
+- [Playwright MCP](https://playwright.dev/docs/getting-started-mcp) — overall
+  model.
+- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17)
+  — use cases and requirements.
 
 **Open questions:**
 
@@ -250,7 +251,9 @@ flutter_take_screenshot(session_id: String, pixel_ratio: String?) → String
 
 ## References
 
-- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17) — Flutter UI agent use cases
-- [flight_check issue #2](https://github.com/devoncarew/flight_check/issues/2) — pub outdated hook generalization
+- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17)
+  — Flutter UI agent use cases
+- [flight_check issue #2](https://github.com/devoncarew/flight_check/issues/2) —
+  pub outdated hook generalization
 - [Playwright MCP](https://playwright.dev/docs/getting-started-mcp)
 - [Playwright MCP (Simon Willison walkthrough)](https://til.simonwillison.net/claude-code/playwright-mcp-claude-code)

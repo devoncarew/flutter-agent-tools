@@ -112,6 +112,30 @@ class FlutterServiceExtensions {
     return DiagnosticsNode.fromJson(_result(response));
   }
 
+  // ---------------------------------------------------------------------------
+  // ext.flutter.inspector.setSelectionById
+
+  /// Moves the inspector selection to the widget with [id] on the connected
+  /// device or emulator.
+  ///
+  /// This is the same action DevTools performs when you click a widget in the
+  /// Widget Tree — it forces the on-screen highlight to move to the widget
+  /// without requiring a physical tap.
+  ///
+  /// Pass `null` for [id] to clear the current selection.
+  ///
+  /// Returns `true` if the selection was changed.
+  Future<bool> setSelectionById(String? id) async {
+    final Response response = await _callExtension(
+      'ext.flutter.inspector.setSelectionById',
+      args: {'arg': id, 'objectGroup': inspectorGroup},
+    );
+    return response.json!['result'] as bool? ?? false;
+  }
+
+  // ---------------------------------------------------------------------------
+  // ext.flutter.inspector.screenshot
+
   /// Takes a screenshot of the object with [id], rendered at [width] × [height]
   /// logical pixels. Returns base64-encoded PNG data, or null if the object is
   /// not currently visible.
@@ -154,7 +178,7 @@ class FlutterServiceExtensions {
 
   /// Calls [method] on the first isolate that has it registered.
   ///
-  /// Throws a [StateError] if no isolate has the extension registered.
+  /// Throws an [RPCError] if no isolate has the extension registered.
   Future<Response> _callExtension(
     String method, {
     Map<String, dynamic>? args,
@@ -183,6 +207,9 @@ class FlutterServiceExtensions {
         return ref.id!;
       }
     }
-    throw StateError('No isolate found with extension: $extension');
+    throw rpcError('No isolate found with extension: $extension');
   }
 }
+
+RPCError rpcError(String message, {String? fromMethod}) =>
+    RPCError(fromMethod, 0, message);

@@ -2,19 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
 import 'diagnostics_node.dart';
 import 'flutter_service_extensions.dart';
-
-/// An event emitted by a running Flutter app via the `flutter run --machine`
-/// daemon protocol.
-class FlutterEvent {
-  FlutterEvent(this.event, this.params);
-
-  final String event;
-  final Map<String, dynamic> params;
-}
 
 /// Manages a `flutter run --machine` subprocess.
 ///
@@ -68,7 +60,7 @@ class FlutterRunSession {
   /// Launches `flutter run --machine` in [workingDirectory] and waits until
   /// the app has fully started.
   ///
-  /// Throws a [StateError] if the process exits before the app starts.
+  /// Throws a [DaemonException] if the process exits before the app starts.
   static Future<FlutterRunSession> start({
     required String workingDirectory,
     required EventCallback eventListener,
@@ -100,6 +92,8 @@ class FlutterRunSession {
 
   /// Hot reloads the app. If [fullRestart] is true, performs a hot restart
   /// instead.
+  ///
+  /// Throws a [DaemonException] if there were issues performing the restart.
   Future<void> restart({bool fullRestart = false}) async {
     final String appId = _appId!;
     final Map<String, dynamic> result = await _sendCommand('app.restart', {
@@ -109,7 +103,7 @@ class FlutterRunSession {
     final int code = (result['code'] as num?)?.toInt() ?? 0;
     if (code != 0) {
       final String message = result['message'] as String? ?? 'unknown error';
-      throw StateError('app.restart failed (code $code): $message');
+      throw DaemonException('app.restart failed (code $code): $message');
     }
   }
 
@@ -122,15 +116,18 @@ class FlutterRunSession {
   ///
   /// The root widget's object id and logical size are resolved automatically
   /// via the inspector protocol. [maxPixelRatio] scales the output resolution.
+  ///
+  /// This method is a wrapper over several service method extensions; it throws
+  /// an [RPCError] if there are issues taking the screenshot.
   Future<String> takeScreenshot({double maxPixelRatio = 1.0}) async {
     final FlutterServiceExtensions extensions = _serviceExtensions!;
 
-    // getRootWidget returns full detail including valueId — the inspector object
-    // handle required by the screenshot extension.
+    // getRootWidget returns full detail including valueId — the inspector
+    // object handle required by the screenshot extension.
     final DiagnosticsNode rootNode = await extensions.getRootWidget();
     final String? rootId = rootNode.valueId;
     if (rootId == null) {
-      throw StateError('getRootWidget did not return a valueId');
+      throw rpcError('getRootWidget did not return a valueId');
     }
 
     final (double width, double height) = await _getWidgetSize(
@@ -145,9 +142,7 @@ class FlutterRunSession {
       maxPixelRatio: maxPixelRatio,
     );
     if (base64Data == null) {
-      throw StateError(
-        'Screenshot returned null — widget may not be on screen',
-      );
+      throw rpcError('Screenshot returned null — widget may not be on screen');
     }
     return base64Data;
   }
@@ -224,13 +219,14 @@ class FlutterRunSession {
   }
 
   void _handleLine(String line) {
-    // Daemon messages are wrapped in [ ]; ignore stray output (build logs, etc).
+    // Daemon messages are wrapped in [ ]; ignore stray output (build logs,
+    // etc).
     final String trimmed = line.trim();
     if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) {
       // Convert regular stdio output to log messages.
       if (!_sessionEnded) {
         _eventListener(
-          FlutterEvent('app.log', {'appId': _appId, 'log': trimmed}),
+          DaemonEvent('app.log', {'appId': _appId, 'log': trimmed}),
         );
       }
       return;
@@ -258,7 +254,7 @@ class FlutterRunSession {
               error is Map
                   ? (error['message'] as String? ?? '$error')
                   : '$error';
-          completer.completeError(StateError(errorMsg));
+          completer.completeError(DaemonException(errorMsg));
         } else {
           final Object? result = msg['result'];
           completer.complete(
@@ -286,7 +282,7 @@ class FlutterRunSession {
       }
 
       if (!_sessionEnded) {
-        _eventListener(FlutterEvent(event, params));
+        _eventListener(DaemonEvent(event, params));
       }
     }
   }
@@ -301,11 +297,11 @@ class FlutterRunSession {
     if (!_startedCompleter.isCompleted) {
       final String stderr = _stderrLines.join('\n');
       _startedCompleter.completeError(
-        StateError('flutter run exited before app started.\n$stderr'),
+        rpcError('flutter run exited before app started.\n$stderr'),
       );
     }
     for (final Completer<Map<String, dynamic>> c in _pending.values) {
-      c.completeError(StateError('flutter run process exited'));
+      c.completeError(rpcError('flutter run process exited'));
     }
     _pending.clear();
 
@@ -316,6 +312,26 @@ class FlutterRunSession {
   }
 }
 
-typedef EventCallback = void Function(FlutterEvent);
+/// An event emitted by a running Flutter app via the `flutter run --machine`
+/// daemon protocol.
+class DaemonEvent {
+  final String event;
+  final Map<String, dynamic> params;
+
+  DaemonEvent(this.event, this.params);
+}
+
+/// An error returned from a command sent to 'flutter run' over the daemon
+/// protocol.
+class DaemonException implements Exception {
+  final String message;
+
+  DaemonException(this.message);
+
+  @override
+  String toString() => 'DaemonException: $message';
+}
+
+typedef EventCallback = void Function(DaemonEvent);
 
 typedef Logger = void Function(String);

@@ -3,9 +3,11 @@ import 'dart:math';
 
 import 'package:dart_mcp/server.dart';
 import 'package:unique_names_generator/unique_names_generator.dart';
+import 'package:vm_service/vm_service.dart' show RPCError;
 
 import 'flutter_run_session.dart';
 import 'flutter_service_extensions.dart';
+import 'utils.dart';
 
 // TODO: We'll likely need to listen to the vm service protocol event
 // 'Flutter.Error' to get structured framework / layout errors.
@@ -25,15 +27,17 @@ base class FlutterAgentServer extends MCPServer
     loggingLevel = LoggingLevel.info;
 
     registerTool(flutterLaunchAppTool, _flutterLaunchApp);
-    registerTool(flutterPerformReloadTool, _flutterPerformReload);
     registerTool(flutterCloseAppTool, _flutterCloseApp);
+    registerTool(flutterPerformReloadTool, _flutterPerformReload);
     registerTool(flutterTakeScreenshotTool, _flutterTakeScreenshot);
-    // TODO: we may remove this tool
+    // Experimental: may or may not justify its existence long-term.
+    registerTool(flutterHighlightWidgetTool, _flutterHighlightWidget);
+    // Experimental: may or may not justify its existence long-term.
     registerTool(flutterDebugPaintTool, _flutterDebugPaint);
   }
 
   final Map<String, FlutterRunSession> _sessions = {};
-  final Map<String, StreamSubscription<FlutterEvent>> _subscriptions = {};
+  final Map<String, StreamSubscription<DaemonEvent>> _subscriptions = {};
 
   @override
   Future<void> shutdown() async {
@@ -95,15 +99,23 @@ base class FlutterAgentServer extends MCPServer
 
     final String sessionId = _newSessionId();
 
-    final FlutterRunSession session = await FlutterRunSession.start(
-      workingDirectory: workingDirectory,
-      eventListener: (event) => _handleEvent(sessionId, event),
-      deviceId: device,
-      target: target,
-      // debugLogger: (msg) {
-      //   debugLog(msg);
-      // },
-    );
+    final FlutterRunSession session;
+    try {
+      session = await FlutterRunSession.start(
+        workingDirectory: workingDirectory,
+        eventListener: (event) => _handleEvent(sessionId, event),
+        deviceId: device,
+        target: target,
+        // debugLogger: (msg) {
+        //   debugLog(msg);
+        // },
+      );
+    } on DaemonException catch (e) {
+      return CallToolResult(
+        isError: true,
+        content: [TextContent(text: e.message)],
+      );
+    }
 
     _sessions[sessionId] = session;
 
@@ -114,7 +126,7 @@ base class FlutterAgentServer extends MCPServer
 
   static const String _loggerId = 'flutter_agent_tools';
 
-  void _handleEvent(String sessionId, FlutterEvent event) {
+  void _handleEvent(String sessionId, DaemonEvent event) {
     if (event.event == 'app.stop') {
       _releaseSession(sessionId);
 
@@ -195,15 +207,20 @@ base class FlutterAgentServer extends MCPServer
   Future<CallToolResult> _flutterPerformReload(CallToolRequest request) async {
     final String? sessionId = request.arguments!['session_id'] as String?;
     final FlutterRunSession? session = _sessions[sessionId];
-    if (session == null) {
-      if (sessionId == null || session == null) {
-        return _unknownSessionResult(sessionId);
-      }
+    if (sessionId == null || session == null) {
+      return _unknownSessionResult(sessionId);
     }
 
     final bool fullRestart =
         request.arguments!['full_restart'] as bool? ?? false;
-    await session.restart(fullRestart: fullRestart);
+    try {
+      await session.restart(fullRestart: fullRestart);
+    } on DaemonException catch (e) {
+      return CallToolResult(
+        isError: true,
+        content: [TextContent(text: e.message)],
+      );
+    }
 
     final String action = fullRestart ? 'Hot restart' : 'Hot reload';
     return CallToolResult(content: [TextContent(text: '$action complete.')]);
@@ -227,8 +244,8 @@ base class FlutterAgentServer extends MCPServer
   final Tool flutterDebugPaintTool = Tool(
     name: 'flutter_debug_paint',
     description:
-        'Gets or sets the debug paint overlay for a running Flutter app. '
-        'Debug paint draws layout debug lines over the UI. '
+        '[Experimental] Gets or sets the debug paint overlay for a running '
+        'Flutter app. Debug paint draws layout debug lines over the UI. '
         'Omit "enabled" to read the current value.',
     inputSchema: Schema.object(
       properties: {
@@ -253,22 +270,28 @@ base class FlutterAgentServer extends MCPServer
 
     final FlutterServiceExtensions extensions = session.serviceExtensions!;
     final bool? enabled = request.arguments!['enabled'] as bool?;
-    if (enabled == null) {
-      final bool current = await extensions.getDebugPaint();
-      return CallToolResult(
-        content: [
-          TextContent(
-            text: 'Debug paint is ${current ? 'enabled' : 'disabled'}.',
-          ),
-        ],
-      );
-    } else {
-      await extensions.setDebugPaint(enabled);
-      return CallToolResult(
-        content: [
-          TextContent(text: 'Debug paint ${enabled ? 'enabled' : 'disabled'}.'),
-        ],
-      );
+    try {
+      if (enabled == null) {
+        final bool current = await extensions.getDebugPaint();
+        return CallToolResult(
+          content: [
+            TextContent(
+              text: 'Debug paint is ${current ? 'enabled' : 'disabled'}.',
+            ),
+          ],
+        );
+      } else {
+        await extensions.setDebugPaint(enabled);
+        return CallToolResult(
+          content: [
+            TextContent(
+              text: 'Debug paint ${enabled ? 'enabled' : 'disabled'}.',
+            ),
+          ],
+        );
+      }
+    } on RPCError catch (e) {
+      return _rpcErrorResult(e);
     }
   }
 
@@ -303,13 +326,67 @@ base class FlutterAgentServer extends MCPServer
     final num? pixelRatioArg = request.arguments!['pixel_ratio'] as num?;
     final double pixelRatio = pixelRatioArg?.toDouble() ?? 1.0;
 
-    final String base64Data = await session.takeScreenshot(
-      maxPixelRatio: pixelRatio,
-    );
+    try {
+      final String base64Data = await session.takeScreenshot(
+        maxPixelRatio: pixelRatio,
+      );
+      return CallToolResult(
+        content: [ImageContent(data: base64Data, mimeType: 'image/png')],
+      );
+    } on RPCError catch (e) {
+      return _rpcErrorResult(e);
+    }
+  }
 
-    return CallToolResult(
-      content: [ImageContent(data: base64Data, mimeType: 'image/png')],
-    );
+  // EXPERIMENTAL: visual highlight on the connected device/emulator.
+  final Tool flutterHighlightWidgetTool = Tool(
+    name: 'flutter_highlight_widget',
+    description:
+        '[Experimental] Highlights a widget on the connected device or '
+        'emulator by moving the inspector selection to it. This gives the '
+        'human developer a visual cue of what the agent is currently looking '
+        'at. Requires a widget object ID from a prior inspector call.',
+    inputSchema: Schema.object(
+      properties: {
+        'session_id': Schema.string(
+          description: 'The session ID returned by flutter_launch_app.',
+        ),
+        'widget_id': Schema.string(
+          description:
+              'The inspector object ID of the widget to highlight. '
+              'Omit or pass null to clear the current selection.',
+        ),
+      },
+      required: ['session_id'],
+    ),
+  );
+
+  Future<CallToolResult> _flutterHighlightWidget(
+    CallToolRequest request,
+  ) async {
+    final String? sessionId = request.arguments!['session_id'] as String?;
+    final FlutterRunSession? session = _sessions[sessionId];
+
+    if (sessionId == null || session == null) {
+      return _unknownSessionResult(sessionId);
+    }
+
+    final String? widgetId = request.arguments!['widget_id'] as String?;
+
+    try {
+      final changed = await session.serviceExtensions!.setSelectionById(
+        widgetId,
+      );
+      return CallToolResult(
+        content: [
+          TextContent(
+            text: changed ? 'Widget highlighted.' : 'Selection unchanged.',
+          ),
+        ],
+      );
+    } on RPCError catch (e) {
+      return _rpcErrorResult(e);
+    }
   }
 
   CallToolResult _unknownSessionResult(String? sessionId) {
@@ -319,7 +396,15 @@ base class FlutterAgentServer extends MCPServer
     );
   }
 
-  (LoggingLevel?, String?) _convertToLog(FlutterEvent event) {
+  CallToolResult _rpcErrorResult(RPCError e) {
+    final error = ServiceError.tryParse(e);
+    return CallToolResult(
+      isError: true,
+      content: [TextContent(text: error?.exception ?? e.message)],
+    );
+  }
+
+  (LoggingLevel?, String?) _convertToLog(DaemonEvent event) {
     final Map<String, dynamic> params = event.params;
 
     // By default, flatten the map.
@@ -371,5 +456,28 @@ base class FlutterAgentServer extends MCPServer
     }
 
     return (LoggingLevel.info, message);
+  }
+}
+
+class ServiceError {
+  final String exception;
+  final String? stack;
+
+  ServiceError(this.exception, this.stack);
+
+  static ServiceError? tryParse(RPCError error) {
+    // While highly unusual, when present, `data['details']` is an
+    // `{exception, stack}` map, encoded as a JSON string.
+    if (error.details != null) {
+      final obj = jsonTryParse(error.details!);
+      if (obj is Map) {
+        return ServiceError(
+          obj['exception'] as String? ?? '',
+          obj['stack'] as String?,
+        );
+      }
+    }
+
+    return null;
   }
 }
