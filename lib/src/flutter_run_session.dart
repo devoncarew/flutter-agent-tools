@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
+
+import 'diagnostics_node.dart';
+import 'flutter_service_extensions.dart';
 
 /// An event emitted by a running Flutter app via the `flutter run --machine`
 /// daemon protocol.
@@ -18,7 +20,8 @@ class FlutterEvent {
 ///
 /// Use [FlutterRunSession.start] to launch a Flutter app and obtain a session.
 /// The session provides [events] for monitoring app lifecycle and output,
-/// [restart] for hot reload/restart, and [stop] to terminate the app.
+/// [restart] for hot reload/restart, [stop] to terminate the app, and
+/// [serviceExtensions] for direct access to Flutter VM service extensions.
 class FlutterRunSession {
   FlutterRunSession._(this._process, this._eventListener) {
     _process.stdout
@@ -43,13 +46,20 @@ class FlutterRunSession {
   bool _sessionEnded = false;
 
   String? _vmServiceUri;
-  VmService? _vmService;
+  FlutterServiceExtensions? _serviceExtensions;
 
   // ignore: unused_field
   String? _devToolsUri;
 
   // ignore: unused_field
   String? _dtdToolsUri;
+
+  /// Access to Flutter VM service extensions for this session.
+  ///
+  /// Available once the app has started and the VM service has connected
+  /// (i.e. after [start] returns). Null if the VM service has not yet
+  /// connected or has been disposed.
+  FlutterServiceExtensions? get serviceExtensions => _serviceExtensions;
 
   /// Launches `flutter run --machine` in [workingDirectory] and waits until
   /// the app has fully started.
@@ -102,78 +112,74 @@ class FlutterRunSession {
     await _sendCommand('app.stop', {'appId': _appId!});
   }
 
-  /// Returns whether debug paint is currently enabled.
-  Future<bool> getDebugPaint() async {
-    final Response response = await _callExtension('ext.flutter.debugPaint');
-    return response.json!['enabled'] == 'true';
-  }
-
-  /// Enables or disables debug paint (layout debug lines overlay).
-  Future<void> setDebugPaint(bool enabled) async {
-    await _callExtension(
-      'ext.flutter.debugPaint',
-      args: {'enabled': enabled.toString()},
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Flutter Inspector
-  // If inspector-related methods grow significantly, consider extracting them
-  // to a dedicated FlutterInspector class backed by the VmService connection.
-
-  /// Returns the root widget as a [DiagnosticsNode] JSON tree.
+  /// Takes a screenshot of the root widget, returning base64-encoded PNG data.
   ///
-  /// Each node contains:
-  ///   - `description`: human-readable widget description
-  ///   - `widgetRuntimeType`: the widget class name
-  ///   - `children`: list of child nodes (same structure, recursively)
-  ///   - `shouldIndent`: display hint
-  ///
-  /// [groupName] is used by the inspector for object lifetime management.
-  Future<Map<String, dynamic>> getRootWidget({
-    String objectGroup = 'flutter_agent_tools',
-  }) async {
-    final Response response = await _callExtension(
-      'ext.flutter.inspector.getRootWidget',
-      args: {'objectGroup': objectGroup, 'isSummaryTree': 'true'},
-    );
-    return response.json!;
-  }
+  /// The root widget's object id and logical size are resolved automatically
+  /// via the inspector protocol. [maxPixelRatio] scales the output resolution.
+  Future<String> takeScreenshot({double maxPixelRatio = 1.0}) async {
+    final FlutterServiceExtensions extensions = _serviceExtensions!;
 
-  /// Calls a VM service extension on the first isolate that has it registered.
-  ///
-  /// Throws a [StateError] if no isolate has the extension registered.
-  Future<Response> _callExtension(
-    String method, {
-    Map<String, dynamic>? args,
-  }) async {
-    final VmService vmService = _vmService!;
-    final String isolateId = await _isolateIdForExtension(method);
-    return vmService.callServiceExtension(
-      method,
-      isolateId: isolateId,
-      args: args,
-    );
-  }
-
-  /// Returns the isolate ID of the first isolate that has [extension] registered.
-  ///
-  /// TODO: Optimize this — currently it calls getVM() and getIsolate() on every
-  /// invocation. We should cache the isolate ID (keyed by extension) and
-  /// invalidate the cache on hot restart. To do that correctly we'll need to
-  /// listen to VM service events (e.g. IsolateStart / IsolateExit, or the
-  /// Extension event) so we know when isolates change and re-register their
-  /// extensions after a hot restart.
-  Future<String> _isolateIdForExtension(String extension) async {
-    final VmService vmService = _vmService!;
-    final VM vm = await vmService.getVM();
-    for (final IsolateRef ref in vm.isolates ?? []) {
-      final Isolate isolate = await vmService.getIsolate(ref.id!);
-      if (isolate.extensionRPCs?.contains(extension) == true) {
-        return ref.id!;
-      }
+    // getRootWidget returns full detail including valueId — the inspector object
+    // handle required by the screenshot extension.
+    final DiagnosticsNode rootNode = await extensions.getRootWidget();
+    final String? rootId = rootNode.valueId;
+    if (rootId == null) {
+      throw StateError('getRootWidget did not return a valueId');
     }
-    throw StateError('No isolate found with extension: $extension');
+
+    final (double width, double height) = await _getWidgetSize(
+      extensions,
+      rootId,
+    );
+
+    final String? base64Data = await extensions.screenshot(
+      id: rootId,
+      width: width,
+      height: height,
+      maxPixelRatio: maxPixelRatio,
+    );
+    if (base64Data == null) {
+      throw StateError(
+        'Screenshot returned null — widget may not be on screen',
+      );
+    }
+    return base64Data;
+  }
+
+  /// Returns the logical size of the widget with [id] by examining its details
+  /// subtree properties. Looks for a `Size(w, h)` pattern in property
+  /// descriptions, which is how Flutter's RenderObject.size surfaces in the
+  /// diagnostics tree. Falls back to 400x800 if the size cannot be determined.
+  Future<(double, double)> _getWidgetSize(
+    FlutterServiceExtensions extensions,
+    String diagnosticableId,
+  ) async {
+    try {
+      final DiagnosticsNode node = await extensions.getDetailsSubtree(
+        diagnosticableId,
+        subtreeDepth: 2,
+      );
+      final (double, double)? size = _extractSize(node);
+      if (size != null) return size;
+    } catch (_) {
+      // Fall through to default.
+    }
+    return (400.0, 800.0);
+  }
+
+  /// Recursively searches [node] and its properties for a `Size(w, h)` value.
+  (double, double)? _extractSize(DiagnosticsNode node) {
+    final RegExpMatch? match = RegExp(
+      r'Size\((\d+\.?\d*),\s*(\d+\.?\d*)\)',
+    ).firstMatch(node.description);
+    if (match != null) {
+      return (double.parse(match.group(1)!), double.parse(match.group(2)!));
+    }
+    for (final DiagnosticsNode prop in node.properties) {
+      final (double, double)? result = _extractSize(prop);
+      if (result != null) return result;
+    }
+    return null;
   }
 
   Future<Map<String, dynamic>> _sendCommand(
@@ -196,7 +202,6 @@ class FlutterRunSession {
     if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) {
       // Convert regular stdio output to log messages.
       if (!_sessionEnded) {
-        // The params field will be a map with the fields appId and log.
         _eventListener(
           FlutterEvent('app.log', {'appId': _appId, 'log': trimmed}),
         );
@@ -260,20 +265,8 @@ class FlutterRunSession {
   }
 
   Future<void> _connectVmService(String wsUri) async {
-    _vmService = await vmServiceConnectUri(wsUri);
-  }
-
-  /// Returns the VM service extension RPCs registered across all live isolates.
-  Future<List<String>> listServiceExtensions() async {
-    final VmService vmService = _vmService!;
-    final VM vm = await vmService.getVM();
-    final List<String> extensions = [];
-    for (final IsolateRef ref in vm.isolates ?? []) {
-      final Isolate isolate = await vmService.getIsolate(ref.id!);
-      extensions.addAll(isolate.extensionRPCs ?? []);
-    }
-    extensions.sort();
-    return extensions;
+    final vmService = await vmServiceConnectUri(wsUri);
+    _serviceExtensions = FlutterServiceExtensions(vmService);
   }
 
   void _handleDone() {
@@ -291,8 +284,8 @@ class FlutterRunSession {
 
     _sessionEnded = true;
 
-    _vmService?.dispose();
-    _vmService = null;
+    _serviceExtensions?.dispose();
+    _serviceExtensions = null;
   }
 }
 

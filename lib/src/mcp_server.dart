@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:dart_mcp/server.dart';
 import 'package:unique_names_generator/unique_names_generator.dart';
 
 import 'flutter_run_session.dart';
+import 'flutter_service_extensions.dart';
 
 // TODO: We'll likely need to listen to the vm service protocol event
 // 'Flutter.Error' to get structured framework / layout errors.
@@ -27,8 +27,9 @@ base class FlutterAgentServer extends MCPServer
     registerTool(flutterLaunchAppTool, _flutterLaunchApp);
     registerTool(flutterPerformReloadTool, _flutterPerformReload);
     registerTool(flutterCloseAppTool, _flutterCloseApp);
+    registerTool(flutterTakeScreenshotTool, _flutterTakeScreenshot);
+    // TODO: we may remove this tool
     registerTool(flutterDebugPaintTool, _flutterDebugPaint);
-    registerTool(flutterGetRootWidgetTool, _flutterGetRootWidget);
   }
 
   final Map<String, FlutterRunSession> _sessions = {};
@@ -256,9 +257,10 @@ base class FlutterAgentServer extends MCPServer
       );
     }
 
+    final FlutterServiceExtensions extensions = session.serviceExtensions!;
     final bool? enabled = request.arguments!['enabled'] as bool?;
     if (enabled == null) {
-      final bool current = await session.getDebugPaint();
+      final bool current = await extensions.getDebugPaint();
       return CallToolResult(
         content: [
           TextContent(
@@ -267,7 +269,7 @@ base class FlutterAgentServer extends MCPServer
         ],
       );
     } else {
-      await session.setDebugPaint(enabled);
+      await extensions.setDebugPaint(enabled);
       return CallToolResult(
         content: [
           TextContent(text: 'Debug paint ${enabled ? 'enabled' : 'disabled'}.'),
@@ -276,36 +278,47 @@ base class FlutterAgentServer extends MCPServer
     }
   }
 
-  final Tool flutterGetRootWidgetTool = Tool(
-    name: 'flutter_get_root_widget',
+  final Tool flutterTakeScreenshotTool = Tool(
+    name: 'flutter_take_screenshot',
     description:
-        'Returns the root widget tree of a running Flutter app as a '
-        'DiagnosticsNode JSON tree. Useful for understanding the current '
-        'widget hierarchy.',
+        'Takes a screenshot of the running Flutter app and returns it as a '
+        'PNG image. The root widget bounds are resolved automatically.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
           description: 'The session ID returned by flutter_launch_app.',
+        ),
+        'pixel_ratio': Schema.num(
+          description:
+              'Device pixel ratio for the screenshot. Higher values produce '
+              'sharper images. Defaults to 1.0.',
         ),
       },
       required: ['session_id'],
     ),
   );
 
-  Future<CallToolResult> _flutterGetRootWidget(CallToolRequest request) async {
+  Future<CallToolResult> _flutterTakeScreenshot(CallToolRequest request) async {
     final String sessionId = request.arguments!['session_id'] as String;
     final FlutterRunSession? session = _sessions[sessionId];
 
     if (session == null) {
       return CallToolResult(
         isError: true,
-        content: [TextContent(text: 'No session found for ID: \$sessionId')],
+        content: [TextContent(text: 'No session found for ID: $sessionId')],
       );
     }
 
-    final Map<String, dynamic> tree = await session.getRootWidget();
-    final String json = const JsonEncoder.withIndent('  ').convert(tree);
-    return CallToolResult(content: [TextContent(text: json)]);
+    final num? pixelRatioArg = request.arguments!['pixel_ratio'] as num?;
+    final double pixelRatio = pixelRatioArg?.toDouble() ?? 1.0;
+
+    final String base64Data = await session.takeScreenshot(
+      maxPixelRatio: pixelRatio,
+    );
+
+    return CallToolResult(
+      content: [ImageContent(data: base64Data, mimeType: 'image/png')],
+    );
   }
 
   (LoggingLevel?, String?) _convertToLog(FlutterEvent event) {
