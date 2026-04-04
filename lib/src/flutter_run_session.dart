@@ -147,17 +147,17 @@ class FlutterRunSession {
   }
 
   /// Returns the logical size of the widget with [id] by examining its details
-  /// subtree properties. Looks for a `Size(w, h)` pattern in property
-  /// descriptions, which is how Flutter's RenderObject.size surfaces in the
-  /// diagnostics tree. Falls back to 400x800 if the size cannot be determined.
+  /// subtree. Falls back to 400x800 if the size cannot be determined.
   Future<(double, double)> _getWidgetSize(
     FlutterServiceExtensions extensions,
     String diagnosticableId,
   ) async {
     try {
+      // Depth 4 to ensure we reach the RenderBox node, which may be several
+      // levels below the root element in the details subtree.
       final DiagnosticsNode node = await extensions.getDetailsSubtree(
         diagnosticableId,
-        subtreeDepth: 2,
+        subtreeDepth: 4,
       );
       final (double, double)? size = _extractSize(node);
       if (size != null) return size;
@@ -167,16 +167,34 @@ class FlutterRunSession {
     return (400.0, 800.0);
   }
 
-  /// Recursively searches [node] and its properties for a `Size(w, h)` value.
+  static final RegExp _sizePattern = RegExp(
+    r'Size\((\d+\.?\d*),\s*(\d+\.?\d*)\)',
+  );
+
+  /// Extracts a logical pixel size from [node]'s details subtree.
+  ///
+  /// Targets the `size` property on RenderBox nodes (name == 'size',
+  /// description like "Size(390.0, 844.0)"). Skips `view size` on RenderView,
+  /// which is in physical pixels. Recurses into children but not properties,
+  /// since size is a property of a node, not a child of it.
   (double, double)? _extractSize(DiagnosticsNode node) {
-    final RegExpMatch? match = RegExp(
-      r'Size\((\d+\.?\d*),\s*(\d+\.?\d*)\)',
-    ).firstMatch(node.description);
-    if (match != null) {
-      return (double.parse(match.group(1)!), double.parse(match.group(2)!));
+    // Only look for 'size' on Render* nodes; other nodes won't have it.
+    final String? type = node.type;
+    if (type != null && type.startsWith('Render')) {
+      for (final DiagnosticsNode prop in node.properties) {
+        if (prop.name == 'size') {
+          final RegExpMatch? match = _sizePattern.firstMatch(prop.description);
+          if (match != null) {
+            return (
+              double.parse(match.group(1)!),
+              double.parse(match.group(2)!),
+            );
+          }
+        }
+      }
     }
-    for (final DiagnosticsNode prop in node.properties) {
-      final (double, double)? result = _extractSize(prop);
+    for (final DiagnosticsNode child in node.children) {
+      final (double, double)? result = _extractSize(child);
       if (result != null) return result;
     }
     return null;
