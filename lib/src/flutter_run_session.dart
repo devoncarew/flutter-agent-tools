@@ -120,7 +120,7 @@ class FlutterRunSession {
   /// [maxPixelRatio] scales the output resolution.
   ///
   /// Throws an [RPCError] if there are issues taking the screenshot.
-  Future<String> takeScreenshot({double maxPixelRatio = 1.0}) async {
+  Future<String> takeScreenshot({double? maxPixelRatio}) async {
     final FlutterServiceExtensions extensions = _serviceExtensions!;
 
     // getRootWidget returns full detail including valueId — the inspector
@@ -131,21 +131,15 @@ class FlutterRunSession {
       throw rpcError('getRootWidget did not return a valueId');
     }
 
-    // Prefer the evaluate path (exact, no string parsing); fall back to the
-    // inspector details subtree if evaluate fails.
-    var size =
-        await extensions.getPhysicalWindowSize() ??
-        await extensions.getWidgetSize(rootId);
-
-    final (double width, double height) = switch (size) {
-      (double w, double h) => (w, h),
-      _ => throw rpcError('Could not determine widget size for screenshot'),
-    };
+    var size = await extensions.getPhysicalWindowSize();
+    if (size == null) {
+      throw rpcError('Could not determine widget size for screenshot');
+    }
 
     final String? base64Data = await extensions.screenshot(
       id: rootId,
-      width: width,
-      height: height,
+      width: size.$1,
+      height: size.$2,
       maxPixelRatio: maxPixelRatio,
     );
     if (base64Data == null) {

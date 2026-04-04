@@ -324,7 +324,7 @@ base class FlutterAgentServer extends MCPServer
     }
 
     final num? pixelRatioArg = request.arguments!['pixel_ratio'] as num?;
-    final double pixelRatio = pixelRatioArg?.toDouble() ?? 1.0;
+    final double? pixelRatio = pixelRatioArg?.toDouble();
 
     try {
       final String base64Data = await session.takeScreenshot(
