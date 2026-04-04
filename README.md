@@ -35,6 +35,8 @@ exceptions from the Dart VM Service.
 | `flutter_launch_app` | Builds and launches the Flutter app, returning a session ID for use with subsequent flutter_* tools. |
 | `flutter_perform_reload` | Hot reloads or hot restarts a running Flutter app. Prefer hot reload for iterative changes; use hot restart when state needs to be fully reset. |
 | `flutter_close_app` | Stops a running Flutter app and releases its session. |
+| `flutter_take_screenshot` | Takes a screenshot of the running Flutter app and returns it as a PNG image. The root widget bounds are resolved automatically. |
+| `flutter_debug_paint` | Gets or sets the debug paint overlay for a running Flutter app. Debug paint draws layout debug lines over the UI. Omit "enabled" to read the current value. |
 <!-- flutter commands -->
 
 ## Installation
