@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:dart_mcp/server.dart';
@@ -27,6 +28,7 @@ base class FlutterAgentServer extends MCPServer
     registerTool(flutterPerformReloadTool, _flutterPerformReload);
     registerTool(flutterCloseAppTool, _flutterCloseApp);
     registerTool(flutterDebugPaintTool, _flutterDebugPaint);
+    registerTool(flutterGetRootWidgetTool, _flutterGetRootWidget);
   }
 
   final Map<String, FlutterRunSession> _sessions = {};
@@ -272,6 +274,38 @@ base class FlutterAgentServer extends MCPServer
         ],
       );
     }
+  }
+
+  final Tool flutterGetRootWidgetTool = Tool(
+    name: 'flutter_get_root_widget',
+    description:
+        'Returns the root widget tree of a running Flutter app as a '
+        'DiagnosticsNode JSON tree. Useful for understanding the current '
+        'widget hierarchy.',
+    inputSchema: Schema.object(
+      properties: {
+        'session_id': Schema.string(
+          description: 'The session ID returned by flutter_launch_app.',
+        ),
+      },
+      required: ['session_id'],
+    ),
+  );
+
+  Future<CallToolResult> _flutterGetRootWidget(CallToolRequest request) async {
+    final String sessionId = request.arguments!['session_id'] as String;
+    final FlutterRunSession? session = _sessions[sessionId];
+
+    if (session == null) {
+      return CallToolResult(
+        isError: true,
+        content: [TextContent(text: 'No session found for ID: \$sessionId')],
+      );
+    }
+
+    final Map<String, dynamic> tree = await session.getRootWidget();
+    final String json = const JsonEncoder.withIndent('  ').convert(tree);
+    return CallToolResult(content: [TextContent(text: json)]);
   }
 
   (LoggingLevel?, String?) _convertToLog(FlutterEvent event) {

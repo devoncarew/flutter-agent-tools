@@ -116,6 +116,30 @@ class FlutterRunSession {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Flutter Inspector
+  // If inspector-related methods grow significantly, consider extracting them
+  // to a dedicated FlutterInspector class backed by the VmService connection.
+
+  /// Returns the root widget as a [DiagnosticsNode] JSON tree.
+  ///
+  /// Each node contains:
+  ///   - `description`: human-readable widget description
+  ///   - `widgetRuntimeType`: the widget class name
+  ///   - `children`: list of child nodes (same structure, recursively)
+  ///   - `shouldIndent`: display hint
+  ///
+  /// [groupName] is used by the inspector for object lifetime management.
+  Future<Map<String, dynamic>> getRootWidget({
+    String objectGroup = 'flutter_agent_tools',
+  }) async {
+    final Response response = await _callExtension(
+      'ext.flutter.inspector.getRootWidget',
+      args: {'objectGroup': objectGroup, 'isSummaryTree': 'true'},
+    );
+    return response.json!;
+  }
+
   /// Calls a VM service extension on the first isolate that has it registered.
   ///
   /// Throws a [StateError] if no isolate has the extension registered.
