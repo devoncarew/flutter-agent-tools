@@ -2,6 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:vm_service/vm_service_io.dart';
+
+import 'diagnostics_node.dart';
+import 'flutter_service_extensions.dart';
+
 /// An event emitted by a running Flutter app via the `flutter run --machine`
 /// daemon protocol.
 class FlutterEvent {
@@ -15,9 +20,10 @@ class FlutterEvent {
 ///
 /// Use [FlutterRunSession.start] to launch a Flutter app and obtain a session.
 /// The session provides [events] for monitoring app lifecycle and output,
-/// [restart] for hot reload/restart, and [stop] to terminate the app.
+/// [restart] for hot reload/restart, [stop] to terminate the app, and
+/// [serviceExtensions] for direct access to Flutter VM service extensions.
 class FlutterRunSession {
-  FlutterRunSession._(this._process) {
+  FlutterRunSession._(this._process, this._eventListener) {
     _process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
@@ -32,14 +38,28 @@ class FlutterRunSession {
   String? _appId;
 
   final Completer<void> _startedCompleter = Completer<void>();
-  final StreamController<FlutterEvent> _eventController =
-      StreamController<FlutterEvent>.broadcast();
   final List<String> _stderrLines = [];
   int _nextId = 0;
   final Map<int, Completer<Map<String, dynamic>>> _pending = {};
 
-  /// Events emitted by the running Flutter app.
-  Stream<FlutterEvent> get events => _eventController.stream;
+  final EventCallback _eventListener;
+  bool _sessionEnded = false;
+
+  String? _vmServiceUri;
+  FlutterServiceExtensions? _serviceExtensions;
+
+  // ignore: unused_field
+  String? _devToolsUri;
+
+  // ignore: unused_field
+  String? _dtdToolsUri;
+
+  /// Access to Flutter VM service extensions for this session.
+  ///
+  /// Available once the app has started and the VM service has connected
+  /// (i.e. after [start] returns). Null if the VM service has not yet
+  /// connected or has been disposed.
+  FlutterServiceExtensions? get serviceExtensions => _serviceExtensions;
 
   /// Launches `flutter run --machine` in [workingDirectory] and waits until
   /// the app has fully started.
@@ -47,6 +67,7 @@ class FlutterRunSession {
   /// Throws a [StateError] if the process exits before the app starts.
   static Future<FlutterRunSession> start({
     required String workingDirectory,
+    required EventCallback eventListener,
     String? deviceId,
     String? target,
   }) async {
@@ -63,7 +84,10 @@ class FlutterRunSession {
       workingDirectory: workingDirectory,
     );
 
-    final FlutterRunSession session = FlutterRunSession._(process);
+    final FlutterRunSession session = FlutterRunSession._(
+      process,
+      eventListener,
+    );
     await session._startedCompleter.future;
     return session;
   }
@@ -88,6 +112,94 @@ class FlutterRunSession {
     await _sendCommand('app.stop', {'appId': _appId!});
   }
 
+  /// Takes a screenshot of the root widget, returning base64-encoded PNG data.
+  ///
+  /// The root widget's object id and logical size are resolved automatically
+  /// via the inspector protocol. [maxPixelRatio] scales the output resolution.
+  Future<String> takeScreenshot({double maxPixelRatio = 1.0}) async {
+    final FlutterServiceExtensions extensions = _serviceExtensions!;
+
+    // getRootWidget returns full detail including valueId — the inspector object
+    // handle required by the screenshot extension.
+    final DiagnosticsNode rootNode = await extensions.getRootWidget();
+    final String? rootId = rootNode.valueId;
+    if (rootId == null) {
+      throw StateError('getRootWidget did not return a valueId');
+    }
+
+    final (double width, double height) = await _getWidgetSize(
+      extensions,
+      rootId,
+    );
+
+    final String? base64Data = await extensions.screenshot(
+      id: rootId,
+      width: width,
+      height: height,
+      maxPixelRatio: maxPixelRatio,
+    );
+    if (base64Data == null) {
+      throw StateError(
+        'Screenshot returned null — widget may not be on screen',
+      );
+    }
+    return base64Data;
+  }
+
+  /// Returns the logical size of the widget with [id] by examining its details
+  /// subtree. Falls back to 400x800 if the size cannot be determined.
+  Future<(double, double)> _getWidgetSize(
+    FlutterServiceExtensions extensions,
+    String diagnosticableId,
+  ) async {
+    try {
+      // Depth 4 to ensure we reach the RenderBox node, which may be several
+      // levels below the root element in the details subtree.
+      final DiagnosticsNode node = await extensions.getDetailsSubtree(
+        diagnosticableId,
+        subtreeDepth: 4,
+      );
+      final (double, double)? size = _extractSize(node);
+      if (size != null) return size;
+    } catch (_) {
+      // Fall through to default.
+    }
+    return (400.0, 800.0);
+  }
+
+  static final RegExp _sizePattern = RegExp(
+    r'Size\((\d+\.?\d*),\s*(\d+\.?\d*)\)',
+  );
+
+  /// Extracts a logical pixel size from [node]'s details subtree.
+  ///
+  /// Targets the `size` property on RenderBox nodes (name == 'size',
+  /// description like "Size(390.0, 844.0)"). Skips `view size` on RenderView,
+  /// which is in physical pixels. Recurses into children but not properties,
+  /// since size is a property of a node, not a child of it.
+  (double, double)? _extractSize(DiagnosticsNode node) {
+    // Only look for 'size' on Render* nodes; other nodes won't have it.
+    final String? type = node.type;
+    if (type != null && type.startsWith('Render')) {
+      for (final DiagnosticsNode prop in node.properties) {
+        if (prop.name == 'size') {
+          final RegExpMatch? match = _sizePattern.firstMatch(prop.description);
+          if (match != null) {
+            return (
+              double.parse(match.group(1)!),
+              double.parse(match.group(2)!),
+            );
+          }
+        }
+      }
+    }
+    for (final DiagnosticsNode child in node.children) {
+      final (double, double)? result = _extractSize(child);
+      if (result != null) return result;
+    }
+    return null;
+  }
+
   Future<Map<String, dynamic>> _sendCommand(
     String method,
     Map<String, dynamic> params,
@@ -107,9 +219,8 @@ class FlutterRunSession {
     final String trimmed = line.trim();
     if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) {
       // Convert regular stdio output to log messages.
-      if (!_eventController.isClosed) {
-        // The params field will be a map with the fields appId and log.
-        _eventController.add(
+      if (!_sessionEnded) {
+        _eventListener(
           FlutterEvent('app.log', {'appId': _appId, 'log': trimmed}),
         );
       }
@@ -156,15 +267,24 @@ class FlutterRunSession {
         _appId = params['appId'] as String?;
       } else if (event == 'app.started') {
         if (!_startedCompleter.isCompleted) _startedCompleter.complete();
+      } else if (event == 'app.debugPort') {
+        _vmServiceUri = params['wsUri'] as String?;
+        _connectVmService(_vmServiceUri!);
+      } else if (event == 'app.devTools') {
+        _devToolsUri = params['uri'] as String?;
+      } else if (event == 'app.dtd') {
+        _dtdToolsUri = params['uri'] as String?;
       }
 
-      // TODO: listen for app.debugPort and read out the wsUri (vm service
-      // protocol) field
-
-      if (!_eventController.isClosed) {
-        _eventController.add(FlutterEvent(event, params));
+      if (!_sessionEnded) {
+        _eventListener(FlutterEvent(event, params));
       }
     }
+  }
+
+  Future<void> _connectVmService(String wsUri) async {
+    final vmService = await vmServiceConnectUri(wsUri);
+    _serviceExtensions = FlutterServiceExtensions(vmService);
   }
 
   void _handleDone() {
@@ -179,6 +299,12 @@ class FlutterRunSession {
       c.completeError(StateError('flutter run process exited'));
     }
     _pending.clear();
-    if (!_eventController.isClosed) _eventController.close();
+
+    _sessionEnded = true;
+
+    _serviceExtensions?.dispose();
+    _serviceExtensions = null;
   }
 }
+
+typedef EventCallback = void Function(FlutterEvent);

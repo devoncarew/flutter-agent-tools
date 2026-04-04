@@ -4,7 +4,11 @@ import 'dart:math';
 import 'package:dart_mcp/server.dart';
 import 'package:unique_names_generator/unique_names_generator.dart';
 
-import 'flutter_run.dart';
+import 'flutter_run_session.dart';
+import 'flutter_service_extensions.dart';
+
+// TODO: We'll likely need to listen to the vm service protocol event
+// 'Flutter.Error' to get structured framework / layout errors.
 
 /// The MCP server for flutter-agent-tools.
 base class FlutterAgentServer extends MCPServer
@@ -23,6 +27,9 @@ base class FlutterAgentServer extends MCPServer
     registerTool(flutterLaunchAppTool, _flutterLaunchApp);
     registerTool(flutterPerformReloadTool, _flutterPerformReload);
     registerTool(flutterCloseAppTool, _flutterCloseApp);
+    registerTool(flutterTakeScreenshotTool, _flutterTakeScreenshot);
+    // TODO: we may remove this tool
+    registerTool(flutterDebugPaintTool, _flutterDebugPaint);
   }
 
   final Map<String, FlutterRunSession> _sessions = {};
@@ -42,7 +49,7 @@ base class FlutterAgentServer extends MCPServer
     config: Config(
       length: 2,
       dictionaries: [adjectives, animals],
-      separator: '-',
+      separator: '_',
     ),
   );
 
@@ -86,55 +93,61 @@ base class FlutterAgentServer extends MCPServer
     final String? device = args['device'] as String?;
     final String? target = args['target'] as String?;
 
+    final String sessionId = _newSessionId();
+
     final FlutterRunSession session = await FlutterRunSession.start(
       workingDirectory: workingDirectory,
+      eventListener: (event) => _handleEvent(sessionId, event),
       deviceId: device,
       target: target,
     );
 
-    final String sessionId = _newSessionId();
     _sessions[sessionId] = session;
-    _watchSession(sessionId, session);
 
     return CallToolResult(
       content: [TextContent(text: 'Launched. Session ID: $sessionId')],
     );
   }
 
-  void _watchSession(String sessionId, FlutterRunSession session) {
-    const String loggerId = 'flutter_agent_tools';
+  static const String _loggerId = 'flutter_agent_tools';
 
-    _subscriptions[sessionId] = session.events.listen((event) {
-      if (event.event == 'app.stop') {
-        _releaseSession(sessionId);
+  void _handleEvent(String sessionId, FlutterEvent event) {
+    if (event.event == 'app.stop') {
+      _releaseSession(sessionId);
 
-        this.log(
-          LoggingLevel.info,
-          '[$sessionId] App stopped; session released.',
-          logger: loggerId,
-        );
+      this.log(
+        LoggingLevel.info,
+        '[$sessionId] App stopped; session released.',
+        logger: _loggerId,
+      );
 
-        return;
-      }
+      return;
+    }
 
-      final (LoggingLevel? level, String? message) = _convertToLog(event);
-      if (level != null && message != null) {
-        if (event.event == 'app.log') {
-          // We special case stdio output a bit.
-          const stdioPrefix = 'flutter: ';
+    // TODO: test log messages we get for sterr
+    // TODO: test log messages we get for exceptions
 
-          if (message.startsWith(stdioPrefix)) {
-            final msg = message.substring(stdioPrefix.length);
-            this.log(level, '[stdio] $msg', logger: loggerId);
-          } else {
-            // It's system output.
-            this.log(level, '[flutter] $message', logger: loggerId);
-          }
+    final (LoggingLevel? level, String? message) = _convertToLog(event);
+    if (level != null && message != null) {
+      if (event.event == 'app.log') {
+        // We special case stdio output a bit.
+        const appOutputPrefix = 'flutter: ';
+
+        if (message.startsWith(appOutputPrefix)) {
+          final msg = message.substring(appOutputPrefix.length);
+          this.log(level, '[app] $msg', logger: _loggerId);
         } else {
-          this.log(level, '[${event.event}] $message', logger: loggerId);
+          // It's system output.
+          this.log(level, '[system] $message', logger: _loggerId);
         }
+      } else {
+        this.log(level, '[${event.event}] $message', logger: _loggerId);
       }
-    });
+    }
+  }
+
+  void debugLog(String message) {
+    this.log(LoggingLevel.info, '[debug] $message', logger: _loggerId);
   }
 
   void _releaseSession(String sessionId) {
@@ -212,6 +225,100 @@ base class FlutterAgentServer extends MCPServer
     session.stop();
 
     return CallToolResult(content: [TextContent(text: 'App stopped.')]);
+  }
+
+  final Tool flutterDebugPaintTool = Tool(
+    name: 'flutter_debug_paint',
+    description:
+        'Gets or sets the debug paint overlay for a running Flutter app. '
+        'Debug paint draws layout debug lines over the UI. '
+        'Omit "enabled" to read the current value.',
+    inputSchema: Schema.object(
+      properties: {
+        'session_id': Schema.string(
+          description: 'The session ID returned by flutter_launch_app.',
+        ),
+        'enabled': Schema.bool(
+          description: 'Enable or disable debug paint. Omit to read.',
+        ),
+      },
+      required: ['session_id'],
+    ),
+  );
+
+  Future<CallToolResult> _flutterDebugPaint(CallToolRequest request) async {
+    final String sessionId = request.arguments!['session_id'] as String;
+    final FlutterRunSession? session = _sessions[sessionId];
+
+    if (session == null) {
+      return CallToolResult(
+        isError: true,
+        content: [TextContent(text: 'No session found for ID: $sessionId')],
+      );
+    }
+
+    final FlutterServiceExtensions extensions = session.serviceExtensions!;
+    final bool? enabled = request.arguments!['enabled'] as bool?;
+    if (enabled == null) {
+      final bool current = await extensions.getDebugPaint();
+      return CallToolResult(
+        content: [
+          TextContent(
+            text: 'Debug paint is ${current ? 'enabled' : 'disabled'}.',
+          ),
+        ],
+      );
+    } else {
+      await extensions.setDebugPaint(enabled);
+      return CallToolResult(
+        content: [
+          TextContent(text: 'Debug paint ${enabled ? 'enabled' : 'disabled'}.'),
+        ],
+      );
+    }
+  }
+
+  final Tool flutterTakeScreenshotTool = Tool(
+    name: 'flutter_take_screenshot',
+    description:
+        'Takes a screenshot of the running Flutter app and returns it as a '
+        'PNG image. The root widget bounds are resolved automatically.',
+    inputSchema: Schema.object(
+      properties: {
+        'session_id': Schema.string(
+          description: 'The session ID returned by flutter_launch_app.',
+        ),
+        'pixel_ratio': Schema.num(
+          description:
+              'Device pixel ratio for the screenshot. Higher values produce '
+              'sharper images. Defaults to 1.0.',
+        ),
+      },
+      required: ['session_id'],
+    ),
+  );
+
+  Future<CallToolResult> _flutterTakeScreenshot(CallToolRequest request) async {
+    final String sessionId = request.arguments!['session_id'] as String;
+    final FlutterRunSession? session = _sessions[sessionId];
+
+    if (session == null) {
+      return CallToolResult(
+        isError: true,
+        content: [TextContent(text: 'No session found for ID: $sessionId')],
+      );
+    }
+
+    final num? pixelRatioArg = request.arguments!['pixel_ratio'] as num?;
+    final double pixelRatio = pixelRatioArg?.toDouble() ?? 1.0;
+
+    final String base64Data = await session.takeScreenshot(
+      maxPixelRatio: pixelRatio,
+    );
+
+    return CallToolResult(
+      content: [ImageContent(data: base64Data, mimeType: 'image/png')],
+    );
   }
 
   (LoggingLevel?, String?) _convertToLog(FlutterEvent event) {

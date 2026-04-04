@@ -4,5 +4,4 @@
 # Dart / Flutter
 .dart_tool/
 build/
-pubspec.lock
 doc/api/
