@@ -114,11 +114,12 @@ class FlutterRunSession {
 
   /// Takes a screenshot of the root widget, returning base64-encoded PNG data.
   ///
-  /// The root widget's object id and logical size are resolved automatically
-  /// via the inspector protocol. [maxPixelRatio] scales the output resolution.
+  /// The root widget's object id and size are resolved automatically.
+  /// Size is obtained via VM service `evaluate` (exact physical pixels);
+  /// falls back to the inspector details subtree if that fails.
+  /// [maxPixelRatio] scales the output resolution.
   ///
-  /// This method is a wrapper over several service method extensions; it throws
-  /// an [RPCError] if there are issues taking the screenshot.
+  /// Throws an [RPCError] if there are issues taking the screenshot.
   Future<String> takeScreenshot({double maxPixelRatio = 1.0}) async {
     final FlutterServiceExtensions extensions = _serviceExtensions!;
 
@@ -130,10 +131,16 @@ class FlutterRunSession {
       throw rpcError('getRootWidget did not return a valueId');
     }
 
-    final (double width, double height) = await _getWidgetSize(
-      extensions,
-      rootId,
-    );
+    // Prefer the evaluate path (exact, no string parsing); fall back to the
+    // inspector details subtree if evaluate fails.
+    var size =
+        await extensions.getPhysicalWindowSize() ??
+        await extensions.getWidgetSize(rootId);
+
+    final (double width, double height) = switch (size) {
+      (double w, double h) => (w, h),
+      _ => throw rpcError('Could not determine widget size for screenshot'),
+    };
 
     final String? base64Data = await extensions.screenshot(
       id: rootId,
@@ -146,63 +153,6 @@ class FlutterRunSession {
     }
     return base64Data;
   }
-
-  /// Returns the logical size of the widget with [id] by examining its details
-  /// subtree. Falls back to 400x800 if the size cannot be determined.
-  Future<(double, double)> _getWidgetSize(
-    FlutterServiceExtensions extensions,
-    String diagnosticableId,
-  ) async {
-    try {
-      // Depth 4 to ensure we reach the RenderBox node, which may be several
-      // levels below the root element in the details subtree.
-      final DiagnosticsNode node = await extensions.getDetailsSubtree(
-        diagnosticableId,
-        subtreeDepth: 4,
-      );
-      final (double, double)? size = _extractSize(node);
-      if (size != null) {
-        return size;
-      }
-    } catch (_) {
-      // Fall through to default.
-    }
-
-    return (400.0, 800.0);
-  }
-
-  /// Extracts a logical pixel size from [node]'s details subtree.
-  ///
-  /// Targets the `size` property on RenderBox nodes (name == 'size',
-  /// description like "Size(390.0, 844.0)"). Skips `view size` on RenderView,
-  /// which is in physical pixels. Recurses into children but not properties,
-  /// since size is a property of a node, not a child of it.
-  (double, double)? _extractSize(DiagnosticsNode node) {
-    final renderObject = node.propertyNamed('renderObject');
-    final size = renderObject?.propertyNamed('view size');
-
-    if (size != null) {
-      final RegExpMatch? match = _sizeRegExp.firstMatch(size.description);
-      if (match != null) {
-        return (double.parse(match.group(1)!), double.parse(match.group(2)!));
-      }
-    }
-
-    for (final DiagnosticsNode child in node.children) {
-      final (double, double)? result = _extractSize(child);
-
-      if (result != null) {
-        return result;
-      }
-    }
-
-    return null;
-  }
-
-  // "Size(740.0, 1645.6) (in physical pixels)"
-  static final RegExp _sizeRegExp = RegExp(
-    r'Size\((\d+\.?\d*),\s*(\d+\.?\d*)\)',
-  );
 
   Future<Map<String, dynamic>> _sendCommand(
     String method,

@@ -166,6 +166,91 @@ class FlutterServiceExtensions {
   }
 
   // ---------------------------------------------------------------------------
+  // Window size via VM service evaluate
+
+  /// Returns the physical window size by evaluating a Dart expression on the
+  /// main isolate.
+  ///
+  /// This avoids the inspector extension string-parsing path entirely — the VM
+  /// service `evaluate` RPC runs real Dart code and returns the exact value.
+  /// Returns null if the expression cannot be evaluated or the result cannot
+  /// be parsed.
+  Future<(double, double)?> getPhysicalWindowSize() async {
+    final VM vm = await _vmService.getVM();
+    for (final IsolateRef ref in vm.isolates ?? []) {
+      final Isolate isolate = await _vmService.getIsolate(ref.id!);
+      final String? libId = isolate.rootLib?.id;
+      if (libId == null) continue;
+
+      final Response result = await _vmService.evaluate(
+        ref.id!,
+        libId,
+        'WidgetsBinding.instance.platformDispatcher.views.first.physicalSize'
+            '.toString()',
+      );
+
+      if (result is InstanceRef && result.valueAsString != null) {
+        final match = _sizeRegExp.firstMatch(result.valueAsString!);
+        if (match != null) {
+          return (double.parse(match.group(1)!), double.parse(match.group(2)!));
+        }
+      }
+    }
+    return null;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Size helpers
+
+  /// Returns the logical size of the widget with [diagnosticableId] by
+  /// examining its details subtree. Returns null values if the size cannot be
+  /// determined.
+  Future<(double?, double?)> getWidgetSize(String diagnosticableId) async {
+    try {
+      // Depth 4 to ensure we reach the RenderBox node, which may be several
+      // levels below the root element in the details subtree.
+      final DiagnosticsNode node = await getDetailsSubtree(
+        diagnosticableId,
+        subtreeDepth: 4,
+      );
+      final (double, double)? size = _extractSize(node);
+      if (size != null) return size;
+    } catch (_) {
+      // Fall through to null.
+    }
+    return (null, null);
+  }
+
+  /// Extracts a logical pixel size from [node]'s details subtree.
+  ///
+  /// Navigates to the `renderObject` property and reads its `view size`
+  /// property, which contains the logical pixel dimensions as a string like
+  /// "Size(390.0, 844.0)". Recurses into children.
+  (double, double)? _extractSize(DiagnosticsNode node) {
+    final renderObject = node.propertyNamed('renderObject');
+    final size = renderObject?.propertyNamed('view size');
+
+    if (size != null) {
+      final RegExpMatch? match = _sizeRegExp.firstMatch(size.description);
+      if (match != null) {
+        return (double.parse(match.group(1)!), double.parse(match.group(2)!));
+      }
+    }
+
+    for (final DiagnosticsNode child in node.children) {
+      final (double, double)? result = _extractSize(child);
+      if (result != null) return result;
+    }
+
+    return null;
+  }
+
+  // "Size(740.0, 1645.6) (in physical pixels)"
+  static final RegExp _sizeRegExp = RegExp(
+    r'Size\((\d+\.?\d*),\s*(\d+\.?\d*)\)',
+  );
+
+  // ---------------------------------------------------------------------------
   // Internal
 
   /// Unwraps the `result` key from an inspector extension response.
