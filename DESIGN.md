@@ -6,13 +6,13 @@ AI coding agents working on Dart and Flutter projects face two structural
 failure modes:
 
 1. **Training cutoff drift.** Agents hallucinate outdated or discontinued
-package APIs. When they attempt to self-correct by reading raw source from
-`.pub-cache`, they consume large amounts of context window on implementation
-details rather than public API surface.
+   package APIs. When they attempt to self-correct by reading raw source from
+   `.pub-cache`, they consume large amounts of context window on implementation
+   details rather than public API surface.
 
 2. **No runtime visibility.** Static analysis alone is insufficient for Flutter
-development. Agents cannot observe layout failures, verify state changes, or
-diagnose render issues without being able to "see" the running app.
+   development. Agents cannot observe layout failures, verify state changes, or
+   diagnose render issues without being able to "see" the running app.
 
 ## Distribution
 
@@ -29,10 +29,12 @@ command. This gives:
 **Mechanism:** Claude Code `PreToolUse` hook
 
 **Trigger points:**
+
 - `Bash` tool calls matching `flutter pub add` or `dart pub add`
 - `Write`/`Edit` tool calls targeting `pubspec.yaml`
 
 **Behavior:**
+
 - Queries the pub.dev API to validate each package before it is added.
 - **Blocks** if a package is officially marked discontinued, and reports the
   official replacement if one is listed.
@@ -43,6 +45,7 @@ command. This gives:
   failures.
 
 **Abandonment heuristics** (beyond the official `isDiscontinued` flag):
+
 - Last publish date older than ~3 years (blunt; useful as a secondary signal
   only).
 - The package's own dependencies pin to severely outdated versions of core
@@ -76,6 +79,7 @@ A reliable, accurate API dump eliminates this loop entirely.
 **Observed agent behaviour during development of this plugin:**
 During development we needed the APIs for `dart_mcp`, `flutter_daemon`, and
 `unique_names_generator`. In each case the pattern was:
+
 1. Agent fetched pub.dev or produced a training-data summary — approximately
    right but with meaningful errors (wrong `registerTool` signature, wrong
    `log()` signature, missing name clash with `dart:developer`).
@@ -89,6 +93,7 @@ eliminated step 2 in every case.
 Responses are Dart source files with method bodies removed and private
 declarations omitted — analogous to TypeScript's `.d.ts` declaration files.
 This format is preferred over Markdown because:
+
 - The agent is writing Dart; no translation step means fewer transcription
   errors. Seeing `Future<void> restart({bool? fullRestart, String? reason})`
   is unambiguous in a way that a prose description is not.
@@ -105,20 +110,22 @@ This format is preferred over Markdown because:
 Rather than returning a single large dump, the tool accepts a `kind` parameter
 so the agent requests only what it needs at each step:
 
-| `kind` | Returns |
-|--------|---------|
-| `package_summary` | Version, entry-point import, one-paragraph README orientation, list of public libraries and top-level exported names. Enough to orient and decide what to look at next. |
-| `library_stub` | Full public API for one library as a Dart stub file: all exported classes, mixins, extensions, top-level functions and constants, with signatures but no bodies. Mixin-contributed methods are inlined and attributed. |
-| `class_stub` | Stub for a single named class/mixin/extension, including inherited and mixin-contributed members. Useful when the agent knows exactly what it needs. |
-| `example` | Contents of a specific example file from `example/` or inline `/// ```dart` samples extracted from a class or library. |
+| `kind`            | Returns                                                                                                                                                                                                                |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `package_summary` | Version, entry-point import, one-paragraph README orientation, list of public libraries and top-level exported names. Enough to orient and decide what to look at next.                                                |
+| `library_stub`    | Full public API for one library as a Dart stub file: all exported classes, mixins, extensions, top-level functions and constants, with signatures but no bodies. Mixin-contributed methods are inlined and attributed. |
+| `class_stub`      | Stub for a single named class/mixin/extension, including inherited and mixin-contributed members. Useful when the agent knows exactly what it needs.                                                                   |
+| `example`         | Contents of a specific example file from `example/` or inline `/// ```dart` samples extracted from a class or library.                                                                                                 |
 
 The typical call sequence for an unfamiliar package:
+
 1. `package_summary` — orient, identify the relevant library.
 2. `library_stub` — get all signatures for that library.
 3. `class_stub` or `example` — drill into a specific class or usage pattern
    if signatures alone aren't enough.
 
 **Inputs:**
+
 - `package`: package name (required).
 - `kind`: one of the values above (required).
 - `library` / `class`: target for `library_stub`, `class_stub`, `example`
@@ -130,6 +137,7 @@ The typical call sequence for an unfamiliar package:
 resolved version, no network required.
 
 **What the inspector does NOT cover:**
+
 - String constants used as protocol/event identifiers (e.g. `'app.started'`
   in the Flutter daemon protocol). These live in implementation code, not the
   public API surface.
@@ -140,6 +148,7 @@ resolved version, no network required.
 [`jot`](https://github.com/devoncarew/jot) tool.
 
 **Implementation notes:**
+
 - **AST-based** (via `package:analyzer`) is preferred over dartdoc JSON.
   Dartdoc requires a prior analysis pass and may not be present; the analyzer
   element model is always derivable from source and correctly resolves mixin
@@ -160,14 +169,16 @@ and end-to-end workflow validation.
 
 **Behavior:**
 
-*Launch:*
+_Launch:_
+
 - Automatically builds and launches the Flutter app without manual setup from
   the developer.
 - Target device is configurable: Flutter desktop (lowest friction), headless
   test device, simulator, or any connected device.
 - Returns a session ID used by subsequent commands.
 
-*Introspection and interaction (via Dart VM Service):*
+_Introspection and interaction (via Dart VM Service):_
+
 - Query semantic/interactive elements (rather than dumping the full widget tree,
   which is token-heavy).
 - Tap an element by semantics label.
@@ -176,10 +187,12 @@ and end-to-end workflow validation.
 - Pull unhandled exceptions from the runtime.
 
 **Design reference:**
+
 - [Playwright MCP](https://playwright.dev/docs/getting-started-mcp) — overall model.
 - [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17) — use cases and requirements.
 
 **Open questions:**
+
 - What is the right abstraction for "launch"? Wrapping `flutter run` with VM
   service attachment, or building a headless test harness?
 - Widget tree queries should target semantic elements to stay token-efficient.
@@ -207,10 +220,11 @@ flutter_tap(session_id: String, semantics_label: String) → void
 flutter_inject_text(session_id: String, semantics_label: String, text: String) → void
 flutter_scroll_to(session_id: String, semantics_label: String) → void
 flutter_get_exceptions(session_id: String) → List<String>
-flutter_take_screenshot() → String
+flutter_take_screenshot(session_id: String, pixel_ratio: String?) → String
 ```
 
 **Declared in `plugin.json`:**
+
 ```json
 "mcpServers": {
   "flutter-agent": {

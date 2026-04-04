@@ -23,7 +23,7 @@ class FlutterEvent {
 /// [restart] for hot reload/restart, [stop] to terminate the app, and
 /// [serviceExtensions] for direct access to Flutter VM service extensions.
 class FlutterRunSession {
-  FlutterRunSession._(this._process, this._eventListener) {
+  FlutterRunSession._(this._process, this._eventListener, this.debugLogger) {
     _process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
@@ -54,6 +54,10 @@ class FlutterRunSession {
   // ignore: unused_field
   String? _dtdToolsUri;
 
+  /// A debug-time only logger; this can send log statements back to the host
+  /// MCP client.
+  Logger? debugLogger;
+
   /// Access to Flutter VM service extensions for this session.
   ///
   /// Available once the app has started and the VM service has connected
@@ -70,6 +74,7 @@ class FlutterRunSession {
     required EventCallback eventListener,
     String? deviceId,
     String? target,
+    Logger? debugLogger,
   }) async {
     final List<String> args = [
       'run',
@@ -87,6 +92,7 @@ class FlutterRunSession {
     final FlutterRunSession session = FlutterRunSession._(
       process,
       eventListener,
+      debugLogger,
     );
     await session._startedCompleter.future;
     return session;
@@ -160,16 +166,15 @@ class FlutterRunSession {
         subtreeDepth: 4,
       );
       final (double, double)? size = _extractSize(node);
-      if (size != null) return size;
+      if (size != null) {
+        return size;
+      }
     } catch (_) {
       // Fall through to default.
     }
+
     return (400.0, 800.0);
   }
-
-  static final RegExp _sizePattern = RegExp(
-    r'Size\((\d+\.?\d*),\s*(\d+\.?\d*)\)',
-  );
 
   /// Extracts a logical pixel size from [node]'s details subtree.
   ///
@@ -178,27 +183,31 @@ class FlutterRunSession {
   /// which is in physical pixels. Recurses into children but not properties,
   /// since size is a property of a node, not a child of it.
   (double, double)? _extractSize(DiagnosticsNode node) {
-    // Only look for 'size' on Render* nodes; other nodes won't have it.
-    final String? type = node.type;
-    if (type != null && type.startsWith('Render')) {
-      for (final DiagnosticsNode prop in node.properties) {
-        if (prop.name == 'size') {
-          final RegExpMatch? match = _sizePattern.firstMatch(prop.description);
-          if (match != null) {
-            return (
-              double.parse(match.group(1)!),
-              double.parse(match.group(2)!),
-            );
-          }
-        }
+    final renderObject = node.propertyNamed('renderObject');
+    final size = renderObject?.propertyNamed('view size');
+
+    if (size != null) {
+      final RegExpMatch? match = _sizeRegExp.firstMatch(size.description);
+      if (match != null) {
+        return (double.parse(match.group(1)!), double.parse(match.group(2)!));
       }
     }
+
     for (final DiagnosticsNode child in node.children) {
       final (double, double)? result = _extractSize(child);
-      if (result != null) return result;
+
+      if (result != null) {
+        return result;
+      }
     }
+
     return null;
   }
+
+  // "Size(740.0, 1645.6) (in physical pixels)"
+  static final RegExp _sizeRegExp = RegExp(
+    r'Size\((\d+\.?\d*),\s*(\d+\.?\d*)\)',
+  );
 
   Future<Map<String, dynamic>> _sendCommand(
     String method,
@@ -308,3 +317,5 @@ class FlutterRunSession {
 }
 
 typedef EventCallback = void Function(FlutterEvent);
+
+typedef Logger = void Function(String);

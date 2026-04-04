@@ -100,6 +100,9 @@ base class FlutterAgentServer extends MCPServer
       eventListener: (event) => _handleEvent(sessionId, event),
       deviceId: device,
       target: target,
+      // debugLogger: (msg) {
+      //   debugLog(msg);
+      // },
     );
 
     _sessions[sessionId] = session;
@@ -190,14 +193,12 @@ base class FlutterAgentServer extends MCPServer
   );
 
   Future<CallToolResult> _flutterPerformReload(CallToolRequest request) async {
-    final String sessionId = request.arguments!['session_id'] as String;
+    final String? sessionId = request.arguments!['session_id'] as String?;
     final FlutterRunSession? session = _sessions[sessionId];
-
     if (session == null) {
-      return CallToolResult(
-        isError: true,
-        content: [TextContent(text: 'No session found for ID: $sessionId')],
-      );
+      if (sessionId == null || session == null) {
+        return _unknownSessionResult(sessionId);
+      }
     }
 
     final bool fullRestart =
@@ -209,14 +210,10 @@ base class FlutterAgentServer extends MCPServer
   }
 
   Future<CallToolResult> _flutterCloseApp(CallToolRequest request) async {
-    final String sessionId = request.arguments!['session_id'] as String;
+    final String? sessionId = request.arguments!['session_id'] as String?;
     final FlutterRunSession? session = _sessions.remove(sessionId);
-
-    if (session == null) {
-      return CallToolResult(
-        isError: true,
-        content: [TextContent(text: 'No session found for ID: $sessionId')],
-      );
+    if (sessionId == null || session == null) {
+      return _unknownSessionResult(sessionId);
     }
 
     _releaseSession(sessionId);
@@ -247,14 +244,11 @@ base class FlutterAgentServer extends MCPServer
   );
 
   Future<CallToolResult> _flutterDebugPaint(CallToolRequest request) async {
-    final String sessionId = request.arguments!['session_id'] as String;
+    final String? sessionId = request.arguments!['session_id'] as String?;
     final FlutterRunSession? session = _sessions[sessionId];
 
-    if (session == null) {
-      return CallToolResult(
-        isError: true,
-        content: [TextContent(text: 'No session found for ID: $sessionId')],
-      );
+    if (sessionId == null || session == null) {
+      return _unknownSessionResult(sessionId);
     }
 
     final FlutterServiceExtensions extensions = session.serviceExtensions!;
@@ -299,14 +293,11 @@ base class FlutterAgentServer extends MCPServer
   );
 
   Future<CallToolResult> _flutterTakeScreenshot(CallToolRequest request) async {
-    final String sessionId = request.arguments!['session_id'] as String;
+    final String? sessionId = request.arguments!['session_id'] as String?;
     final FlutterRunSession? session = _sessions[sessionId];
 
-    if (session == null) {
-      return CallToolResult(
-        isError: true,
-        content: [TextContent(text: 'No session found for ID: $sessionId')],
-      );
+    if (sessionId == null || session == null) {
+      return _unknownSessionResult(sessionId);
     }
 
     final num? pixelRatioArg = request.arguments!['pixel_ratio'] as num?;
@@ -318,6 +309,13 @@ base class FlutterAgentServer extends MCPServer
 
     return CallToolResult(
       content: [ImageContent(data: base64Data, mimeType: 'image/png')],
+    );
+  }
+
+  CallToolResult _unknownSessionResult(String? sessionId) {
+    return CallToolResult(
+      isError: true,
+      content: [TextContent(text: 'No session found for ID: $sessionId')],
     );
   }
 
