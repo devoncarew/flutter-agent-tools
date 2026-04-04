@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 /// A simplified representation of a Flutter [DiagnosticsNode] as returned
 /// by Flutter inspector VM service extensions.
 ///
@@ -106,4 +108,10 @@ class DiagnosticsNode {
 
   /// The raw JSON map from the wire, for accessing fields not modelled above.
   final Map<String, dynamic> json;
+
+  // Utiity methods.
+
+  DiagnosticsNode? propertyNamed(String name) {
+    return properties.firstWhereOrNull((property) => property.name == name);
+  }
 }
