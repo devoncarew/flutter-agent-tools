@@ -200,7 +200,7 @@ _Introspection and interaction (via Dart VM Service):_
   `ext.flutter.inspector.screenshot` with physical window dimensions from
   `evaluate`.
 
-### `flutter_evaluate`
+### `flutter_evaluate_expression`
 
 Runs an arbitrary Dart expression on the main isolate via the VM service
 `evaluate` RPC and returns the result as a string.
@@ -287,7 +287,7 @@ package_info(package, kind, library?, class?, version?) → String  [planned]
 ✓ flutter_take_screenshot(session_id, pixel_ratio?) → PNG
 ✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
 ✓ flutter_inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
-✓ flutter_evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
+✓ flutter_evaluate_expression(session_id, expression) → String  // arbitrary Dart on main isolate
 [planned] flutter_query_ui(session_id, mode) → String  // semantics | widget_tree | route
 
 // Tool 3 — app interaction (useful but lower priority for coding agents)
