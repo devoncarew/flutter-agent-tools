@@ -168,13 +168,48 @@ and end-to-end workflow validation.
 
 **Behavior:**
 
-_Launch:_
+_Launch and device selection:_
 
 - Automatically builds and launches the Flutter app without manual setup from
   the developer.
-- Target device is configurable: Flutter desktop (lowest friction), headless
-  test device, simulator, or any connected device.
 - Returns a session ID used by subsequent commands.
+- **Device auto-selection:** When `device_id` is omitted, the server runs
+  `flutter devices --machine` and picks the best available device using the
+  preference order below. The goal is zero-configuration launch on any
+  workstation.
+
+  **Preference order:**
+
+  1. **Desktop matching host OS** (macOS / windows / linux) — always available
+     on the host platform, fast to build (no Xcode/Gradle overhead), supports
+     hot reload + inspector + screenshots. Best default for agent use.
+  2. **iOS Simulator** (if already running, macOS only) — better mobile
+     fidelity but requires Xcode; the server discovers a booted simulator but
+     never launches one (takes 30+ seconds, and the agent can't know if the
+     user wants it).
+  3. **Android emulator** (if already running) — same rationale as iOS.
+  4. **Connected physical device** — least predictable, but usable.
+  5. **Web (Chrome)** — deprioritized; web doesn't support
+     `ext.flutter.inspector.screenshot` or VM service `evaluate` the same way.
+
+  **Platform-support check:** Before selecting a device, the server verifies
+  the project has the corresponding platform folder (e.g. `macos/` for
+  desktop-macOS). A missing folder means `flutter run -d macos` would fail,
+  so that device is skipped.
+
+  **Actionable errors:** If no usable device is found, the error includes the
+  full device list and a concrete suggestion (e.g. "Run
+  `flutter create --platforms=macos .` to enable desktop, or start an iOS
+  simulator.").
+
+  **Explicit override:** When `device_id` is provided, auto-selection is
+  bypassed entirely — the value is passed through to `flutter run --device-id`.
+
+  **Why not a separate `flutter_list_devices` tool?** Auto-selection handles
+  the happy path, and the error path handles discovery. A separate list command
+  adds a step agents would need to learn to call first — more friction, not
+  less. If a need emerges later, it can be added without changing the launch
+  flow.
 
 _Introspection and interaction (via Dart VM Service):_
 
