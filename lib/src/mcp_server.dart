@@ -31,6 +31,7 @@ base class FlutterAgentServer extends MCPServer
     // inspection
     registerTool(flutterTakeScreenshotTool, _flutterTakeScreenshot);
     registerTool(flutterInspectLayoutTool, _flutterInspectLayout);
+    registerTool(flutterEvaluateTool, _flutterEvaluate);
   }
 
   final Map<String, FlutterRunSession> _sessions = {};
@@ -328,6 +329,50 @@ base class FlutterAgentServer extends MCPServer
       );
       final layoutSummary = formatLayoutDetails(node);
       return CallToolResult(content: [TextContent(text: layoutSummary)]);
+    } on RPCError catch (e) {
+      return _rpcErrorResult(e);
+    }
+  }
+
+  final Tool flutterEvaluateTool = Tool(
+    name: 'flutter_evaluate',
+    description:
+        'Evaluates a Dart expression on the running app\'s main isolate and '
+        'returns the result as a string. Runs in the context of the app\'s '
+        'root library, so top-level declarations and globals are in scope. '
+        'Useful for reading binding-layer state not visible in the widget '
+        'tree: FlutterView properties (physicalSize, devicePixelRatio), '
+        'MediaQueryData, or any other runtime value.',
+    inputSchema: Schema.object(
+      properties: {
+        'session_id': Schema.string(
+          description: 'The session ID returned by flutter_launch_app.',
+        ),
+        'expression': Schema.string(
+          description:
+              'The Dart expression to evaluate. Must produce a value with a '
+              'useful toString(). Example: '
+              '"WidgetsBinding.instance.platformDispatcher'
+              '.views.first.devicePixelRatio.toString()"',
+        ),
+      },
+      required: ['session_id', 'expression'],
+    ),
+  );
+
+  Future<CallToolResult> _flutterEvaluate(CallToolRequest request) async {
+    final String? sessionId = request.arguments!['session_id'] as String?;
+    final FlutterRunSession? session = _sessions[sessionId];
+    if (sessionId == null || session == null) {
+      return _unknownSessionResult(sessionId);
+    }
+
+    final String expression = request.arguments!['expression'] as String;
+    try {
+      final String result = await session.serviceExtensions!.evaluate(
+        expression,
+      );
+      return CallToolResult(content: [TextContent(text: result)]);
     } on RPCError catch (e) {
       return _rpcErrorResult(e);
     }

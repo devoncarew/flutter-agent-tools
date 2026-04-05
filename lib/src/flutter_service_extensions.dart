@@ -177,6 +177,45 @@ class FlutterServiceExtensions {
   }
 
   // ---------------------------------------------------------------------------
+  // VM service evaluate
+
+  /// Evaluates [expression] on the main isolate's root library and returns the
+  /// result as a string.
+  ///
+  /// The expression is evaluated in the context of the isolate's root library,
+  /// so top-level declarations and imports of the app's `main.dart` are in
+  /// scope. This is the right context for accessing globals like
+  /// `WidgetsBinding.instance`, `FlutterView` properties, etc.
+  ///
+  /// Returns the `toString()` of the result. Throws an [RPCError] if the
+  /// expression fails to compile or throws at runtime — the error message
+  /// includes the Dart exception text.
+  Future<String> evaluate(String expression) async {
+    final VM vm = await _vmService.getVM();
+    for (final IsolateRef ref in vm.isolates ?? []) {
+      final Isolate isolate = await _vmService.getIsolate(ref.id!);
+      final String? libId = isolate.rootLib?.id;
+      if (libId == null) continue;
+
+      final Response result = await _vmService.evaluate(
+        ref.id!,
+        libId,
+        expression,
+      );
+
+      if (result is ErrorRef) {
+        throw rpcError(result.message ?? 'evaluate failed', fromMethod: 'evaluate');
+      }
+      if (result is InstanceRef) {
+        // Primitive values (String, int, double, bool, null) have their value
+        // inline. For other types, valueAsString holds the toString() output.
+        return result.valueAsString ?? result.classRef?.name ?? result.kind ?? '?';
+      }
+    }
+    throw rpcError('No suitable isolate found for evaluate', fromMethod: 'evaluate');
+  }
+
+  // ---------------------------------------------------------------------------
   // Window size via VM service evaluate
 
   /// Returns the physical window size by evaluating a Dart expression on the
