@@ -46,12 +46,14 @@ void main() async {
 
   // Build the markdown table.
   final buf = StringBuffer();
+  buf.writeln('<!-- prettier-ignore-start -->');
   buf.writeln('| Command | Description |');
   buf.writeln('|---------|-------------|');
   for (final tool in toolsResult.tools) {
     buf.write('| `${tool.name}` | ${tool.description} |');
     buf.writeln();
   }
+  buf.writeln('<!-- prettier-ignore-end -->');
 
   // Splice the table into README.md between the two markers.
   final readme = File('README.md');

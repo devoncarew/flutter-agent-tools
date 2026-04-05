@@ -30,14 +30,16 @@ runtime: query semantic elements, inject text, trigger taps, and pull unhandled
 exceptions from the Dart VM Service.
 
 <!-- flutter commands -->
+<!-- prettier-ignore-start -->
 | Command | Description |
 |---------|-------------|
-| `flutter_launch_app` | Builds and launches the Flutter app, returning a session ID for use with subsequent flutter_* tools. |
-| `flutter_perform_reload` | Hot reloads or hot restarts a running Flutter app. Prefer hot reload for iterative changes; use hot restart when state needs to be fully reset. |
+| `flutter_launch_app` | Builds and launches the Flutter app. Returns a session ID required by all other flutter_* tools. Call this first before inspecting, screenshotting, or evaluating. Flutter.Error events from the running app are automatically forwarded as MCP log warnings — no polling needed. |
+| `flutter_perform_reload` | Applies source file changes to a running Flutter app. Call this after editing Dart files, before taking a screenshot or inspecting layout. Prefer hot reload for iterative changes; use hot restart (full_restart: true) when state needs to be fully reset. |
+| `flutter_take_screenshot` | Captures a PNG screenshot of the running Flutter app. Use proactively after a reload to visually confirm UI changes are correct, and when diagnosing layout or rendering issues. Root widget bounds are resolved automatically. |
+| `flutter_inspect_layout` | Use when debugging layout issues, overflow errors, or unexpected widget sizing. Returns constraints, size, flex parameters, and children for a widget. Omit widget_id to start from the root. Widget IDs are included in flutter.error log events and in the output of prior inspect calls — use them to drill into a specific node. Increase subtree_depth to see deeper child layout. |
+| `flutter_evaluate_expression` | Evaluates a Dart expression on the running app's main isolate and returns the result as a string. Use for binding-layer and platform-layer state not visible in the widget tree: FlutterView properties (physicalSize, devicePixelRatio), MediaQueryData, Navigator state, or any runtime value. Runs in the root library scope, so top-level declarations and globals are in scope. Example: "WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio.toString()" |
 | `flutter_close_app` | Stops a running Flutter app and releases its session. |
-| `flutter_take_screenshot` | Takes a screenshot of the running Flutter app and returns it as a PNG image. The root widget bounds are resolved automatically. |
-| `flutter_inspect_layout` | Returns the layout details (constraints, size, flex parameters, and children) for a specific widget. Supply a widget ID from a flutter.error log event or a prior inspector call to drill into a specific node. Increase subtree_depth to see deeper child layout. Omit widget_id to inspect from the root — useful for proactive exploration. |
-| `flutter_evaluate` | Evaluates a Dart expression on the running app's main isolate and returns the result as a string. Runs in the context of the app's root library, so top-level declarations and globals are in scope. Useful for reading binding-layer state not visible in the widget tree: FlutterView properties (physicalSize, devicePixelRatio), MediaQueryData, or any other runtime value. |
+<!-- prettier-ignore-end -->
 <!-- flutter commands -->
 
 ## Installation
