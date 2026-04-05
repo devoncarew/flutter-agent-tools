@@ -31,6 +31,7 @@ base class FlutterAgentServer extends MCPServer
     // inspection
     registerTool(flutterTakeScreenshotTool, _flutterTakeScreenshot);
     registerTool(flutterInspectLayoutTool, _flutterInspectLayout);
+    registerTool(flutterEvaluateTool, _flutterEvaluate);
   }
 
   final Map<String, FlutterRunSession> _sessions = {};
@@ -291,9 +292,11 @@ base class FlutterAgentServer extends MCPServer
     name: 'flutter_inspect_layout',
     description:
         'Returns the layout details (constraints, size, flex parameters, and '
-        'children) for a specific widget. Use the widget ID from a '
-        'flutter.error log event or a prior inspector call. '
-        'Increase subtree_depth to see child widget layout.',
+        'children) for a specific widget. Supply a widget ID from a '
+        'flutter.error log event or a prior inspector call to drill into a '
+        'specific node. Increase subtree_depth to see deeper child layout. '
+        'Omit widget_id to inspect from the root — useful for proactive '
+        'exploration.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
@@ -301,13 +304,13 @@ base class FlutterAgentServer extends MCPServer
         ),
         'widget_id': Schema.string(
           description:
-              'The widget ID to inspect (e.g. from a flutter.error event).',
+              'The widget ID to inspect. Omit to start from the root widget.',
         ),
         'subtree_depth': Schema.int(
-          description: 'How many levels of children to include. Defaults to 2.',
+          description: 'How many levels of children to include. Defaults to 1.',
         ),
       },
-      required: ['session_id', 'widget_id'],
+      required: ['session_id'],
     ),
   );
 
@@ -318,16 +321,74 @@ base class FlutterAgentServer extends MCPServer
       return _unknownSessionResult(sessionId);
     }
 
-    final String widgetId = request.arguments!['widget_id'] as String;
-    final int subtreeDepth = (request.arguments!['subtree_depth'] as int?) ?? 2;
+    final String? widgetId = request.arguments!['widget_id'] as String?;
+    final int subtreeDepth = (request.arguments!['subtree_depth'] as int?) ?? 1;
 
     try {
-      final node = await session.serviceExtensions!.getDetailsSubtree(
-        widgetId,
+      final extensions = session.serviceExtensions!;
+      final String resolvedId;
+      if (widgetId != null) {
+        resolvedId = widgetId;
+      } else {
+        final root = await extensions.getRootWidget();
+        if (root.valueId == null) {
+          return CallToolResult(
+            isError: true,
+            content: [TextContent(text: 'Root widget has no valueId.')],
+          );
+        }
+        resolvedId = root.valueId!;
+      }
+      final node = await extensions.getDetailsSubtree(
+        resolvedId,
         subtreeDepth: subtreeDepth,
       );
-      final layoutSummary = formatLayoutDetails(node);
+      final layoutSummary = formatLayoutDetails(node, maxDepth: subtreeDepth);
       return CallToolResult(content: [TextContent(text: layoutSummary)]);
+    } on RPCError catch (e) {
+      return _rpcErrorResult(e);
+    }
+  }
+
+  final Tool flutterEvaluateTool = Tool(
+    name: 'flutter_evaluate',
+    description:
+        'Evaluates a Dart expression on the running app\'s main isolate and '
+        'returns the result as a string. Runs in the context of the app\'s '
+        'root library, so top-level declarations and globals are in scope. '
+        'Useful for reading binding-layer state not visible in the widget '
+        'tree: FlutterView properties (physicalSize, devicePixelRatio), '
+        'MediaQueryData, or any other runtime value.',
+    inputSchema: Schema.object(
+      properties: {
+        'session_id': Schema.string(
+          description: 'The session ID returned by flutter_launch_app.',
+        ),
+        'expression': Schema.string(
+          description:
+              'The Dart expression to evaluate. Must produce a value with a '
+              'useful toString(). Example: '
+              '"WidgetsBinding.instance.platformDispatcher'
+              '.views.first.devicePixelRatio.toString()"',
+        ),
+      },
+      required: ['session_id', 'expression'],
+    ),
+  );
+
+  Future<CallToolResult> _flutterEvaluate(CallToolRequest request) async {
+    final String? sessionId = request.arguments!['session_id'] as String?;
+    final FlutterRunSession? session = _sessions[sessionId];
+    if (sessionId == null || session == null) {
+      return _unknownSessionResult(sessionId);
+    }
+
+    final String expression = request.arguments!['expression'] as String;
+    try {
+      final String result = await session.serviceExtensions!.evaluate(
+        expression,
+      );
+      return CallToolResult(content: [TextContent(text: result)]);
     } on RPCError catch (e) {
       return _rpcErrorResult(e);
     }

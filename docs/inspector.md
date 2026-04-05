@@ -154,47 +154,7 @@ filter.
     can query specific anomalies without full traversals (e.g.,
     `flutter_query_ui(query: "find: RenderFlex where overflow == true")`).
 
-## 6. MCP Tool Architecture Reference
+## 6. Further Reading
 
-The following tools bridge the gap between the LLM and the running Flutter
-process. ✓ = implemented; [planned] = not yet implemented.
-
-### Session & Lifecycle
-
-- ✓
-  `flutter_launch_app(working_directory: String, target: String?, device: String?) → String`:
-  Starts the app via `flutter run --machine` and establishes the VM service
-  connection. Returns a `session_id`.
-- ✓ `flutter_perform_reload(session_id: String, full_restart: bool?) → void`:
-  Hot reloads or hot restarts the running app.
-- ✓ `flutter_close_app(session_id: String) → void`: Stops the app and releases
-  the session.
-
-### Inspection & Debugging (Read)
-
-- ✓ `flutter_take_screenshot(session_id: String, pixel_ratio: num?) → PNG`:
-  Captures the current frame. Crucial for multimodal agents to visually verify
-  that a layout fix was successful.
-- ✓ **Flutter.Error log events** (push, not pull): Framework errors are
-  forwarded as MCP log events containing the error summary, source location,
-  render constraints, and first stack frame. Recent errors are also buffered on
-  the session for retrieval. Error events include widget IDs that can be passed
-  to `flutter_inspect_layout`.
-- ✓ **`flutter_inspect_layout(session_id: String, widget_id: String) → String`:
-  [High Value]** Returns the `BoxConstraints`, `Size`, and flex parameters for a
-  specific node. This is the primary tool for diagnosing overflow and invisible
-  widget issues — the widget ID comes from a `Flutter.Error` event or a prior
-  inspector call.
-
-### Interaction & Automation (Write)
-
-_These tools are useful when an agent needs to navigate the app to reach a
-specific state — e.g., tapping through a flow to reproduce a bug on a deep
-screen. They use the Semantics + GestureBinding injection strategy from
-Section 4._
-
-- [planned] `flutter_tap(session_id: String, semantics_label: String) → void`
-- [planned]
-  `flutter_inject_text(session_id: String, semantics_label: String, text: String) → void`
-- [planned]
-  `flutter_scroll_to(session_id: String, semantics_label: String) → void`
+See `DESIGN.md` for the full tool surface, implementation status, and design
+rationale. This document focuses on the underlying protocol and data structures.

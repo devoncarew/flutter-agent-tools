@@ -200,11 +200,69 @@ _Introspection and interaction (via Dart VM Service):_
   `ext.flutter.inspector.screenshot` with physical window dimensions from
   `evaluate`.
 
+### `flutter_evaluate`
+
+Runs an arbitrary Dart expression on the main isolate via the VM service
+`evaluate` RPC and returns the result as a string.
+
+This covers a class of debugging questions that inspector extensions cannot
+answer — specifically, binding-layer and platform-layer state that exists below
+the widget tree:
+
+- `WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio.toString()`
+- `MediaQuery.of(context).toString()` — requires a valid `BuildContext`
+- Any `FlutterView` property (`physicalSize`, `padding`, `viewInsets`)
+
+The inspector tree shows widget and render-object state; `evaluate` covers
+everything else. We already use this internally for `getPhysicalWindowSize()`;
+exposing it as a tool gives agents direct access without requiring a dedicated
+method for every possible query.
+
+### Planned: `flutter_query_ui`
+
+An experimental tool for agents that want a high-level description of what is
+currently on screen — useful for navigating to a specific app state, confirming
+a change took effect, or understanding the current route before drilling into
+layout details.
+
+Rather than committing to a single output format, the tool is parameterized by a
+`mode` argument so individual modes can be added or removed independently as we
+learn what's actually useful:
+
+| `mode`        | Returns                                                                        | Source                                               |
+| ------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| `semantics`   | Flat list of visible, interactive nodes (labels, roles, bounding boxes)        | Semantics tree (via `evaluate` to enable + traverse) |
+| `widget_tree` | Summary widget tree filtered to user-written widgets (omits Flutter internals) | `getRootWidgetTree(isSummaryTree: true)`             |
+| `route`       | Current route name / navigator state                                           | `evaluate` against rootLib                           |
+
+The semantics tree is most token-efficient for "what can I interact with?"
+questions — it's a flat list of user-visible nodes with labels and bounding
+boxes, filtered by the Flutter framework to exclude invisible/internal nodes.
+The widget tree adds structural context (nesting, widget types) at higher token
+cost. Route info is low-cost and answers the most common orientation question.
+
+A sample semantics node from a real app:
+
+```
+SemanticsNode#6
+  Rect.fromLTRB(0.0, 0.0, 379.0, 80.0)
+  actions: focus, tap
+  flags: isButton, hasEnabledState, isEnabled, isFocusable, hasSelectedState
+  label: "Betelgeuse\nRed supergiant · 700 solar radii"
+  textDirection: ltr
+```
+
+The semantics tree requires calling `RendererBinding.instance.ensureSemantics()`
+once to enable it; after that, nodes are maintained by the framework. The tree
+will not be present on apps built in release mode.
+
 **Open questions:**
 
-- Widget tree queries: a structured filter syntax (`flutter_query_ui`) is lower
-  priority than `flutter_inspect_layout`, which covers the most common case —
-  drilling into a specific widget ID from a `Flutter.Error` event.
+- The semantics tree is disabled by default to save resources. We need to
+  evaluate whether the one-time enable call has observable performance impact on
+  typical development-mode apps.
+- Route name extraction: `ModalRoute.of(context)` requires a `BuildContext`; the
+  best approach via `evaluate` against rootLib is not yet confirmed.
 - App state and authentication: navigating apps that require login or seeded
   data before reaching the UI under test is unsolved.
 
@@ -228,7 +286,9 @@ package_info(package, kind, library?, class?, version?) → String  [planned]
 // Tool 3 — inspection (high value)
 ✓ flutter_take_screenshot(session_id, pixel_ratio?) → PNG
 ✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
-✓ flutter_inspect_layout(session_id, widget_id) → String  // BoxConstraints, Size, flex
+✓ flutter_inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
+✓ flutter_evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
+[planned] flutter_query_ui(session_id, mode) → String  // semantics | widget_tree | route
 
 // Tool 3 — app interaction (useful but lower priority for coding agents)
 [planned] flutter_tap(session_id, semantics_label) → void
