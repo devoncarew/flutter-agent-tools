@@ -36,18 +36,22 @@ The specific RenderFlex in question is: RenderFlex#d014f relayoutBoundary=up2 OV
     test('failed_assertion', () {
       expect(
         compactSummarizer(failedAssertion),
-        equals(r'''
+        equals(
+          r'''
 Manually triggered assertion failure from Profile page.\n'package:flight_check_example/main.dart':\nFailed assertion: line 299 pos 15: 'false'
-At: #2      _ProfilePage.build.<anonymous closure> (package:flight_check_example/main.dart:299:15)'''),
+At: #2      _ProfilePage.build.<anonymous closure> (package:flight_check_example/main.dart:299:15)''',
+        ),
       );
     });
 
     test('null_check', () {
       expect(
         compactSummarizer(nullCheck),
-        equals('''
+        equals(
+          '''
 Null check operator used on a null value
-At: #0      _ProfilePage.build.<anonymous closure> (package:flight_check_example/main.dart:311:28)'''),
+At: #0      _ProfilePage.build.<anonymous closure> (package:flight_check_example/main.dart:311:28)''',
+        ),
       );
     });
   });
@@ -75,11 +79,13 @@ The specific RenderFlex in question is: RenderFlex#d014f relayoutBoundary=up2 OV
     test('unbounded_viewport', () {
       expect(
         detailedSummarizer(unboundedViewport),
-        equals('''
+        equals(
+          '''
 Exception caught by rendering library
 Vertical viewport was given unbounded height.
 Viewports expand in the scrolling direction to fill their container. In this case, a vertical viewport was given an unlimited amount of vertical space in which to expand. This situation typically happens when a scrollable widget is nested inside another scrollable widget.
-Hint: If this widget is always nested in a scrollable widget there is no need to use a viewport because there will always be enough vertical space for the children. In this case, consider using a Column or Wrap instead. Otherwise, consider using a CustomScrollView to concatenate arbitrary slivers into a single scrollable.'''),
+Hint: If this widget is always nested in a scrollable widget there is no need to use a viewport because there will always be enough vertical space for the children. In this case, consider using a Column or Wrap instead. Otherwise, consider using a CustomScrollView to concatenate arbitrary slivers into a single scrollable.''',
+        ),
       );
     });
 

@@ -50,10 +50,7 @@ void main() {
     test('properties include ErrorSummary with level summary', () {
       final summary = node.properties.where((p) => p.level == 'summary');
       expect(summary, isNotEmpty);
-      expect(
-        summary.first.description,
-        contains('RenderFlex overflowed'),
-      );
+      expect(summary.first.description, contains('RenderFlex overflowed'));
     });
 
     test('properties include ErrorHint nodes', () {
@@ -88,7 +85,10 @@ void main() {
     });
 
     test('detail returns ErrorSummary text', () {
-      expect(error.detail, 'A RenderFlex overflowed by 900 pixels on the bottom.');
+      expect(
+        error.detail,
+        'A RenderFlex overflowed by 900 pixels on the bottom.',
+      );
     });
 
     test('detail falls back to description when no ErrorSummary', () {

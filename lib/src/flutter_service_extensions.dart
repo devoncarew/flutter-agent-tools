@@ -186,7 +186,7 @@ class FlutterServiceExtensions {
         ref.id!,
         libId,
         'WidgetsBinding.instance.platformDispatcher.views.first.physicalSize'
-            '.toString()',
+        '.toString()',
       );
 
       if (result is InstanceRef && result.valueAsString != null) {
