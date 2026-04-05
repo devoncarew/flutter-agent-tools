@@ -10,54 +10,32 @@ void main() {
     late DiagnosticsNode node;
 
     setUp(() {
-      final fixture = 'test/fixtures/render_trees/overflow_details.json';
       final data =
-          jsonDecode(File(fixture).readAsStringSync()) as Map<String, dynamic>;
+          jsonDecode(
+                File(
+                  'test/fixtures/render_trees/overflow_details.json',
+                ).readAsStringSync(),
+              )
+              as Map<String, dynamic>;
       node = DiagnosticsNode.fromJson(data);
     });
 
-    test('includes root description', () {
-      final output = formatLayoutDetails(node);
-      expect(output, contains('RenderFlex'));
-      expect(output, contains('OVERFLOWING'));
+    test('matches golden output', () {
+      final golden = File(
+        'test/fixtures/render_trees/overflow_details_formatted.txt',
+      ).readAsStringSync().trimRight();
+      expect(formatLayoutDetails(node), equals(golden));
     });
 
-    test('includes root properties', () {
-      final output = formatLayoutDetails(node);
-      expect(
-        output,
-        contains('constraints: BoxConstraints(0.0<=w<=411.0, h=300.0)'),
-      );
-      expect(output, contains('size: Size(411.0, 300.0)'));
-      expect(output, contains('direction: vertical'));
-      expect(output, contains('mainAxisAlignment: start'));
+    test('truncates beyond maxChildren', () {
+      // Pass maxChildren=3 to force truncation on a 20-child node.
+      final output = formatLayoutDetails(node, maxChildren: 3);
+      expect(output, contains('... (17 more children)'));
     });
 
-    test('includes children header with count', () {
-      final output = formatLayoutDetails(node);
-      expect(output, contains('children (20):'));
-    });
-
-    test('includes child names and descriptions', () {
-      final output = formatLayoutDetails(node);
-      expect(output, contains('child 1:'));
-      expect(output, contains('RenderConstrainedBox'));
-    });
-
-    test('includes child layout properties', () {
-      final output = formatLayoutDetails(node);
-      // parentData carries offset and flex factor.
-      expect(output, contains('parentData:'));
-      expect(output, contains('flex=null'));
-      // Each child is 60px tall.
-      expect(output, contains('size: Size(411.0, 60.0)'));
-    });
-
-    test('truncates beyond _maxChildren', () {
-      // The fixture has 20 children, which is exactly _maxChildren — no
-      // truncation line expected. If we had 21 we'd see "more children".
-      final output = formatLayoutDetails(node);
-      expect(output, isNot(contains('more children')));
+    test('respects maxDepth=0 (no children)', () {
+      final output = formatLayoutDetails(node, maxDepth: 0);
+      expect(output, isNot(contains('children')));
     });
   });
 }
