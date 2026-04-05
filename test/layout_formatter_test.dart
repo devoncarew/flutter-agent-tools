@@ -21,10 +21,12 @@ void main() {
     });
 
     test('matches golden output', () {
-      final golden = File(
-        'test/fixtures/render_trees/overflow_details_formatted.txt',
-      ).readAsStringSync().trimRight();
-      expect(formatLayoutDetails(node), equals(golden));
+      final golden =
+          File(
+            'test/fixtures/render_trees/overflow_details_formatted.txt',
+          ).readAsStringSync().trimRight();
+      // maxDepth: 1 matches the default used by flutter_inspect_layout.
+      expect(formatLayoutDetails(node, maxDepth: 1), equals(golden));
     });
 
     test('truncates beyond maxChildren', () {

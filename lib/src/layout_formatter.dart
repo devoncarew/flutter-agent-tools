@@ -15,8 +15,8 @@ const _childLayoutProps = {'parentData', 'constraints', 'size'};
 /// truncating.
 String formatLayoutDetails(
   DiagnosticsNode node, {
-  int maxChildren = 20,
   int maxDepth = 4,
+  int maxChildren = 20,
 }) {
   final buf = StringBuffer();
 
@@ -30,7 +30,14 @@ String formatLayoutDetails(
     }
   }
 
-  _writeChildren(buf, node.children, indent: 0, maxChildren: maxChildren, maxDepth: maxDepth, depth: 0);
+  _writeChildren(
+    buf,
+    node.children,
+    indent: 0,
+    maxChildren: maxChildren,
+    maxDepth: maxDepth,
+    depth: 0,
+  );
 
   return buf.toString().trim();
 }

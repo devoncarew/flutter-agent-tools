@@ -14,199 +14,79 @@ children (20):
     parentData: offset=Offset(0.0, 0.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#b6ff6 relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 2: RenderConstrainedBox#3df9e relayoutBoundary=up3
     parentData: offset=Offset(0.0, 60.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#6e6fb relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 3: RenderConstrainedBox#aef69 relayoutBoundary=up3
     parentData: offset=Offset(0.0, 120.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#8b7ba relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 4: RenderConstrainedBox#9aa03 relayoutBoundary=up3
     parentData: offset=Offset(0.0, 180.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#59516 relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 5: RenderConstrainedBox#b21fc relayoutBoundary=up3
     parentData: offset=Offset(0.0, 240.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#399d5 relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 6: RenderConstrainedBox#9cf8a relayoutBoundary=up3
     parentData: offset=Offset(0.0, 300.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#f8edd relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 7: RenderConstrainedBox#f7b37 relayoutBoundary=up3
     parentData: offset=Offset(0.0, 360.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#497b5 relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 8: RenderConstrainedBox#5793d relayoutBoundary=up3
     parentData: offset=Offset(0.0, 420.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#2f1b0 relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 9: RenderConstrainedBox#2c2e0 relayoutBoundary=up3
     parentData: offset=Offset(0.0, 480.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#36dc5 relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 10: RenderConstrainedBox#75c52 relayoutBoundary=up3
     parentData: offset=Offset(0.0, 540.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#d3e7c relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 11: RenderConstrainedBox#2a976 relayoutBoundary=up3
     parentData: offset=Offset(0.0, 600.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#8ebc0 relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 12: RenderConstrainedBox#93598 relayoutBoundary=up3
     parentData: offset=Offset(0.0, 660.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#e1ca4 relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 13: RenderConstrainedBox#024df relayoutBoundary=up3
     parentData: offset=Offset(0.0, 720.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#1c8fc relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 14: RenderConstrainedBox#c1d70 relayoutBoundary=up3
     parentData: offset=Offset(0.0, 780.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#be90d relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 15: RenderConstrainedBox#da063 relayoutBoundary=up3
     parentData: offset=Offset(0.0, 840.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#201f3 relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 16: RenderConstrainedBox#22f1d relayoutBoundary=up3
     parentData: offset=Offset(0.0, 900.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#883fd relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 17: RenderConstrainedBox#04fee relayoutBoundary=up3
     parentData: offset=Offset(0.0, 960.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#30dfb relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 18: RenderConstrainedBox#e1d96 relayoutBoundary=up3
     parentData: offset=Offset(0.0, 1020.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#b16f8 relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 19: RenderConstrainedBox#16c73 relayoutBoundary=up3
     parentData: offset=Offset(0.0, 1080.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#6daa5 relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)
   child 20: RenderConstrainedBox#b482a relayoutBoundary=up3
     parentData: offset=Offset(0.0, 1140.0); flex=null; fit=null (can use size)
     constraints: BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)
     size: Size(411.0, 60.0)
-
-    children (1):
-      child: _RenderColoredBox#bb57b relayoutBoundary=up4
-        parentData: <none> (can use size)
-        constraints: BoxConstraints(0.0<=w<=411.0, h=60.0)
-        size: Size(411.0, 60.0)

@@ -204,15 +204,24 @@ class FlutterServiceExtensions {
       );
 
       if (result is ErrorRef) {
-        throw rpcError(result.message ?? 'evaluate failed', fromMethod: 'evaluate');
+        throw rpcError(
+          result.message ?? 'evaluate failed',
+          fromMethod: 'evaluate',
+        );
       }
       if (result is InstanceRef) {
         // Primitive values (String, int, double, bool, null) have their value
         // inline. For other types, valueAsString holds the toString() output.
-        return result.valueAsString ?? result.classRef?.name ?? result.kind ?? '?';
+        return result.valueAsString ??
+            result.classRef?.name ??
+            result.kind ??
+            '?';
       }
     }
-    throw rpcError('No suitable isolate found for evaluate', fromMethod: 'evaluate');
+    throw rpcError(
+      'No suitable isolate found for evaluate',
+      fromMethod: 'evaluate',
+    );
   }
 
   // ---------------------------------------------------------------------------
