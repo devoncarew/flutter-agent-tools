@@ -7,6 +7,7 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import 'flutter_run_session.dart';
 import 'flutter_service_extensions.dart';
+import 'layout_formatter.dart';
 import 'utils.dart';
 
 /// The MCP server for flutter-agent-tools.
@@ -27,6 +28,7 @@ base class FlutterAgentServer extends MCPServer
     registerTool(flutterCloseAppTool, _flutterCloseApp);
     registerTool(flutterPerformReloadTool, _flutterPerformReload);
     registerTool(flutterTakeScreenshotTool, _flutterTakeScreenshot);
+    registerTool(flutterInspectLayoutTool, _flutterInspectLayout);
     // Experimental: may or may not justify its existence long-term.
     registerTool(flutterHighlightWidgetTool, _flutterHighlightWidget);
     // Experimental: may or may not justify its existence long-term.
@@ -336,6 +338,52 @@ base class FlutterAgentServer extends MCPServer
       return CallToolResult(
         content: [ImageContent(data: base64Data, mimeType: 'image/png')],
       );
+    } on RPCError catch (e) {
+      return _rpcErrorResult(e);
+    }
+  }
+
+  final Tool flutterInspectLayoutTool = Tool(
+    name: 'flutter_inspect_layout',
+    description:
+        'Returns the layout details (constraints, size, flex parameters, and '
+        'children) for a specific widget. Use the widget ID from a '
+        'flutter.error log event or a prior inspector call. '
+        'Increase subtree_depth to see child widget layout.',
+    inputSchema: Schema.object(
+      properties: {
+        'session_id': Schema.string(
+          description: 'The session ID returned by flutter_launch_app.',
+        ),
+        'widget_id': Schema.string(
+          description:
+              'The widget ID to inspect (e.g. from a flutter.error event).',
+        ),
+        'subtree_depth': Schema.int(
+          description: 'How many levels of children to include. Defaults to 2.',
+        ),
+      },
+      required: ['session_id', 'widget_id'],
+    ),
+  );
+
+  Future<CallToolResult> _flutterInspectLayout(CallToolRequest request) async {
+    final String? sessionId = request.arguments!['session_id'] as String?;
+    final FlutterRunSession? session = _sessions[sessionId];
+    if (sessionId == null || session == null) {
+      return _unknownSessionResult(sessionId);
+    }
+
+    final String widgetId = request.arguments!['widget_id'] as String;
+    final int subtreeDepth = (request.arguments!['subtree_depth'] as int?) ?? 2;
+
+    try {
+      final node = await session.serviceExtensions!.getDetailsSubtree(
+        widgetId,
+        subtreeDepth: subtreeDepth,
+      );
+      final layoutSummary = formatLayoutDetails(node);
+      return CallToolResult(content: [TextContent(text: layoutSummary)]);
     } on RPCError catch (e) {
       return _rpcErrorResult(e);
     }

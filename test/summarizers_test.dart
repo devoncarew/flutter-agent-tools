@@ -5,6 +5,13 @@ import 'package:flutter_agent_tools/src/error_summarizers.dart';
 import 'package:flutter_agent_tools/src/flutter_run_session.dart';
 import 'package:test/test.dart';
 
+FlutterError _loadError(String name) {
+  final data =
+      jsonDecode(File('test/fixtures/errors/$name').readAsStringSync())
+          as Map<String, dynamic>;
+  return FlutterError.tryParse(data)!;
+}
+
 void main() {
   final overflowError = _loadError('overflow_error.json');
   final unboundedViewport = _loadError('unbounded_viewport.json');
@@ -103,11 +110,4 @@ Recognizer: TapGestureRecognizer#afde5'''),
       );
     });
   });
-}
-
-FlutterError _loadError(String name) {
-  final data =
-      jsonDecode(File('test/fixtures/$name').readAsStringSync())
-          as Map<String, dynamic>;
-  return FlutterError.tryParse(data)!;
 }

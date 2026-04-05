@@ -6,7 +6,7 @@ import 'package:flutter_agent_tools/src/flutter_run_session.dart';
 import 'package:test/test.dart';
 
 Map<String, dynamic> _loadFixture(String name) {
-  final file = File('test/fixtures/$name');
+  final file = File('test/fixtures/errors/$name');
   return jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
 }
 
