@@ -1,4 +1,4 @@
-# Flight Check: Flutter Runtime Inspection Guide for AI Agents
+# Flutter Runtime Inspection Guide for AI Agents
 
 ## 1. Conceptual Overview: The Three Trees
 
@@ -28,33 +28,56 @@ the UI.
 
 ### Key Service Calls
 
-- `ext.flutter.inspector.getRootWidgetSummaryTree`: Fetches a lightweight
-  overview of the current UI. Use this to get the `valueId` of the root node or
-  to find a specific widget in the hierarchy.
-- `ext.flutter.inspector.getDetailsSubtree(diagnosticableId: String)`: The heavy
-  lifter. Returns the exhaustive list of properties, constraints, and render
-  objects for a specific node.
+- `ext.flutter.inspector.getRootWidget`: Returns the root widget node with full
+  detail, including its `valueId` — the inspector object handle required by the
+  screenshot extension.
+- `ext.flutter.inspector.getRootWidgetTree`: Returns a configurable widget tree.
+  Accepts `isSummaryTree` (omit internal widgets), `withPreviews` (thumbnails),
+  and `fullDetails`.
+- `ext.flutter.inspector.getDetailsSubtree(arg: String, subtreeDepth: int)`: The
+  heavy lifter. Returns the exhaustive property and render-object tree for a
+  specific node. Use this to get `BoxConstraints`, `Size`, and flex parameters.
 
-### Navigating `DiagnosticsNode` Irregularities
+### Navigating `DiagnosticsNode` Data
 
 Inspector data is generated via Dart's `debugFillProperties`, meaning property
 names are polymorphic.
 
-- **Finding Sizing:** Inside a `renderObject` property array, dimensions might
-  be named `"size"`, `"view size"`, or `"geometry"`.
-- **Extracting Values:** Values are often stringified descriptions rather than
-  native JSON types. Constraints must be parsed from strings like
-  `"BoxConstraints(w=400.0, h=800.0)"`.
+**Inspector / render-tree path (`getDetailsSubtree`):**
 
-## 3. The Alternative Read Path: VM Service `evaluate`
+- Dimensions appear nested under a `renderObject` property, named `"size"`,
+  `"view size"`, or `"geometry"` depending on the widget type.
+- Values are stringified: constraints come as
+  `"BoxConstraints(w=400.0, h=800.0)"`, sizes as `"Size(411.0, 300.0)"` — must
+  be parsed with regex.
 
-Because Inspector extensions are string-heavy and sometimes brittle to parse,
-agents can use the core VM service `evaluate` RPC to execute arbitrary Dart code
-on the running app.
+**`Flutter.Error` event path:**
 
-**Example: Getting Exact Screen Dimensions** Instead of parsing the root
-RenderView's `"view size"` string, evaluate this directly on the main isolate to
-get the exact window/emulator dimensions:
+Error events deliver a structured DiagnosticsNode tree with explicit `type`
+fields on each property. Key types and what they carry:
+
+| Type                     | Content                                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------------------ |
+| `ErrorSummary`           | The specific error message (`level == 'summary'`)                                          |
+| `ErrorDescription`       | Prose context (e.g., "The following assertion...")                                         |
+| `ErrorHint`              | Suggested fix                                                                              |
+| `DiagnosticsBlock`       | Named group of child nodes (e.g., "The relevant error-causing widget was")                 |
+| `DiagnosticableTreeNode` | The offending widget/render object, with sub-properties `constraints`, `size`, `direction` |
+| `DiagnosticsStackTrace`  | Stack frames; first frame is the call site                                                 |
+
+The widget ID embedded in a `DiagnosticsBlock` child description or a
+`DiagnosticableTreeNode` can be passed directly to `flutter_inspect_layout` for
+a deeper drill-down.
+
+## 3. The Preferred Read Path: VM Service `evaluate`
+
+For values that are available as live Dart expressions, prefer the VM service
+`evaluate` RPC over inspector string-parsing. The RPC runs real Dart code on the
+isolate and returns an exact typed value — no regex, no ambiguous field names.
+
+**Example: Getting Exact Screen Dimensions** Rather than parsing the root
+RenderView's `"view size"` string from a details subtree, evaluate this
+expression on the main isolate:
 
 ```dart
 WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.toString()
@@ -134,35 +157,44 @@ filter.
 ## 6. MCP Tool Architecture Reference
 
 The following tools bridge the gap between the LLM and the running Flutter
-process.
+process. ✓ = implemented; [planned] = not yet implemented.
 
 ### Session & Lifecycle
 
-- `flutter_launch_app(target: String?, device: String?) → String`: Starts the
-  app via `flutter run --machine` and establishes the VM service connection.
-  Returns a `session_id`.
+- ✓
+  `flutter_launch_app(working_directory: String, target: String?, device: String?) → String`:
+  Starts the app via `flutter run --machine` and establishes the VM service
+  connection. Returns a `session_id`.
+- ✓ `flutter_perform_reload(session_id: String, full_restart: bool?) → void`:
+  Hot reloads or hot restarts the running app.
+- ✓ `flutter_close_app(session_id: String) → void`: Stops the app and releases
+  the session.
 
 ### Inspection & Debugging (Read)
 
-- `flutter_query_ui(session_id: String, query: String) → String`: Fetches
-  heavily filtered JSON representing the UI tree.
-- `flutter_get_exceptions(session_id: String) → List<String>`: Returns a stack
-  of recent rendering or layout exceptions.
-- `flutter_inspect_layout(session_id: String, widget_id: String) → String`:
-  **[High Value]** Returns _only_ the `BoxConstraints`, `Size`, and incoming
-  flex parameters for a specific node to debug overflows.
+- ✓ `flutter_take_screenshot(session_id: String, pixel_ratio: num?) → PNG`:
+  Captures the current frame. Crucial for multimodal agents to visually verify
+  that a layout fix was successful.
+- ✓ **Flutter.Error log events** (push, not pull): Framework errors are
+  forwarded as MCP log events containing the error summary, source location,
+  render constraints, and first stack frame. Recent errors are also buffered on
+  the session for retrieval. Error events include widget IDs that can be passed
+  to `flutter_inspect_layout`.
+- ✓ **`flutter_inspect_layout(session_id: String, widget_id: String) → String`:
+  [High Value]** Returns the `BoxConstraints`, `Size`, and flex parameters for a
+  specific node. This is the primary tool for diagnosing overflow and invisible
+  widget issues — the widget ID comes from a `Flutter.Error` event or a prior
+  inspector call.
 
 ### Interaction & Automation (Write)
 
-_These tools utilize the Semantics + GestureBinding injection strategy outlined
-in Section 4._
+_These tools are useful when an agent needs to navigate the app to reach a
+specific state — e.g., tapping through a flow to reproduce a bug on a deep
+screen. They use the Semantics + GestureBinding injection strategy from
+Section 4._
 
-- `flutter_tap(session_id: String, semantics_label: String) → void`
-- `flutter_inject_text(session_id: String, semantics_label: String, text: String) → void`
-- `flutter_scroll_to(session_id: String, semantics_label: String) → void`
-
-### Visual Verification
-
-- `flutter_take_screenshot(session_id: String, pixel_ratio: String?) → String`:
-  Captures the current frame via the VM service. Crucial for multimodal agents
-  to visually verify that a layout fix was successful.
+- [planned] `flutter_tap(session_id: String, semantics_label: String) → void`
+- [planned]
+  `flutter_inject_text(session_id: String, semantics_label: String, text: String) → void`
+- [planned]
+  `flutter_scroll_to(session_id: String, semantics_label: String) → void`

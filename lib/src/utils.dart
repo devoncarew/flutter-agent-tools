@@ -7,3 +7,5 @@ Object? jsonTryParse(String source) {
     return null;
   }
 }
+
+typedef Logger = void Function(String);

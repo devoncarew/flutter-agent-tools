@@ -1,0 +1,2676 @@
+{
+  "description": "RenderFlex#e9b71 relayoutBoundary=up2 OVERFLOWING",
+  "type": "DiagnosticableTreeNode",
+  "hasChildren": true,
+  "allowWrap": false,
+  "valueId": "inspector-10",
+  "properties": [
+    {
+      "description": "<none> (can use size)",
+      "type": "DiagnosticsProperty<ParentData>",
+      "name": "parentData",
+      "style": "singleLine",
+      "allowNameWrap": true,
+      "valueId": "inspector-11",
+      "properties": [],
+      "children": [],
+      "ifNull": "MISSING",
+      "tooltip": "can use size",
+      "missingIfNull": true,
+      "propertyType": "ParentData",
+      "defaultLevel": "info"
+    },
+    {
+      "description": "BoxConstraints(0.0<=w<=411.0, h=300.0)",
+      "type": "DiagnosticsProperty<Constraints>",
+      "name": "constraints",
+      "style": "singleLine",
+      "allowNameWrap": true,
+      "valueId": "inspector-12",
+      "properties": [],
+      "children": [],
+      "ifNull": "MISSING",
+      "missingIfNull": true,
+      "propertyType": "Constraints",
+      "defaultLevel": "info"
+    },
+    {
+      "description": "Size(411.0, 300.0)",
+      "type": "DiagnosticsProperty<Size>",
+      "name": "size",
+      "style": "singleLine",
+      "allowNameWrap": true,
+      "valueId": "inspector-13",
+      "properties": [],
+      "children": [],
+      "ifNull": "MISSING",
+      "missingIfNull": true,
+      "propertyType": "Size",
+      "defaultLevel": "info"
+    },
+    {
+      "description": "vertical",
+      "type": "EnumProperty<Axis>",
+      "name": "direction",
+      "style": "singleLine",
+      "allowNameWrap": true,
+      "valueId": "inspector-14",
+      "properties": [],
+      "children": [],
+      "missingIfNull": false,
+      "propertyType": "Axis",
+      "defaultLevel": "info"
+    },
+    {
+      "description": "start",
+      "type": "EnumProperty<MainAxisAlignment>",
+      "name": "mainAxisAlignment",
+      "style": "singleLine",
+      "allowNameWrap": true,
+      "valueId": "inspector-15",
+      "properties": [],
+      "children": [],
+      "missingIfNull": false,
+      "propertyType": "MainAxisAlignment",
+      "defaultLevel": "info"
+    },
+    {
+      "description": "max",
+      "type": "EnumProperty<MainAxisSize>",
+      "name": "mainAxisSize",
+      "style": "singleLine",
+      "allowNameWrap": true,
+      "valueId": "inspector-16",
+      "properties": [],
+      "children": [],
+      "missingIfNull": false,
+      "propertyType": "MainAxisSize",
+      "defaultLevel": "info"
+    },
+    {
+      "description": "center",
+      "type": "EnumProperty<CrossAxisAlignment>",
+      "name": "crossAxisAlignment",
+      "style": "singleLine",
+      "allowNameWrap": true,
+      "valueId": "inspector-17",
+      "properties": [],
+      "children": [],
+      "missingIfNull": false,
+      "propertyType": "CrossAxisAlignment",
+      "defaultLevel": "info"
+    },
+    {
+      "description": "down",
+      "type": "EnumProperty<VerticalDirection>",
+      "name": "verticalDirection",
+      "style": "singleLine",
+      "allowNameWrap": true,
+      "valueId": "inspector-18",
+      "properties": [],
+      "children": [],
+      "defaultValue": "null",
+      "missingIfNull": false,
+      "propertyType": "VerticalDirection",
+      "defaultLevel": "info"
+    },
+    {
+      "description": "0.0",
+      "type": "DoubleProperty",
+      "name": "spacing",
+      "style": "singleLine",
+      "allowNameWrap": true,
+      "valueId": "inspector-19",
+      "properties": [],
+      "children": [],
+      "defaultValue": "null",
+      "missingIfNull": false,
+      "propertyType": "double",
+      "defaultLevel": "info",
+      "value": 0,
+      "numberToString": "0.0"
+    }
+  ],
+  "children": [
+    {
+      "description": "RenderConstrainedBox#0a1bd relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 1",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-20",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 0.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-21",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-23",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-24",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#b6ff6 relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-25",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-26",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-27",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-28",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#3df9e relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 2",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-43",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 60.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-44",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-45",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-46",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#6e6fb relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-47",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-48",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-49",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-50",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#aef69 relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 3",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-58",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 120.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-59",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-60",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-61",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#8b7ba relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-62",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-63",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-64",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-65",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#9aa03 relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 4",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-73",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 180.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-74",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-75",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-76",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#59516 relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-77",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-78",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-79",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-80",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#b21fc relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 5",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-88",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 240.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-89",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-90",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-91",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#399d5 relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-92",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-93",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-94",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-95",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#9cf8a relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 6",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-103",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 300.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-104",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-105",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-106",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#f8edd relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-107",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-108",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-109",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-110",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#f7b37 relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 7",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-118",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 360.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-119",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-120",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-121",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#497b5 relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-122",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-123",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-124",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-125",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#5793d relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 8",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-133",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 420.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-134",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-135",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-136",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#2f1b0 relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-137",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-138",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-139",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-140",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#2c2e0 relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 9",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-148",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 480.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-149",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-150",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-151",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#36dc5 relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-152",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-153",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-154",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-155",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#75c52 relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 10",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-163",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 540.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-164",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-165",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-166",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#d3e7c relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-167",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-168",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-169",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-170",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#2a976 relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 11",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-178",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 600.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-179",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-180",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-181",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#8ebc0 relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-182",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-183",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-184",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-185",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#93598 relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 12",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-193",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 660.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-194",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-195",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-196",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#e1ca4 relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-197",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-198",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-199",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-200",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#024df relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 13",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-208",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 720.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-209",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-210",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-211",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#1c8fc relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-212",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-213",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-214",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-215",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#c1d70 relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 14",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-223",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 780.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-224",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-225",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-226",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#be90d relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-227",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-228",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-229",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-230",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#da063 relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 15",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-238",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 840.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-239",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-240",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-241",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#201f3 relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-242",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-243",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-244",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-245",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#22f1d relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 16",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-253",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 900.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-254",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-255",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-256",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#883fd relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-257",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-258",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-259",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-260",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#04fee relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 17",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-268",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 960.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-269",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-270",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-271",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#30dfb relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-272",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-273",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-274",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-275",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#e1d96 relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 18",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-283",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 1020.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-284",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-285",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-286",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#b16f8 relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-287",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-288",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-289",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-290",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#16c73 relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 19",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-298",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 1080.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-299",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-300",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-301",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#6daa5 relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-302",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-303",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-304",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-305",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "RenderConstrainedBox#b482a relayoutBoundary=up3",
+      "type": "DiagnosticableTreeNode",
+      "name": "child 20",
+      "hasChildren": true,
+      "allowWrap": false,
+      "valueId": "inspector-313",
+      "properties": [
+        {
+          "description": "offset=Offset(0.0, 1140.0); flex=null; fit=null (can use size)",
+          "type": "DiagnosticsProperty<ParentData>",
+          "name": "parentData",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-314",
+          "properties": [],
+          "ifNull": "MISSING",
+          "tooltip": "can use size",
+          "missingIfNull": true,
+          "propertyType": "ParentData",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=411.0, 0.0<=h<=Infinity)",
+          "type": "DiagnosticsProperty<Constraints>",
+          "name": "constraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-22",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Constraints",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "Size(411.0, 60.0)",
+          "type": "DiagnosticsProperty<Size>",
+          "name": "size",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-315",
+          "properties": [],
+          "ifNull": "MISSING",
+          "missingIfNull": true,
+          "propertyType": "Size",
+          "defaultLevel": "info"
+        },
+        {
+          "description": "BoxConstraints(0.0<=w<=Infinity, h=60.0)",
+          "type": "DiagnosticsProperty<BoxConstraints>",
+          "name": "additionalConstraints",
+          "style": "singleLine",
+          "allowNameWrap": true,
+          "valueId": "inspector-316",
+          "properties": [],
+          "missingIfNull": false,
+          "propertyType": "BoxConstraints",
+          "defaultLevel": "info"
+        }
+      ],
+      "children": [
+        {
+          "description": "_RenderColoredBox#bb57b relayoutBoundary=up4",
+          "type": "DiagnosticableTreeNode",
+          "name": "child",
+          "hasChildren": true,
+          "allowWrap": false,
+          "valueId": "inspector-317",
+          "properties": [
+            {
+              "description": "<none> (can use size)",
+              "type": "DiagnosticsProperty<ParentData>",
+              "name": "parentData",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-318",
+              "properties": [],
+              "ifNull": "MISSING",
+              "tooltip": "can use size",
+              "missingIfNull": true,
+              "propertyType": "ParentData",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "BoxConstraints(0.0<=w<=411.0, h=60.0)",
+              "type": "DiagnosticsProperty<Constraints>",
+              "name": "constraints",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-319",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Constraints",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "Size(411.0, 60.0)",
+              "type": "DiagnosticsProperty<Size>",
+              "name": "size",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-320",
+              "properties": [],
+              "ifNull": "MISSING",
+              "missingIfNull": true,
+              "propertyType": "Size",
+              "defaultLevel": "info"
+            },
+            {
+              "description": "opaque",
+              "type": "EnumProperty<HitTestBehavior>",
+              "name": "behavior",
+              "style": "singleLine",
+              "allowNameWrap": true,
+              "valueId": "inspector-29",
+              "properties": [],
+              "defaultValue": "null",
+              "missingIfNull": false,
+              "propertyType": "HitTestBehavior",
+              "defaultLevel": "info"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

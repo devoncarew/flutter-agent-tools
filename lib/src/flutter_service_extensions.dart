@@ -1,6 +1,8 @@
 import 'package:vm_service/vm_service.dart';
 
 import 'diagnostics_node.dart';
+import 'flutter_run_session.dart';
+import 'utils.dart';
 
 /// Provides 1:1 access to Flutter VM service extensions.
 ///
@@ -8,13 +10,17 @@ import 'diagnostics_node.dart';
 /// Higher-level convenience methods that combine multiple calls belong in
 /// [FlutterRunSession] instead.
 class FlutterServiceExtensions {
-  FlutterServiceExtensions(this._vmService);
-
-  final VmService _vmService;
-
   // Object group name used for inspector extension calls. The inspector uses
   // groups to manage the lifetime of server-side object references.
   static const String inspectorGroup = 'flutter_agent_tools';
+
+  final VmService _vmService;
+
+  /// A debug-time only logger; this can send log statements back to the host
+  /// MCP client.
+  final Logger? debugLogger;
+
+  FlutterServiceExtensions(this._vmService, {this.debugLogger});
 
   void dispose() {
     _vmService.dispose();
@@ -67,7 +73,7 @@ class FlutterServiceExtensions {
       'ext.flutter.inspector.getRootWidget',
       args: {'objectGroup': inspectorGroup},
     );
-    return DiagnosticsNode.fromJson(_result(response));
+    return DiagnosticsNode.fromJson(_unwrapResponse('getRootWidget', response));
   }
 
   /// Returns the root widget tree, with control over its shape.
@@ -89,7 +95,9 @@ class FlutterServiceExtensions {
         if (fullDetails != null) 'fullDetails': fullDetails.toString(),
       },
     );
-    return DiagnosticsNode.fromJson(_result(response));
+    return DiagnosticsNode.fromJson(
+      _unwrapResponse('getRootWidgetTree', response),
+    );
   }
 
   /// Returns the details subtree for the object with [id].
@@ -109,7 +117,10 @@ class FlutterServiceExtensions {
         if (subtreeDepth != null) 'subtreeDepth': subtreeDepth.toString(),
       },
     );
-    return DiagnosticsNode.fromJson(_result(response));
+
+    return DiagnosticsNode.fromJson(
+      _unwrapResponse('getDetailsSubtree', response),
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -256,9 +267,26 @@ class FlutterServiceExtensions {
   /// Unwraps the `result` key from an inspector extension response.
   ///
   /// Inspector extensions return `{'result': node}` rather than the node
-  /// directly. This helper extracts the inner map.
-  Map<String, dynamic> _result(Response response) {
-    return response.json!['result'] as Map<String, dynamic>;
+  /// directly. This helper extracts the inner map. Throws an [RPCError] if
+  /// `result` is null or not a map — which happens when the widget ID is
+  /// invalid or the object has been garbage collected.
+  Map<String, dynamic> _unwrapResponse(
+    String callingMethod,
+    Response response,
+  ) {
+    if (response.json?['error'] != null) {
+      throw RPCError.parse(callingMethod, response.json!['error']);
+    }
+
+    if (response.json!['result'] == null) {
+      throw RPCError(
+        callingMethod,
+        0,
+        'Widget ID invalid or object garbage collected',
+      );
+    }
+
+    return (response.json!['result'] as Map).cast();
   }
 
   /// Calls [method] on the first isolate that has it registered.

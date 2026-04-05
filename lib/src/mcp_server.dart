@@ -6,7 +6,7 @@ import 'package:unique_names_generator/unique_names_generator.dart';
 import 'package:vm_service/vm_service.dart' show RPCError;
 
 import 'flutter_run_session.dart';
-import 'flutter_service_extensions.dart';
+import 'layout_formatter.dart';
 import 'utils.dart';
 
 /// The MCP server for flutter-agent-tools.
@@ -23,14 +23,14 @@ base class FlutterAgentServer extends MCPServer
       ) {
     loggingLevel = LoggingLevel.info;
 
+    // session lifecycle
     registerTool(flutterLaunchAppTool, _flutterLaunchApp);
-    registerTool(flutterCloseAppTool, _flutterCloseApp);
     registerTool(flutterPerformReloadTool, _flutterPerformReload);
+    registerTool(flutterCloseAppTool, _flutterCloseApp);
+
+    // inspection
     registerTool(flutterTakeScreenshotTool, _flutterTakeScreenshot);
-    // Experimental: may or may not justify its existence long-term.
-    registerTool(flutterHighlightWidgetTool, _flutterHighlightWidget);
-    // Experimental: may or may not justify its existence long-term.
-    registerTool(flutterDebugPaintTool, _flutterDebugPaint);
+    registerTool(flutterInspectLayoutTool, _flutterInspectLayout);
   }
 
   final Map<String, FlutterRunSession> _sessions = {};
@@ -145,21 +145,21 @@ base class FlutterAgentServer extends MCPServer
       return;
     }
 
-    final (LoggingLevel? level, String? message) = _convertToLog(event);
-    if (level != null && message != null) {
+    final item = _convertToLog(event);
+    if (item != null) {
       if (event.event == 'app.log') {
         // We special case stdio output a bit.
         const appOutputPrefix = 'flutter: ';
 
-        if (message.startsWith(appOutputPrefix)) {
-          final msg = message.substring(appOutputPrefix.length);
-          this.log(level, '[app] $msg', logger: _loggerId);
+        if (item.$2.startsWith(appOutputPrefix)) {
+          final msg = item.$2.substring(appOutputPrefix.length);
+          this.log(item.$1, '[app] $msg', logger: _loggerId);
         } else {
           // It's system output or stdout / stderr.
-          this.log(level, '[stdout] $message', logger: _loggerId);
+          this.log(item.$1, '[stdout] ${item.$2}', logger: _loggerId);
         }
       } else {
-        this.log(level, '[${event.event}] $message', logger: _loggerId);
+        this.log(item.$1, '[${event.event}] ${item.$2}', logger: _loggerId);
       }
     }
   }
@@ -244,60 +244,6 @@ base class FlutterAgentServer extends MCPServer
     return CallToolResult(content: [TextContent(text: 'App stopped.')]);
   }
 
-  final Tool flutterDebugPaintTool = Tool(
-    name: 'flutter_debug_paint',
-    description:
-        '[Experimental] Gets or sets the debug paint overlay for a running '
-        'Flutter app. Debug paint draws layout debug lines over the UI. '
-        'Omit "enabled" to read the current value.',
-    inputSchema: Schema.object(
-      properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by flutter_launch_app.',
-        ),
-        'enabled': Schema.bool(
-          description: 'Enable or disable debug paint. Omit to read.',
-        ),
-      },
-      required: ['session_id'],
-    ),
-  );
-
-  Future<CallToolResult> _flutterDebugPaint(CallToolRequest request) async {
-    final String? sessionId = request.arguments!['session_id'] as String?;
-    final FlutterRunSession? session = _sessions[sessionId];
-
-    if (sessionId == null || session == null) {
-      return _unknownSessionResult(sessionId);
-    }
-
-    final FlutterServiceExtensions extensions = session.serviceExtensions!;
-    final bool? enabled = request.arguments!['enabled'] as bool?;
-    try {
-      if (enabled == null) {
-        final bool current = await extensions.getDebugPaint();
-        return CallToolResult(
-          content: [
-            TextContent(
-              text: 'Debug paint is ${current ? 'enabled' : 'disabled'}.',
-            ),
-          ],
-        );
-      } else {
-        await extensions.setDebugPaint(enabled);
-        return CallToolResult(
-          content: [
-            TextContent(
-              text: 'Debug paint ${enabled ? 'enabled' : 'disabled'}.',
-            ),
-          ],
-        );
-      }
-    } on RPCError catch (e) {
-      return _rpcErrorResult(e);
-    }
-  }
-
   final Tool flutterTakeScreenshotTool = Tool(
     name: 'flutter_take_screenshot',
     description:
@@ -341,14 +287,13 @@ base class FlutterAgentServer extends MCPServer
     }
   }
 
-  // EXPERIMENTAL: visual highlight on the connected device/emulator.
-  final Tool flutterHighlightWidgetTool = Tool(
-    name: 'flutter_highlight_widget',
+  final Tool flutterInspectLayoutTool = Tool(
+    name: 'flutter_inspect_layout',
     description:
-        '[Experimental] Highlights a widget on the connected device or '
-        'emulator by moving the inspector selection to it. This gives the '
-        'human developer a visual cue of what the agent is currently looking '
-        'at. Requires a widget object ID from a prior inspector call.',
+        'Returns the layout details (constraints, size, flex parameters, and '
+        'children) for a specific widget. Use the widget ID from a '
+        'flutter.error log event or a prior inspector call. '
+        'Increase subtree_depth to see child widget layout.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
@@ -356,37 +301,33 @@ base class FlutterAgentServer extends MCPServer
         ),
         'widget_id': Schema.string(
           description:
-              'The inspector object ID of the widget to highlight. '
-              'Omit or pass null to clear the current selection.',
+              'The widget ID to inspect (e.g. from a flutter.error event).',
+        ),
+        'subtree_depth': Schema.int(
+          description: 'How many levels of children to include. Defaults to 2.',
         ),
       },
-      required: ['session_id'],
+      required: ['session_id', 'widget_id'],
     ),
   );
 
-  Future<CallToolResult> _flutterHighlightWidget(
-    CallToolRequest request,
-  ) async {
+  Future<CallToolResult> _flutterInspectLayout(CallToolRequest request) async {
     final String? sessionId = request.arguments!['session_id'] as String?;
     final FlutterRunSession? session = _sessions[sessionId];
-
     if (sessionId == null || session == null) {
       return _unknownSessionResult(sessionId);
     }
 
-    final String? widgetId = request.arguments!['widget_id'] as String?;
+    final String widgetId = request.arguments!['widget_id'] as String;
+    final int subtreeDepth = (request.arguments!['subtree_depth'] as int?) ?? 2;
 
     try {
-      final changed = await session.serviceExtensions!.setSelectionById(
+      final node = await session.serviceExtensions!.getDetailsSubtree(
         widgetId,
+        subtreeDepth: subtreeDepth,
       );
-      return CallToolResult(
-        content: [
-          TextContent(
-            text: changed ? 'Widget highlighted.' : 'Selection unchanged.',
-          ),
-        ],
-      );
+      final layoutSummary = formatLayoutDetails(node);
+      return CallToolResult(content: [TextContent(text: layoutSummary)]);
     } on RPCError catch (e) {
       return _rpcErrorResult(e);
     }
@@ -407,7 +348,7 @@ base class FlutterAgentServer extends MCPServer
     );
   }
 
-  (LoggingLevel?, String?) _convertToLog(DaemonEvent event) {
+  (LoggingLevel, String)? _convertToLog(DaemonEvent event) {
     final Map<String, dynamic> params = event.params;
 
     // By default, flatten the map.
@@ -430,30 +371,20 @@ base class FlutterAgentServer extends MCPServer
           // The `progressId` field identifies the app.progress type.
           switch (params['progressId']) {
             case 'devFS.update':
-              {
-                // Filter all app.progress / devFS.update events.
-                return (null, null);
-              }
+              // Filter all app.progress / devFS.update events.
+              return null;
             case 'hot.reload':
-              {
-                // We get a start and a stop event; filter the first and promote
-                // the second.
-                if (params['finished'] == true) {
-                  return (LoggingLevel.notice, 'Hot reload finished.');
-                } else {
-                  return (null, null);
-                }
-              }
+              // We get a start and a stop event; filter the first and promote
+              // the second. Filter both - the agent doesn't need to know
+              // about the first, and they already see a message about the
+              // second on stdout:
+              //
+              //   "[stdout] Reloaded 0 libraries in ..."
+              return null;
             case 'hot.restart':
-              {
-                // We get a start and a stop event; filter the first and promote
-                // the second.
-                if (params['finished'] == true) {
-                  return (LoggingLevel.notice, 'Hot restart finished.');
-                } else {
-                  return (null, null);
-                }
-              }
+              // Filter both start and stop events for the same reason as
+              // above.
+              return null;
           }
         }
     }

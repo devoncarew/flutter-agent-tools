@@ -28,11 +28,13 @@ typedef ErrorSummarizer = String Function(FlutterError error);
 /// The primary summarizer. Emits only:
 /// - The specific error (`ErrorSummary`)
 /// - Source location (`DiagnosticsBlock` + children)
-/// - Offending widget constraints/size/direction (`DiagnosticableTreeNode`)
+/// - Offending widget constraints/size/direction + widget ID (`DiagnosticableTreeNode`)
 /// - First stack frame (`DiagnosticsStackTrace`)
 ///
 /// Omits hints and prose descriptions — on the assumption that an agent
 /// already knows how to fix common errors given just the what and where.
+/// The widget ID can be passed to `flutter_inspect_layout` for a deeper
+/// drill-down without a separate tree traversal.
 String compactSummarizer(FlutterError error) {
   final buf = StringBuffer();
   buf.writeln(error.detail);
@@ -60,6 +62,7 @@ String compactSummarizer(FlutterError error) {
             buf.writeln('  $sname: $sdesc');
           }
         }
+        if (prop.valueId != null) buf.writeln('  widget ID: ${prop.valueId}');
 
       case 'DiagnosticsStackTrace':
         final frame = prop.properties.firstOrNull;
@@ -143,6 +146,7 @@ void _writeDetailedProperty(StringBuffer buf, DiagnosticsNode prop) {
           buf.writeln('  $sname: $sdesc');
         }
       }
+      if (prop.valueId != null) buf.writeln('  widget ID: ${prop.valueId}');
 
     case 'DiagnosticsStackTrace':
       // Show only the first user-code frame.

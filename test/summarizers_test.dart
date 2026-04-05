@@ -5,6 +5,13 @@ import 'package:flutter_agent_tools/src/error_summarizers.dart';
 import 'package:flutter_agent_tools/src/flutter_run_session.dart';
 import 'package:test/test.dart';
 
+FlutterError _loadError(String name) {
+  final data =
+      jsonDecode(File('test/fixtures/errors/$name').readAsStringSync())
+          as Map<String, dynamic>;
+  return FlutterError.tryParse(data)!;
+}
+
 void main() {
   final overflowError = _loadError('overflow_error.json');
   final unboundedViewport = _loadError('unbounded_viewport.json');
@@ -22,7 +29,8 @@ The relevant error-causing widget was:
 The specific RenderFlex in question is: RenderFlex#d014f relayoutBoundary=up2 OVERFLOWING
   constraints: BoxConstraints(0.0<=w<=411.0, h=300.0)
   size: Size(411.0, 300.0)
-  direction: vertical'''),
+  direction: vertical
+  widget ID: inspector-10'''),
       );
     });
 
@@ -72,7 +80,8 @@ Hint: This is considered an error condition because it indicates that there is c
 The specific RenderFlex in question is: RenderFlex#d014f relayoutBoundary=up2 OVERFLOWING
   constraints: BoxConstraints(0.0<=w<=411.0, h=300.0)
   size: Size(411.0, 300.0)
-  direction: vertical'''),
+  direction: vertical
+  widget ID: inspector-10'''),
       );
     });
 
@@ -101,11 +110,4 @@ Recognizer: TapGestureRecognizer#afde5'''),
       );
     });
   });
-}
-
-FlutterError _loadError(String name) {
-  final data =
-      jsonDecode(File('test/fixtures/$name').readAsStringSync())
-          as Map<String, dynamic>;
-  return FlutterError.tryParse(data)!;
 }
