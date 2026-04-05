@@ -6,6 +6,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
 import 'diagnostics_node.dart';
+import 'error_summarizers.dart';
 import 'flutter_service_extensions.dart';
 
 /// Manages a `flutter run --machine` subprocess.
@@ -23,14 +24,13 @@ class FlutterRunSession {
     _process.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
-        .listen(_stderrLines.add);
+        .listen(_handleLine);
   }
 
   final Process _process;
   String? _appId;
 
   final Completer<void> _startedCompleter = Completer<void>();
-  final List<String> _stderrLines = [];
   int _nextId = 0;
   final Map<int, Completer<Map<String, dynamic>>> _pending = {};
 
@@ -39,6 +39,11 @@ class FlutterRunSession {
 
   String? _vmServiceUri;
   FlutterServiceExtensions? _serviceExtensions;
+  StreamSubscription<Event>? _vmServiceSubscription;
+
+  // Capped at [_maxErrors] most-recent errors; cleared on hot restart.
+  static const int _maxErrors = 50;
+  final List<FlutterError> _errors = [];
 
   // ignore: unused_field
   String? _devToolsUri;
@@ -49,6 +54,10 @@ class FlutterRunSession {
   /// A debug-time only logger; this can send log statements back to the host
   /// MCP client.
   Logger? debugLogger;
+
+  /// Framework errors received via the `Flutter.Error` VM service event since
+  /// the session started or the last hot restart.
+  List<FlutterError> get errors => List.unmodifiable(_errors);
 
   /// Access to Flutter VM service extensions for this session.
   ///
@@ -105,6 +114,7 @@ class FlutterRunSession {
       final String message = result['message'] as String? ?? 'unknown error';
       throw DaemonException('app.restart failed (code $code): $message');
     }
+    _errors.clear();
   }
 
   /// Stops the running app.
@@ -234,14 +244,34 @@ class FlutterRunSession {
   Future<void> _connectVmService(String wsUri) async {
     final vmService = await vmServiceConnectUri(wsUri);
     _serviceExtensions = FlutterServiceExtensions(vmService);
+
+    await vmService.streamListen(EventStreams.kExtension);
+    _vmServiceSubscription = vmService.onExtensionEvent.listen((Event event) {
+      if (event.extensionKind == 'Flutter.Error') {
+        final data = event.extensionData?.data;
+        if (data != null) {
+          final error = FlutterError.tryParse(data);
+          if (error != null) {
+            if (_errors.length >= _maxErrors) {
+              _errors.removeAt(0);
+            }
+            _errors.add(error);
+            _eventListener(
+              DaemonEvent('flutter.error', {
+                'summary': compactSummarizer(error),
+              }),
+            );
+          }
+        }
+      }
+    });
   }
 
   void _handleDone() {
     // Process stdout closed — the subprocess exited.
     if (!_startedCompleter.isCompleted) {
-      final String stderr = _stderrLines.join('\n');
       _startedCompleter.completeError(
-        rpcError('flutter run exited before app started.\n$stderr'),
+        rpcError('flutter run exited before app started.'),
       );
     }
     for (final Completer<Map<String, dynamic>> c in _pending.values) {
@@ -251,6 +281,8 @@ class FlutterRunSession {
 
     _sessionEnded = true;
 
+    _vmServiceSubscription?.cancel();
+    _vmServiceSubscription = null;
     _serviceExtensions?.dispose();
     _serviceExtensions = null;
   }
@@ -274,6 +306,58 @@ class DaemonException implements Exception {
 
   @override
   String toString() => 'DaemonException: $message';
+}
+
+/// A Flutter framework error received via the `Flutter.Error` VM service
+/// extension event.
+class FlutterError {
+  FlutterError({required this.node, required this.errorsSinceReload});
+
+  /// The full diagnostic node tree for this error. The root [node.description]
+  /// is the generic category (e.g., "Exception caught by rendering library").
+  /// The specific error message is the `ErrorSummary` property (level ==
+  /// `'summary'`), e.g. "A RenderFlex overflowed by 900 pixels on the bottom".
+  final DiagnosticsNode node;
+
+  /// The cumulative error count since the last hot reload, as reported by the
+  /// framework (`errorsSinceReload` field).
+  final int errorsSinceReload;
+
+  /// Short category label, e.g. "Exception caught by rendering library".
+  String get description => node.description;
+
+  /// The specific error message from the `ErrorSummary` property (level ==
+  /// `'summary'`), if present. Falls back to [description] otherwise.
+  String get detail {
+    for (final prop in node.properties) {
+      if (prop.level == 'summary' && prop.description.isNotEmpty) {
+        return prop.description;
+      }
+    }
+    return description;
+  }
+
+  /// A single-line summary combining [description] and [detail].
+  String get summary {
+    final d = detail;
+    return d == description ? description : '$description ▸ $d';
+  }
+
+  /// Parses a [FlutterError] from [data], the `extensionData.data` map of a
+  /// `Flutter.Error` VM service event. Returns null if the required fields are
+  /// absent.
+  static FlutterError? tryParse(Map<String, dynamic> data) {
+    if (data['description'] == null) return null;
+    final int errorsSinceReload =
+        (data['errorsSinceReload'] as num?)?.toInt() ?? 0;
+    return FlutterError(
+      node: DiagnosticsNode.fromJson(data),
+      errorsSinceReload: errorsSinceReload,
+    );
+  }
+
+  @override
+  String toString() => 'FlutterError: $summary';
 }
 
 typedef EventCallback = void Function(DaemonEvent);

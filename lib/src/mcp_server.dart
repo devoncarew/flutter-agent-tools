@@ -9,9 +9,6 @@ import 'flutter_run_session.dart';
 import 'flutter_service_extensions.dart';
 import 'utils.dart';
 
-// TODO: We'll likely need to listen to the vm service protocol event
-// 'Flutter.Error' to get structured framework / layout errors.
-
 /// The MCP server for flutter-agent-tools.
 base class FlutterAgentServer extends MCPServer
     with ToolsSupport, LoggingSupport {
@@ -106,9 +103,9 @@ base class FlutterAgentServer extends MCPServer
         eventListener: (event) => _handleEvent(sessionId, event),
         deviceId: device,
         target: target,
-        // debugLogger: (msg) {
-        //   debugLog(msg);
-        // },
+        debugLogger: (msg) {
+          debugLog(msg);
+        },
       );
     } on DaemonException catch (e) {
       return CallToolResult(
@@ -137,10 +134,16 @@ base class FlutterAgentServer extends MCPServer
       );
 
       return;
+    } else if (event.event == 'flutter.error') {
+      final String summary =
+          event.params['summary'] as String? ?? 'Unknown Flutter error';
+      this.log(
+        LoggingLevel.warning,
+        '[flutter.error] $summary',
+        logger: _loggerId,
+      );
+      return;
     }
-
-    // TODO: test log messages we get for sterr
-    // TODO: test log messages we get for exceptions
 
     final (LoggingLevel? level, String? message) = _convertToLog(event);
     if (level != null && message != null) {
@@ -152,8 +155,8 @@ base class FlutterAgentServer extends MCPServer
           final msg = message.substring(appOutputPrefix.length);
           this.log(level, '[app] $msg', logger: _loggerId);
         } else {
-          // It's system output.
-          this.log(level, '[system] $message', logger: _loggerId);
+          // It's system output or stdout / stderr.
+          this.log(level, '[stdout] $message', logger: _loggerId);
         }
       } else {
         this.log(level, '[${event.event}] $message', logger: _loggerId);
