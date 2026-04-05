@@ -33,12 +33,10 @@ exceptions from the Dart VM Service.
 | Command | Description |
 |---------|-------------|
 | `flutter_launch_app` | Builds and launches the Flutter app, returning a session ID for use with subsequent flutter_* tools. |
-| `flutter_close_app` | Stops a running Flutter app and releases its session. |
 | `flutter_perform_reload` | Hot reloads or hot restarts a running Flutter app. Prefer hot reload for iterative changes; use hot restart when state needs to be fully reset. |
+| `flutter_close_app` | Stops a running Flutter app and releases its session. |
 | `flutter_take_screenshot` | Takes a screenshot of the running Flutter app and returns it as a PNG image. The root widget bounds are resolved automatically. |
 | `flutter_inspect_layout` | Returns the layout details (constraints, size, flex parameters, and children) for a specific widget. Use the widget ID from a flutter.error log event or a prior inspector call. Increase subtree_depth to see child widget layout. |
-| `flutter_highlight_widget` | [Experimental] Highlights a widget on the connected device or emulator by moving the inspector selection to it. This gives the human developer a visual cue of what the agent is currently looking at. Requires a widget object ID from a prior inspector call. |
-| `flutter_debug_paint` | [Experimental] Gets or sets the debug paint overlay for a running Flutter app. Debug paint draws layout debug lines over the UI. Omit "enabled" to read the current value. |
 <!-- flutter commands -->
 
 ## Installation

@@ -8,6 +8,7 @@ import 'package:vm_service/vm_service_io.dart';
 import 'diagnostics_node.dart';
 import 'error_summarizers.dart';
 import 'flutter_service_extensions.dart';
+import 'utils.dart';
 
 /// Manages a `flutter run --machine` subprocess.
 ///
@@ -53,7 +54,7 @@ class FlutterRunSession {
 
   /// A debug-time only logger; this can send log statements back to the host
   /// MCP client.
-  Logger? debugLogger;
+  final Logger? debugLogger;
 
   /// Framework errors received via the `Flutter.Error` VM service event since
   /// the session started or the last hot restart.
@@ -243,7 +244,10 @@ class FlutterRunSession {
 
   Future<void> _connectVmService(String wsUri) async {
     final vmService = await vmServiceConnectUri(wsUri);
-    _serviceExtensions = FlutterServiceExtensions(vmService);
+    _serviceExtensions = FlutterServiceExtensions(
+      vmService,
+      debugLogger: debugLogger,
+    );
 
     await vmService.streamListen(EventStreams.kExtension);
     _vmServiceSubscription = vmService.onExtensionEvent.listen((Event event) {
@@ -361,5 +365,3 @@ class FlutterError {
 }
 
 typedef EventCallback = void Function(DaemonEvent);
-
-typedef Logger = void Function(String);

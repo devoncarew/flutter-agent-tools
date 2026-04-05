@@ -29,8 +29,8 @@ the UI.
 ### Key Service Calls
 
 - `ext.flutter.inspector.getRootWidget`: Returns the root widget node with full
-  detail, including its `valueId` — the inspector object handle required by
-  the screenshot extension.
+  detail, including its `valueId` — the inspector object handle required by the
+  screenshot extension.
 - `ext.flutter.inspector.getRootWidgetTree`: Returns a configurable widget tree.
   Accepts `isSummaryTree` (omit internal widgets), `withPreviews` (thumbnails),
   and `fullDetails`.
@@ -47,26 +47,27 @@ names are polymorphic.
 
 - Dimensions appear nested under a `renderObject` property, named `"size"`,
   `"view size"`, or `"geometry"` depending on the widget type.
-- Values are stringified: constraints come as `"BoxConstraints(w=400.0, h=800.0)"`,
-  sizes as `"Size(411.0, 300.0)"` — must be parsed with regex.
+- Values are stringified: constraints come as
+  `"BoxConstraints(w=400.0, h=800.0)"`, sizes as `"Size(411.0, 300.0)"` — must
+  be parsed with regex.
 
 **`Flutter.Error` event path:**
 
 Error events deliver a structured DiagnosticsNode tree with explicit `type`
 fields on each property. Key types and what they carry:
 
-| Type                    | Content                                              |
-| ----------------------- | ---------------------------------------------------- |
-| `ErrorSummary`          | The specific error message (`level == 'summary'`)    |
-| `ErrorDescription`      | Prose context (e.g., "The following assertion...")   |
-| `ErrorHint`             | Suggested fix                                        |
-| `DiagnosticsBlock`      | Named group of child nodes (e.g., "The relevant error-causing widget was") |
-| `DiagnosticableTreeNode`| The offending widget/render object, with sub-properties `constraints`, `size`, `direction` |
-| `DiagnosticsStackTrace` | Stack frames; first frame is the call site           |
+| Type                     | Content                                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------------------ |
+| `ErrorSummary`           | The specific error message (`level == 'summary'`)                                          |
+| `ErrorDescription`       | Prose context (e.g., "The following assertion...")                                         |
+| `ErrorHint`              | Suggested fix                                                                              |
+| `DiagnosticsBlock`       | Named group of child nodes (e.g., "The relevant error-causing widget was")                 |
+| `DiagnosticableTreeNode` | The offending widget/render object, with sub-properties `constraints`, `size`, `direction` |
+| `DiagnosticsStackTrace`  | Stack frames; first frame is the call site                                                 |
 
 The widget ID embedded in a `DiagnosticsBlock` child description or a
-`DiagnosticableTreeNode` can be passed directly to `flutter_inspect_layout`
-for a deeper drill-down.
+`DiagnosticableTreeNode` can be passed directly to `flutter_inspect_layout` for
+a deeper drill-down.
 
 ## 3. The Preferred Read Path: VM Service `evaluate`
 
@@ -160,31 +161,30 @@ process. ✓ = implemented; [planned] = not yet implemented.
 
 ### Session & Lifecycle
 
-- ✓ `flutter_launch_app(working_directory: String, target: String?, device: String?) → String`:
+- ✓
+  `flutter_launch_app(working_directory: String, target: String?, device: String?) → String`:
   Starts the app via `flutter run --machine` and establishes the VM service
   connection. Returns a `session_id`.
 - ✓ `flutter_perform_reload(session_id: String, full_restart: bool?) → void`:
   Hot reloads or hot restarts the running app.
-- ✓ `flutter_close_app(session_id: String) → void`:
-  Stops the app and releases the session.
+- ✓ `flutter_close_app(session_id: String) → void`: Stops the app and releases
+  the session.
 
 ### Inspection & Debugging (Read)
 
 - ✓ `flutter_take_screenshot(session_id: String, pixel_ratio: num?) → PNG`:
   Captures the current frame. Crucial for multimodal agents to visually verify
   that a layout fix was successful.
-- ✓ `flutter_debug_paint(session_id: String, enabled: bool?) → String`:
-  Gets or sets the debug paint overlay (layout debug lines). [Experimental]
 - ✓ **Flutter.Error log events** (push, not pull): Framework errors are
   forwarded as MCP log events containing the error summary, source location,
   render constraints, and first stack frame. Recent errors are also buffered on
   the session for retrieval. Error events include widget IDs that can be passed
   to `flutter_inspect_layout`.
-- [planned] **`flutter_inspect_layout(session_id: String, widget_id: String) → String`:
+- ✓ **`flutter_inspect_layout(session_id: String, widget_id: String) → String`:
   [High Value]** Returns the `BoxConstraints`, `Size`, and flex parameters for a
   specific node. This is the primary tool for diagnosing overflow and invisible
-  widget issues — the widget ID comes from a `Flutter.Error` event or a
-  prior inspector call.
+  widget issues — the widget ID comes from a `Flutter.Error` event or a prior
+  inspector call.
 
 ### Interaction & Automation (Write)
 
@@ -193,9 +193,8 @@ specific state — e.g., tapping through a flow to reproduce a bug on a deep
 screen. They use the Semantics + GestureBinding injection strategy from
 Section 4._
 
-- ✓ `flutter_highlight_widget(session_id: String, widget_id: String?) → void`:
-  Moves the inspector selection to a widget, giving the developer a visual cue
-  of what the agent is looking at. [Experimental]
 - [planned] `flutter_tap(session_id: String, semantics_label: String) → void`
-- [planned] `flutter_inject_text(session_id: String, semantics_label: String, text: String) → void`
-- [planned] `flutter_scroll_to(session_id: String, semantics_label: String) → void`
+- [planned]
+  `flutter_inject_text(session_id: String, semantics_label: String, text: String) → void`
+- [planned]
+  `flutter_scroll_to(session_id: String, semantics_label: String) → void`

@@ -196,8 +196,9 @@ _Introspection and interaction (via Dart VM Service):_
 
 - Launch abstraction: `flutter run --machine` with VM service attachment is the
   right approach. It works on all device types without a test harness.
-- Screenshot: feasible on all device types via `ext.flutter.inspector.screenshot`
-  with physical window dimensions from `evaluate`.
+- Screenshot: feasible on all device types via
+  `ext.flutter.inspector.screenshot` with physical window dimensions from
+  `evaluate`.
 
 **Open questions:**
 
@@ -227,11 +228,7 @@ package_info(package, kind, library?, class?, version?) → String  [planned]
 // Tool 3 — inspection (high value)
 ✓ flutter_take_screenshot(session_id, pixel_ratio?) → PNG
 ✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
-[planned] flutter_inspect_layout(session_id, widget_id) → String  // BoxConstraints, Size, flex
-
-// Tool 3 — debug overlays (experimental)
-✓ flutter_debug_paint(session_id, enabled?) → String
-✓ flutter_highlight_widget(session_id, widget_id?) → void
+✓ flutter_inspect_layout(session_id, widget_id) → String  // BoxConstraints, Size, flex
 
 // Tool 3 — app interaction (useful but lower priority for coding agents)
 [planned] flutter_tap(session_id, semantics_label) → void
