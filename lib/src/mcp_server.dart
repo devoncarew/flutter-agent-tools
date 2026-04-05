@@ -292,9 +292,10 @@ base class FlutterAgentServer extends MCPServer
     name: 'flutter_inspect_layout',
     description:
         'Returns the layout details (constraints, size, flex parameters, and '
-        'children) for a specific widget. Use the widget ID from a '
-        'flutter.error log event or a prior inspector call. '
-        'Increase subtree_depth to see child widget layout.',
+        'children) for a specific widget. Omit widget_id to inspect from the '
+        'root — useful for proactive exploration. Supply a widget ID from a '
+        'flutter.error log event or a prior inspector call to drill into a '
+        'specific node. Increase subtree_depth to see deeper child layout.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
@@ -302,13 +303,13 @@ base class FlutterAgentServer extends MCPServer
         ),
         'widget_id': Schema.string(
           description:
-              'The widget ID to inspect (e.g. from a flutter.error event).',
+              'The widget ID to inspect. Omit to start from the root widget.',
         ),
         'subtree_depth': Schema.int(
           description: 'How many levels of children to include. Defaults to 2.',
         ),
       },
-      required: ['session_id', 'widget_id'],
+      required: ['session_id'],
     ),
   );
 
@@ -319,12 +320,26 @@ base class FlutterAgentServer extends MCPServer
       return _unknownSessionResult(sessionId);
     }
 
-    final String widgetId = request.arguments!['widget_id'] as String;
+    final String? widgetId = request.arguments!['widget_id'] as String?;
     final int subtreeDepth = (request.arguments!['subtree_depth'] as int?) ?? 2;
 
     try {
-      final node = await session.serviceExtensions!.getDetailsSubtree(
-        widgetId,
+      final extensions = session.serviceExtensions!;
+      final String resolvedId;
+      if (widgetId != null) {
+        resolvedId = widgetId;
+      } else {
+        final root = await extensions.getRootWidget();
+        if (root.valueId == null) {
+          return CallToolResult(
+            isError: true,
+            content: [TextContent(text: 'Root widget has no valueId.')],
+          );
+        }
+        resolvedId = root.valueId!;
+      }
+      final node = await extensions.getDetailsSubtree(
+        resolvedId,
         subtreeDepth: subtreeDepth,
       );
       final layoutSummary = formatLayoutDetails(node);

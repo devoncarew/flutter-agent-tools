@@ -200,7 +200,7 @@ _Introspection and interaction (via Dart VM Service):_
   `ext.flutter.inspector.screenshot` with physical window dimensions from
   `evaluate`.
 
-### Planned: `flutter_evaluate`
+### `flutter_evaluate`
 
 Runs an arbitrary Dart expression on the main isolate via the VM service
 `evaluate` RPC and returns the result as a string.
@@ -217,13 +217,6 @@ The inspector tree shows widget and render-object state; `evaluate` covers
 everything else. We already use this internally for `getPhysicalWindowSize()`;
 exposing it as a tool gives agents direct access without requiring a dedicated
 method for every possible query.
-
-### Planned: `flutter_inspect_layout` without a widget ID
-
-Currently `flutter_inspect_layout` requires a `widget_id`, which means it's only
-usable reactively (after an error event surfaces one). Accepting `null` to mean
-"start from the root" would let agents explore the layout tree proactively,
-without waiting for an error.
 
 ### Planned: `flutter_query_ui`
 
@@ -294,7 +287,7 @@ package_info(package, kind, library?, class?, version?) → String  [planned]
 ✓ flutter_take_screenshot(session_id, pixel_ratio?) → PNG
 ✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
 ✓ flutter_inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
-[planned] flutter_evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
+✓ flutter_evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
 [planned] flutter_query_ui(session_id, mode) → String  // semantics | widget_tree | route
 
 // Tool 3 — app interaction (useful but lower priority for coding agents)
