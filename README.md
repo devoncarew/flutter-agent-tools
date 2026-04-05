@@ -36,7 +36,8 @@ exceptions from the Dart VM Service.
 | `flutter_perform_reload` | Hot reloads or hot restarts a running Flutter app. Prefer hot reload for iterative changes; use hot restart when state needs to be fully reset. |
 | `flutter_close_app` | Stops a running Flutter app and releases its session. |
 | `flutter_take_screenshot` | Takes a screenshot of the running Flutter app and returns it as a PNG image. The root widget bounds are resolved automatically. |
-| `flutter_inspect_layout` | Returns the layout details (constraints, size, flex parameters, and children) for a specific widget. Use the widget ID from a flutter.error log event or a prior inspector call. Increase subtree_depth to see child widget layout. |
+| `flutter_inspect_layout` | Returns the layout details (constraints, size, flex parameters, and children) for a specific widget. Supply a widget ID from a flutter.error log event or a prior inspector call to drill into a specific node. Increase subtree_depth to see deeper child layout. Omit widget_id to inspect from the root — useful for proactive exploration. |
+| `flutter_evaluate` | Evaluates a Dart expression on the running app's main isolate and returns the result as a string. Runs in the context of the app's root library, so top-level declarations and globals are in scope. Useful for reading binding-layer state not visible in the widget tree: FlutterView properties (physicalSize, devicePixelRatio), MediaQueryData, or any other runtime value. |
 <!-- flutter commands -->
 
 ## Installation
