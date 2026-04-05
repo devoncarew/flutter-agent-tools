@@ -33,6 +33,10 @@ typedef ErrorSummarizer = String Function(FlutterError error);
 ///
 /// Omits hints and prose descriptions — on the assumption that an agent
 /// already knows how to fix common errors given just the what and where.
+///
+/// TODO: Surface the widget ID from [DiagnosticableTreeNode] nodes so the
+/// agent can pass it directly to `flutter_inspect_layout` for a deeper
+/// drill-down without a separate tree traversal.
 String compactSummarizer(FlutterError error) {
   final buf = StringBuffer();
   buf.writeln(error.detail);

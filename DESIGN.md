@@ -192,15 +192,20 @@ _Introspection and interaction (via Dart VM Service):_
 - [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17)
   — use cases and requirements.
 
+**Resolved questions:**
+
+- Launch abstraction: `flutter run --machine` with VM service attachment is the
+  right approach. It works on all device types without a test harness.
+- Screenshot: feasible on all device types via `ext.flutter.inspector.screenshot`
+  with physical window dimensions from `evaluate`.
+
 **Open questions:**
 
-- What is the right abstraction for "launch"? Wrapping `flutter run` with VM
-  service attachment, or building a headless test harness?
-- Widget tree queries should target semantic elements to stay token-efficient.
-  What is the right query interface — a selector syntax, a natural-language
-  description, or a structured filter?
-- Screenshot capture would be high-value for debugging. Feasibility depends on
-  the target device type.
+- Widget tree queries: a structured filter syntax (`flutter_query_ui`) is lower
+  priority than `flutter_inspect_layout`, which covers the most common case —
+  drilling into a specific widget ID from a `Flutter.Error` event.
+- App state and authentication: navigating apps that require login or seeded
+  data before reaching the UI under test is unsolved.
 
 ## MCP Server Architecture
 
@@ -208,20 +213,30 @@ Both Tool 2 and Tool 3 are exposed through a single Dart MCP server. Using Dart
 is the natural fit given the domain and avoids introducing a Node.js runtime
 dependency.
 
-**Anticipated tool surface:**
+**Tool surface (✓ = implemented, [planned] = not yet):**
 
 ```
 // Tool 2
-package_info(package: String, kind: String, library: String?, class: String?, version: String?) → String
+package_info(package, kind, library?, class?, version?) → String  [planned]
 
-// Tool 3
-flutter_launch_app(target: String?, device: String?) → String  // returns session_id
-flutter_query_ui(session_id: String, query: String) → String
-flutter_tap(session_id: String, semantics_label: String) → void
-flutter_inject_text(session_id: String, semantics_label: String, text: String) → void
-flutter_scroll_to(session_id: String, semantics_label: String) → void
-flutter_get_exceptions(session_id: String) → List<String>
-flutter_take_screenshot(session_id: String, pixel_ratio: String?) → String
+// Tool 3 — session lifecycle
+✓ flutter_launch_app(working_directory, target?, device?) → session_id
+✓ flutter_perform_reload(session_id, full_restart?) → void
+✓ flutter_close_app(session_id) → void
+
+// Tool 3 — inspection (high value)
+✓ flutter_take_screenshot(session_id, pixel_ratio?) → PNG
+✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
+[planned] flutter_inspect_layout(session_id, widget_id) → String  // BoxConstraints, Size, flex
+
+// Tool 3 — debug overlays (experimental)
+✓ flutter_debug_paint(session_id, enabled?) → String
+✓ flutter_highlight_widget(session_id, widget_id?) → void
+
+// Tool 3 — app interaction (useful but lower priority for coding agents)
+[planned] flutter_tap(session_id, semantics_label) → void
+[planned] flutter_inject_text(session_id, semantics_label, text) → void
+[planned] flutter_scroll_to(session_id, semantics_label) → void
 ```
 
 **Declared in `plugin.json`:**
