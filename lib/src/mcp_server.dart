@@ -119,10 +119,10 @@ base class FlutterAgentServer extends MCPServer
     _sessions[sessionId] = session;
 
     final String deviceInfo =
-        session.deviceName != null ? ' on ${session.deviceName}' : '';
+        session.deviceId != null ? 'Device ID: ${session.deviceId}, ' : '';
     return CallToolResult(
       content: [
-        TextContent(text: 'Launched$deviceInfo. Session ID: $sessionId'),
+        TextContent(text: 'Launched. ${deviceInfo}Session ID: $sessionId'),
       ],
     );
   }

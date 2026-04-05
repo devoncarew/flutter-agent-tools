@@ -22,7 +22,7 @@ class FlutterRunSession {
     this._process,
     this._eventListener,
     this.debugLogger, {
-    this.deviceName,
+    this.deviceId,
   }) {
     _process.stdout
         .transform(utf8.decoder)
@@ -37,9 +37,8 @@ class FlutterRunSession {
   final Process _process;
   String? _appId;
 
-  /// The human-readable name of the device this session is running on
-  /// (e.g. "macOS", "iPhone 16"). Set when auto-selection chose the device.
-  final String? deviceName;
+  /// The 'flutter run' device ID that we launched on.
+  final String? deviceId;
 
   final Completer<void> _startedCompleter = Completer<void>();
   int _nextId = 0;
@@ -92,12 +91,7 @@ class FlutterRunSession {
     String? target,
     Logger? debugLogger,
   }) async {
-    String? deviceName;
-    if (deviceId == null) {
-      final selected = await _autoSelectDevice(workingDirectory, debugLogger);
-      deviceId = selected?.$1;
-      deviceName = selected?.$2;
-    }
+    deviceId ??= await _autoSelectDevice(workingDirectory, debugLogger);
 
     final List<String> args = [
       'run',
@@ -116,19 +110,19 @@ class FlutterRunSession {
       process,
       eventListener,
       debugLogger,
-      deviceName: deviceName,
+      deviceId: deviceId,
     );
     await session._startedCompleter.future;
     return session;
   }
 
-  /// Runs `flutter devices --machine` and returns the best device (ID, name)
-  /// for the given project, or null if no devices are found.
+  /// Runs `flutter devices --machine` and returns the best device ID for the
+  /// given project, or null if no devices are found.
   ///
   /// Preference order: desktop (host OS) > iOS Simulator > Android emulator >
   /// physical device. Web and cross-compile desktop are skipped. Each candidate
   /// is checked for platform support (e.g. a `macos/` folder must exist).
-  static Future<(String, String)?> _autoSelectDevice(
+  static Future<String?> _autoSelectDevice(
     String workingDirectory,
     Logger? debugLogger,
   ) async {
@@ -222,9 +216,7 @@ class FlutterRunSession {
     }
 
     final String selectedId = candidates.first['id'] as String;
-    final String selectedName = candidates.first['name'] as String;
-    debugLogger?.call('Auto-selected device: $selectedName ($selectedId)');
-    return (selectedId, selectedName);
+    return selectedId;
   }
 
   /// Returns the `targetPlatform` string for the host OS.
