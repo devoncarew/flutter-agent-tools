@@ -22,7 +22,8 @@ The relevant error-causing widget was:
 The specific RenderFlex in question is: RenderFlex#d014f relayoutBoundary=up2 OVERFLOWING
   constraints: BoxConstraints(0.0<=w<=411.0, h=300.0)
   size: Size(411.0, 300.0)
-  direction: vertical'''),
+  direction: vertical
+  widget ID: inspector-10'''),
       );
     });
 
@@ -72,7 +73,8 @@ Hint: This is considered an error condition because it indicates that there is c
 The specific RenderFlex in question is: RenderFlex#d014f relayoutBoundary=up2 OVERFLOWING
   constraints: BoxConstraints(0.0<=w<=411.0, h=300.0)
   size: Size(411.0, 300.0)
-  direction: vertical'''),
+  direction: vertical
+  widget ID: inspector-10'''),
       );
     });
 
