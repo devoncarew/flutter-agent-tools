@@ -71,6 +71,9 @@ base class FlutterAgentServer extends MCPServer
         'app are automatically forwarded as MCP log warnings — no polling needed.',
     inputSchema: Schema.object(
       properties: {
+        'working_directory': Schema.string(
+          description: 'The Flutter project directory to launch.',
+        ),
         'target': Schema.string(
           description:
               'The main entry point to launch (e.g. lib/main.dart). '
@@ -78,10 +81,9 @@ base class FlutterAgentServer extends MCPServer
         ),
         'device': Schema.string(
           description:
-              'The target device ID. Defaults to the first available device.',
-        ),
-        'working_directory': Schema.string(
-          description: 'The Flutter project directory to launch.',
+              'Optional device ID override. When omitted, auto-selects the '
+              'best available device (prefers desktop for fast builds). Only '
+              'pass this if the user requests a specific device.',
         ),
       },
       required: ['working_directory'],
@@ -116,8 +118,12 @@ base class FlutterAgentServer extends MCPServer
 
     _sessions[sessionId] = session;
 
+    final String deviceInfo =
+        session.deviceName != null ? ' on ${session.deviceName}' : '';
     return CallToolResult(
-      content: [TextContent(text: 'Launched. Session ID: $sessionId')],
+      content: [
+        TextContent(text: 'Launched$deviceInfo. Session ID: $sessionId'),
+      ],
     );
   }
 

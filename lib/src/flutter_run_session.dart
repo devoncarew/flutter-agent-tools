@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
+import 'package:path/path.dart' as path;
 
 import 'diagnostics_node.dart';
 import 'error_summarizers.dart';
@@ -17,7 +18,12 @@ import 'utils.dart';
 /// [restart] for hot reload/restart, [stop] to terminate the app, and
 /// [serviceExtensions] for direct access to Flutter VM service extensions.
 class FlutterRunSession {
-  FlutterRunSession._(this._process, this._eventListener, this.debugLogger) {
+  FlutterRunSession._(
+    this._process,
+    this._eventListener,
+    this.debugLogger, {
+    this.deviceName,
+  }) {
     _process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
@@ -30,6 +36,10 @@ class FlutterRunSession {
 
   final Process _process;
   String? _appId;
+
+  /// The human-readable name of the device this session is running on
+  /// (e.g. "macOS", "iPhone 16"). Set when auto-selection chose the device.
+  final String? deviceName;
 
   final Completer<void> _startedCompleter = Completer<void>();
   int _nextId = 0;
@@ -70,7 +80,11 @@ class FlutterRunSession {
   /// Launches `flutter run --machine` in [workingDirectory] and waits until
   /// the app has fully started.
   ///
-  /// Throws a [DaemonException] if the process exits before the app starts.
+  /// When [deviceId] is omitted, auto-selects the best available device
+  /// (preferring desktop, then simulators/emulators, then physical devices).
+  ///
+  /// Throws a [DaemonException] if the process exits before the app starts
+  /// or if no suitable device can be found.
   static Future<FlutterRunSession> start({
     required String workingDirectory,
     required EventCallback eventListener,
@@ -78,6 +92,13 @@ class FlutterRunSession {
     String? target,
     Logger? debugLogger,
   }) async {
+    String? deviceName;
+    if (deviceId == null) {
+      final selected = await _autoSelectDevice(workingDirectory, debugLogger);
+      deviceId = selected?.$1;
+      deviceName = selected?.$2;
+    }
+
     final List<String> args = [
       'run',
       '--machine',
@@ -95,9 +116,164 @@ class FlutterRunSession {
       process,
       eventListener,
       debugLogger,
+      deviceName: deviceName,
     );
     await session._startedCompleter.future;
     return session;
+  }
+
+  /// Runs `flutter devices --machine` and returns the best device (ID, name)
+  /// for the given project, or null if no devices are found.
+  ///
+  /// Preference order: desktop (host OS) > iOS Simulator > Android emulator >
+  /// physical device. Web and cross-compile desktop are skipped. Each candidate
+  /// is checked for platform support (e.g. a `macos/` folder must exist).
+  static Future<(String, String)?> _autoSelectDevice(
+    String workingDirectory,
+    Logger? debugLogger,
+  ) async {
+    final List<Map<String, dynamic>> devices;
+    try {
+      devices = await _getDevices(debugLogger);
+    } on DaemonException {
+      // Fail open — let `flutter run` pick a device itself.
+      return null;
+    }
+
+    if (devices.isEmpty) return null;
+
+    // Map targetPlatform (from `flutter devices --machine`) to the project
+    // platform folder name. Note: devices report 'darwin' but the folder and
+    // `flutter create --platforms=` flag use 'macos'.
+    const Map<String, String> platformFolders = {
+      'darwin': 'macos',
+      'linux': 'linux',
+      'windows': 'windows',
+      'android': 'android',
+      'ios': 'ios',
+      'web-javascript': 'web',
+    };
+
+    bool projectSupports(String targetPlatform) {
+      final String? folder = platformFolders[targetPlatform];
+      if (folder == null) {
+        // Unknown platform — don't filter.
+        return true;
+      }
+      return Directory(path.join(workingDirectory, folder)).existsSync();
+    }
+
+    final String hostPlatform = _hostTargetPlatform();
+
+    // Score each device: lower is better. Null means skip entirely.
+    int? devicePriority(Map<String, dynamic> device) {
+      final String target = device['targetPlatform'] as String? ?? '';
+      final bool isEmulator = device['emulator'] as bool? ?? false;
+
+      // Desktop matching host OS.
+      if (target == hostPlatform) return 0;
+
+      // iOS Simulator (running).
+      if (target == 'ios' && isEmulator) return 1;
+
+      // Android emulator (running).
+      if (target == 'android' && isEmulator) return 2;
+
+      // Physical mobile device.
+      if (target == 'ios' || target == 'android') return 3;
+
+      // Skip cross-compile desktop (e.g. linux on macOS) — unlikely to work.
+      if (target == 'darwin' || target == 'linux' || target == 'windows') {
+        return null;
+      }
+
+      // Skip web — inspector and evaluate don't work the same way.
+      if (target == 'web-javascript') return null;
+
+      return 4;
+    }
+
+    // Filter to supported, non-skipped devices and sort by priority.
+    final List<Map<String, dynamic>> candidates =
+        devices
+            .where(
+              (d) =>
+                  projectSupports(d['targetPlatform'] as String? ?? '') &&
+                  devicePriority(d) != null,
+            )
+            .toList()
+          ..sort((a, b) => devicePriority(a)!.compareTo(devicePriority(b)!));
+
+    if (candidates.isEmpty) {
+      final String deviceList = devices
+          .map(
+            (d) =>
+                '  - ${d['name']} (${d['id']}, '
+                'platform: ${d['targetPlatform']})',
+          )
+          .join('\n');
+      final String hostPlatformName = _hostPlatformName();
+      throw DaemonException(
+        'No device matches this project\'s enabled platforms.\n\n'
+        'Available devices:\n$deviceList\n\n'
+        'To enable desktop, run: '
+        'flutter create --platforms=$hostPlatformName .',
+      );
+    }
+
+    final String selectedId = candidates.first['id'] as String;
+    final String selectedName = candidates.first['name'] as String;
+    debugLogger?.call('Auto-selected device: $selectedName ($selectedId)');
+    return (selectedId, selectedName);
+  }
+
+  /// Returns the `targetPlatform` string for the host OS.
+  static String _hostTargetPlatform() {
+    if (Platform.isMacOS) return 'darwin';
+    if (Platform.isLinux) return 'linux';
+    if (Platform.isWindows) return 'windows';
+    return '';
+  }
+
+  /// Returns the Flutter platform name for the host OS (used in
+  /// `flutter create --platforms=`).
+  static String _hostPlatformName() {
+    if (Platform.isMacOS) return 'macos';
+    if (Platform.isLinux) return 'linux';
+    if (Platform.isWindows) return 'windows';
+    return 'macos';
+  }
+
+  /// Runs `flutter devices --machine` and returns the parsed JSON list.
+  static Future<List<Map<String, dynamic>>> _getDevices(
+    Logger? debugLogger,
+  ) async {
+    final ProcessResult result = await Process.run('flutter', [
+      'devices',
+      '--machine',
+    ]);
+
+    if (result.exitCode != 0) {
+      throw DaemonException(
+        'flutter devices failed (exit ${result.exitCode}): ${result.stderr}',
+      );
+    }
+
+    final String stdout = result.stdout as String;
+
+    // `flutter devices --machine` may emit non-JSON lines before the JSON
+    // array (e.g. "Waiting for another flutter command..."). Find the array.
+    final int jsonStart = stdout.indexOf('[');
+    if (jsonStart == -1) {
+      throw DaemonException('flutter devices returned no JSON output.');
+    }
+
+    final Object? decoded = jsonTryParse(stdout.substring(jsonStart));
+    if (decoded is! List) {
+      throw DaemonException('flutter devices returned unexpected output.');
+    }
+
+    return decoded.cast<Map<String, dynamic>>();
   }
 
   /// Hot reloads the app. If [fullRestart] is true, performs a hot restart
