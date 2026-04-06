@@ -25,7 +25,7 @@ base class FlutterAgentServer extends MCPServer
     loggingLevel = LoggingLevel.info;
 
     registerTool(flutterLaunchAppTool, _flutterLaunchApp);
-    registerTool(flutterPerformReloadTool, _flutterPerformReload);
+    registerTool(flutterReloadTool, _flutterReload);
     registerTool(flutterTakeScreenshotTool, _flutterTakeScreenshot);
     registerTool(flutterInspectLayoutTool, _flutterInspectLayout);
     registerTool(flutterEvaluateTool, _flutterEvaluate);
@@ -194,8 +194,8 @@ base class FlutterAgentServer extends MCPServer
     ),
   );
 
-  final Tool flutterPerformReloadTool = Tool(
-    name: 'flutter_perform_reload',
+  final Tool flutterReloadTool = Tool(
+    name: 'flutter_reload',
     description:
         'Applies source file changes to a running Flutter app. Call this '
         'after editing Dart files, before taking a screenshot or inspecting '
@@ -216,7 +216,7 @@ base class FlutterAgentServer extends MCPServer
     ),
   );
 
-  Future<CallToolResult> _flutterPerformReload(CallToolRequest request) async {
+  Future<CallToolResult> _flutterReload(CallToolRequest request) async {
     final String? sessionId = request.arguments!['session_id'] as String?;
     final FlutterRunSession? session = _sessions[sessionId];
     if (sessionId == null || session == null) {
@@ -361,7 +361,7 @@ base class FlutterAgentServer extends MCPServer
   }
 
   final Tool flutterEvaluateTool = Tool(
-    name: 'flutter_evaluate_expression',
+    name: 'flutter_evaluate',
     description:
         'Evaluates a Dart expression on the running app\'s main isolate and '
         'returns the result as a string. Use for binding-layer and '
