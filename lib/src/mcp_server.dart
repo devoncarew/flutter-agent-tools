@@ -170,11 +170,21 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
       );
       return;
     } else if (event.event == 'flutter.navigation') {
-      final String route =
-          event.params['route'] as String? ?? '(unknown route)';
+      // The Flutter.Navigation event is only emitted by the imperative
+      // Navigator API (push/pop/replace). go_router's context.go() however
+      // works declaratively - it rebuilds the Navigator stack rather than
+      // calling Navigator.push(). So, for go_router, we see navigation events
+      // for back-navigation (pop), but not for forward navigation (go()).
+
+      // Sample go_router pop event (note we get a path template, not a path):
+      //
+      //     _PageBasedMaterialPageRoute<void>(/podcast/:id)
+
+      final routeDesc = event.params['route'];
+
       this.log(
         LoggingLevel.info,
-        '[flutter.navigation] $route',
+        '[flutter.navigation] $routeDesc (use flutter_query_ui mode=route to see current stack)',
         logger: _loggerId,
       );
       return;
