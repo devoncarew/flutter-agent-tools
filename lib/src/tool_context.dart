@@ -1,0 +1,71 @@
+import 'package:dart_mcp/server.dart';
+import 'package:vm_service/vm_service.dart' show RPCError;
+
+import 'flutter_run_session.dart';
+import 'utils.dart';
+
+/// Provides tool implementations with access to shared server state.
+///
+/// Tools receive a [ToolContext] rather than a direct reference to
+/// [FlutterAgentServer], keeping them decoupled from the MCP server
+/// infrastructure and easier to test independently.
+class ToolContext {
+  ToolContext({required Map<String, FlutterRunSession> sessions, required this.log})
+    : _sessions = sessions;
+
+  final Map<String, FlutterRunSession> _sessions;
+
+  /// Logs a message at the given level to the MCP client.
+  final void Function(LoggingLevel level, String message) log;
+
+  /// Returns the session for [sessionId], or null if not found.
+  FlutterRunSession? session(String? sessionId) => _sessions[sessionId];
+
+  /// Removes and returns the session for [sessionId], or null if not found.
+  FlutterRunSession? removeSession(String? sessionId) =>
+      _sessions.remove(sessionId);
+
+  /// Returns an error result indicating no session was found for [sessionId].
+  CallToolResult unknownSession(String? sessionId) {
+    return CallToolResult(
+      isError: true,
+      content: [TextContent(text: 'No session found for ID: $sessionId')],
+    );
+  }
+
+  /// Returns an error result for a VM service [RPCError].
+  CallToolResult rpcError(RPCError e) {
+    final error = ServiceError.tryParse(e);
+    return CallToolResult(
+      isError: true,
+      content: [TextContent(text: error?.exception ?? e.message)],
+    );
+  }
+}
+
+/// Parses a structured Dart exception from a VM service [RPCError], when
+/// present.
+///
+/// The VM service encodes Dart exceptions in `error.details` as a JSON string
+/// containing `{exception, stack}`. This class extracts that structure so
+/// callers can surface the Dart exception message rather than the raw RPC
+/// error text.
+class ServiceError {
+  ServiceError(this.exception, this.stack);
+
+  final String exception;
+  final String? stack;
+
+  static ServiceError? tryParse(RPCError error) {
+    if (error.details != null) {
+      final obj = jsonTryParse(error.details!);
+      if (obj is Map) {
+        return ServiceError(
+          obj['exception'] as String? ?? '',
+          obj['stack'] as String?,
+        );
+      }
+    }
+    return null;
+  }
+}

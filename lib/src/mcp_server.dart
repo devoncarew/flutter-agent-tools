@@ -8,7 +8,7 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 import 'flutter_run_session.dart';
 import 'layout_formatter.dart';
 import 'route_formatter.dart';
-import 'utils.dart';
+import 'tool_context.dart';
 
 /// The MCP server for flutter-agent-tools.
 base class FlutterAgentServer extends MCPServer
@@ -53,6 +53,11 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
 
   final Map<String, FlutterRunSession> _sessions = {};
   final Map<String, StreamSubscription<DaemonEvent>> _subscriptions = {};
+
+  late final ToolContext _context = ToolContext(
+    sessions: _sessions,
+    log: (level, message) => this.log(level, message, logger: _loggerId),
+  );
 
   @override
   Future<void> shutdown() async {
@@ -255,9 +260,9 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
 
   Future<CallToolResult> _flutterReload(CallToolRequest request) async {
     final String? sessionId = request.arguments!['session_id'] as String?;
-    final FlutterRunSession? session = _sessions[sessionId];
+    final FlutterRunSession? session = _context.session(sessionId);
     if (sessionId == null || session == null) {
-      return _unknownSessionResult(sessionId);
+      return _context.unknownSession(sessionId);
     }
 
     final bool fullRestart =
@@ -277,12 +282,12 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
 
   Future<CallToolResult> _flutterCloseApp(CallToolRequest request) async {
     final String? sessionId = request.arguments!['session_id'] as String?;
-    final FlutterRunSession? session = _sessions.remove(sessionId);
+    final FlutterRunSession? session = _context.removeSession(sessionId);
     if (sessionId == null || session == null) {
-      return _unknownSessionResult(sessionId);
+      return _context.unknownSession(sessionId);
     }
 
-    _releaseSession(sessionId);
+    _subscriptions.remove(sessionId)?.cancel();
 
     // We don't await this call.
     session.stop();
@@ -314,10 +319,9 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
 
   Future<CallToolResult> _flutterTakeScreenshot(CallToolRequest request) async {
     final String? sessionId = request.arguments!['session_id'] as String?;
-    final FlutterRunSession? session = _sessions[sessionId];
-
+    final FlutterRunSession? session = _context.session(sessionId);
     if (sessionId == null || session == null) {
-      return _unknownSessionResult(sessionId);
+      return _context.unknownSession(sessionId);
     }
 
     final num? pixelRatioArg = request.arguments!['pixel_ratio'] as num?;
@@ -331,7 +335,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
         content: [ImageContent(data: base64Data, mimeType: 'image/png')],
       );
     } on RPCError catch (e) {
-      return _rpcErrorResult(e);
+      return _context.rpcError(e);
     }
   }
 
@@ -363,9 +367,9 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
 
   Future<CallToolResult> _flutterInspectLayout(CallToolRequest request) async {
     final String? sessionId = request.arguments!['session_id'] as String?;
-    final FlutterRunSession? session = _sessions[sessionId];
+    final FlutterRunSession? session = _context.session(sessionId);
     if (sessionId == null || session == null) {
-      return _unknownSessionResult(sessionId);
+      return _context.unknownSession(sessionId);
     }
 
     final String? widgetId = request.arguments!['widget_id'] as String?;
@@ -393,7 +397,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
       final layoutSummary = formatLayoutDetails(node, maxDepth: subtreeDepth);
       return CallToolResult(content: [TextContent(text: layoutSummary)]);
     } on RPCError catch (e) {
-      return _rpcErrorResult(e);
+      return _context.rpcError(e);
     }
   }
 
@@ -426,9 +430,9 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
 
   Future<CallToolResult> _flutterEvaluate(CallToolRequest request) async {
     final String? sessionId = request.arguments!['session_id'] as String?;
-    final FlutterRunSession? session = _sessions[sessionId];
+    final FlutterRunSession? session = _context.session(sessionId);
     if (sessionId == null || session == null) {
-      return _unknownSessionResult(sessionId);
+      return _context.unknownSession(sessionId);
     }
 
     final String expression = request.arguments!['expression'] as String;
@@ -438,7 +442,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
       );
       return CallToolResult(content: [TextContent(text: result)]);
     } on RPCError catch (e) {
-      return _rpcErrorResult(e);
+      return _context.rpcError(e);
     }
   }
 
@@ -471,9 +475,9 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
 
   Future<CallToolResult> _flutterQueryUi(CallToolRequest request) async {
     final String? sessionId = request.arguments!['session_id'] as String?;
-    final FlutterRunSession? session = _sessions[sessionId];
+    final FlutterRunSession? session = _context.session(sessionId);
     if (sessionId == null || session == null) {
-      return _unknownSessionResult(sessionId);
+      return _context.unknownSession(sessionId);
     }
 
     final String? mode = request.arguments!['mode'] as String?;
@@ -513,23 +517,8 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
           );
       }
     } on RPCError catch (e) {
-      return _rpcErrorResult(e);
+      return _context.rpcError(e);
     }
-  }
-
-  CallToolResult _unknownSessionResult(String? sessionId) {
-    return CallToolResult(
-      isError: true,
-      content: [TextContent(text: 'No session found for ID: $sessionId')],
-    );
-  }
-
-  CallToolResult _rpcErrorResult(RPCError e) {
-    final error = ServiceError.tryParse(e);
-    return CallToolResult(
-      isError: true,
-      content: [TextContent(text: error?.exception ?? e.message)],
-    );
   }
 
   (LoggingLevel, String)? _convertToLog(DaemonEvent event) {
@@ -574,28 +563,5 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     }
 
     return (LoggingLevel.info, message);
-  }
-}
-
-class ServiceError {
-  final String exception;
-  final String? stack;
-
-  ServiceError(this.exception, this.stack);
-
-  static ServiceError? tryParse(RPCError error) {
-    // While highly unusual, when present, `data['details']` is an
-    // `{exception, stack}` map, encoded as a JSON string.
-    if (error.details != null) {
-      final obj = jsonTryParse(error.details!);
-      if (obj is Map) {
-        return ServiceError(
-          obj['exception'] as String? ?? '',
-          obj['stack'] as String?,
-        );
-      }
-    }
-
-    return null;
   }
 }

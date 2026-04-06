@@ -305,12 +305,10 @@ What it is good for:
   it reads or edits routing code.
 
 Limitations:
-- **No route path.** The output contains widget class names, not route strings
-  (e.g. `/podcast/:id`). An agent that needs to call `context.go(...)` still
-  has to read the routes file to find the correct path and its parameters.
-  go_router has no VM service extensions that expose the current URI, and
-  `ModalRoute.of(context)` requires a `BuildContext` that cannot be reached
-  cheaply via `evaluate`.
+- **No route path (generic).** The output contains widget class names, not route
+  strings (e.g. `/podcast/:id`). An agent that needs to call `context.go(...)`
+  still has to read the routes file to discover valid paths and their required
+  parameters.
 - **Summary tree depth.** The widget tree is fetched with `isSummaryTree: true`,
   which omits internal Flutter widgets. If a project wraps all screens in a
   private class, those wrappers may be the first locally-created widget found,
@@ -319,6 +317,48 @@ Limitations:
   overlays, bottom-sheet navigators) each appear as a separate stack. The tool
   suppresses navigators composed entirely of private widgets but cannot
   automatically determine which navigator is "primary" in all cases.
+
+**Route path enrichment via go_router (planned):**
+
+For apps using go_router, we can extract the actual current URI by locating
+`InheritedGoRouter` in the widget tree and evaluating against its instance:
+
+1. Walk the summary tree → find `InheritedGoRouter` node → read its `valueId`
+   (e.g. `inspector-29`).
+2. `inspectorIdToVmObjectId(valueId)` → resolve the inspector handle to a raw
+   VM object ID (`objects/1234`) by evaluating
+   `WidgetInspectorService.instance.toObject(id)` in the inspector library scope
+   (see `FlutterServiceExtensions.inspectorIdToVmObjectId`).
+3. `evaluateOnObject(vmId, 'notifier.routerDelegate.currentConfiguration.uri.toString()')`
+   → returns the current path, e.g. `/podcast/123`.
+
+Detection: presence of `InheritedGoRouter` in the summary tree is sufficient to
+identify a go_router app. Other popular routers (auto_route, beamer) follow the
+same InheritedWidget pattern but with different field names; they can be added
+as separate cases when needed.
+
+**Programmatic navigation via go_router (planned):**
+
+Once we have the GoRouter instance via `evaluateOnObject`, we can call navigation
+methods on it directly:
+
+```dart
+// Navigate to a new route:
+evaluateOnObject(vmId, 'notifier.go("/podcast/123")')
+
+// Named location (requires knowing the route name):
+evaluateOnObject(vmId, 'notifier.namedLocation("podcast", pathParameters: {"id": "123"})')
+```
+
+`go()` returns void, so the handler needs to treat a null/void `InstanceRef`
+result as success rather than an error. A dedicated `flutter_navigate` tool (or
+a `navigate` mode on `flutter_query_ui`) would wrap this pattern: locate the
+router, call `go()`, wait for a `Flutter.Navigation` event or the next
+`Flutter.Frame`, then optionally re-fetch the route stack to confirm.
+
+The agent still needs to know valid route paths and their parameters, which
+means reading the app's route definition file first. This is an acceptable
+prerequisite — the agent already has access to source files.
 
 **Open questions:**
 
@@ -350,7 +390,8 @@ package_info(package, kind, library?, class?, version?) → String  [planned]
 ✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
 ✓ flutter_inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
 ✓ flutter_evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
-✓ flutter_query_ui(session_id, mode) → String  // route: ✓ | semantics: [planned] | widget_tree: [planned]
+✓ flutter_query_ui(session_id, mode) → String  // route: ✓ (go_router path enrichment planned) | semantics: [planned] | widget_tree: [planned]
+[planned] flutter_navigate(session_id, path) → void  // go_router: via InheritedGoRouter + evaluateOnObject
 
 // Tool 3 — app interaction (useful but lower priority for coding agents)
 [planned] flutter_tap(session_id, semantics_label) → void
