@@ -305,10 +305,11 @@ What it is good for:
   it reads or edits routing code.
 
 Limitations:
-- **No route path (generic).** The output contains widget class names, not route
-  strings (e.g. `/podcast/:id`). An agent that needs to call `context.go(...)`
-  still has to read the routes file to discover valid paths and their required
-  parameters.
+- **Route path (non-go_router apps).** For apps not using go_router, the output
+  contains widget class names only, not route strings. An agent that needs to
+  call `context.go(...)` still has to read the routes file to discover valid
+  paths and their required parameters. go_router apps get the actual URI via
+  `GoRouter.state.uri` (see enrichment section below).
 - **Summary tree depth.** The widget tree is fetched with `isSummaryTree: true`,
   which omits internal Flutter widgets. If a project wraps all screens in a
   private class, those wrappers may be the first locally-created widget found,
@@ -318,9 +319,9 @@ Limitations:
   suppresses navigators composed entirely of private widgets but cannot
   automatically determine which navigator is "primary" in all cases.
 
-**Route path enrichment via go_router (planned):**
+**Route path enrichment via go_router (implemented):**
 
-For apps using go_router, we can extract the actual current URI by locating
+For apps using go_router, the actual current URI is extracted by locating
 `InheritedGoRouter` in the widget tree and evaluating against its instance:
 
 1. Walk the summary tree → find `InheritedGoRouter` node → read its `valueId`
@@ -328,26 +329,35 @@ For apps using go_router, we can extract the actual current URI by locating
 2. `inspectorIdToVmObjectId(valueId)` → resolve the inspector handle to a raw
    VM object ID (`objects/1234`) by evaluating
    `WidgetInspectorService.instance.toObject(id)` in the inspector library scope
-   (see `FlutterServiceExtensions.inspectorIdToVmObjectId`).
-3. `evaluateOnObject(vmId, 'notifier.routerDelegate.currentConfiguration.uri.toString()')`
-   → returns the current path, e.g. `/podcast/123`.
+   (see `FlutterServiceExtensions.inspectorIdToVmObjectId`). Note: this returns
+   the `InheritedElement`, not the widget itself.
+3. `evaluateOnObject(vmId, 'widget.goRouter.state.uri.toString()')`
+   → `.widget` reaches the `InheritedGoRouter` widget; `.goRouter` is its
+   field (not `.notifier`); `.state.uri` gives the live current path, e.g.
+   `/podcast/787ae263b723`.
 
 Detection: presence of `InheritedGoRouter` in the summary tree is sufficient to
 identify a go_router app. Other popular routers (auto_route, beamer) follow the
 same InheritedWidget pattern but with different field names; they can be added
 as separate cases when needed.
 
+This enrichment is best-effort: if evaluation fails (e.g. older go_router
+version, or app doesn't use go_router), the route stack is still returned
+without the `Current path:` line.
+
 **Programmatic navigation via go_router (planned):**
 
 Once we have the GoRouter instance via `evaluateOnObject`, we can call navigation
-methods on it directly:
+methods on it directly. Note the field path: the VM object is an `InheritedElement`,
+so `.widget` is needed to reach the `InheritedGoRouter`, then `.goRouter` for the
+`GoRouter` instance:
 
 ```dart
 // Navigate to a new route:
-evaluateOnObject(vmId, 'notifier.go("/podcast/123")')
+evaluateOnObject(vmId, 'widget.goRouter.go("/podcast/123")')
 
 // Named location (requires knowing the route name):
-evaluateOnObject(vmId, 'notifier.namedLocation("podcast", pathParameters: {"id": "123"})')
+evaluateOnObject(vmId, 'widget.goRouter.namedLocation("podcast", pathParameters: {"id": "123"})')
 ```
 
 `go()` returns void, so the handler needs to treat a null/void `InstanceRef`
@@ -390,7 +400,7 @@ package_info(package, kind, library?, class?, version?) → String  [planned]
 ✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
 ✓ flutter_inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
 ✓ flutter_evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
-✓ flutter_query_ui(session_id, mode) → String  // route: ✓ (go_router path enrichment planned) | semantics: [planned] | widget_tree: [planned]
+✓ flutter_query_ui(session_id, mode) → String  // route: ✓ (incl. go_router path enrichment) | semantics: [planned] | widget_tree: [planned]
 [planned] flutter_navigate(session_id, path) → void  // go_router: via InheritedGoRouter + evaluateOnObject
 
 // Tool 3 — app interaction (useful but lower priority for coding agents)

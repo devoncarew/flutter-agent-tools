@@ -12,7 +12,10 @@ import 'diagnostics_node.dart';
 /// starting with `_`) are suppressed — they are framework or shell-route
 /// internals (e.g. go_router's `_AppShell`) that add noise without useful
 /// orientation information.
-String formatRouteInfo(DiagnosticsNode root) {
+///
+/// If [currentPath] is provided (e.g. resolved from go_router via VM service
+/// evaluate), it is included at the top of the output.
+String formatRouteInfo(DiagnosticsNode root, {String? currentPath}) {
   final navigators = <_NavigatorInfo>[];
   _collectNavigators(root, 0, navigators);
 
@@ -34,6 +37,10 @@ String formatRouteInfo(DiagnosticsNode root) {
   }
 
   final buf = StringBuffer();
+  if (currentPath != null) {
+    buf.writeln('Current path: $currentPath');
+    buf.writeln();
+  }
   for (int ni = 0; ni < visible.length; ni++) {
     final nav = visible[ni];
     // Only show the navigator header when multiple navigators are visible —
@@ -58,6 +65,32 @@ String formatRouteInfo(DiagnosticsNode root) {
   }
 
   return buf.toString().trim();
+}
+
+/// Returns all [DiagnosticsNode] instances in [root]'s subtree whose
+/// [DiagnosticsNode.widgetRuntimeType] is `InheritedGoRouter`.
+///
+/// go_router places a single `InheritedGoRouter` near the top of the tree.
+/// Its `notifier` field holds the [GoRouter] instance, which can be used (via
+/// [FlutterServiceExtensions.evaluateOnObject]) to query the current route
+/// configuration.
+///
+/// Returns an empty list if the app does not use go_router.
+List<DiagnosticsNode> findGoRouterNodes(DiagnosticsNode root) {
+  final result = <DiagnosticsNode>[];
+  _collectGoRouterNodes(root, result);
+  return result;
+}
+
+void _collectGoRouterNodes(DiagnosticsNode node, List<DiagnosticsNode> out) {
+  if (node.widgetRuntimeType == 'InheritedGoRouter') {
+    out.add(node);
+    // Don't recurse further — nested GoRouters are not a go_router pattern.
+    return;
+  }
+  for (final child in node.children) {
+    _collectGoRouterNodes(child, out);
+  }
 }
 
 // ---------------------------------------------------------------------------
