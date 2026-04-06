@@ -7,23 +7,22 @@ code.
 
 ### Dependency Health Hook
 
-A `PreToolUse` hook that intercepts `flutter pub add` / `dart pub add` commands
-and validates packages against pub.dev before they are added. Blocks
-discontinued packages and suggests official replacements.
+Two `PreToolUse` hooks that validate packages against pub.dev before they are
+added — either via `flutter pub add` / `dart pub add` or by directly editing
+`pubspec.yaml`. Both emit warnings and let the agent decide; neither hard-blocks.
 
-Requires: `curl`, `jq`
-
-### pubspec.yaml Guard (stub)
-
-A `PreToolUse` hook that intercepts direct `Write`/`Edit` operations on
-`pubspec.yaml` and validates newly-added dependencies. Not yet implemented.
+Checks performed:
+- **Discontinued:** warns with the official replacement if one is listed.
+- **Old major version:** warns when the requested constraint targets an older
+  major than what pub.dev currently publishes (e.g. `http:^0.13.0` vs latest `1.x`).
+- **Not found:** warns if the package name doesn't exist on pub.dev.
 
 ### Package API Inspector (planned)
 
 An MCP command that returns a token-efficient Markdown summary of a package's
 public API — without requiring the agent to read raw source from `.pub-cache`.
 
-### Flutter UI Agent (planned)
+### Flutter UI Agent
 
 MCP commands for building, launching, and introspecting a running Flutter app at
 runtime: query semantic elements, inject text, trigger taps, and pull unhandled
@@ -60,9 +59,9 @@ git clone https://github.com/devoncarew/flutter-agent-tools
 cd flutter-agent-tools
 chmod +x scripts/*.sh
 
-# Test the hook manually:
+# Test the dep-check hook manually:
 echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
-  | ./scripts/dep_health_check.sh
+  | dart run bin/dep_check.dart --mode=pub-add
 ```
 
 ## Links

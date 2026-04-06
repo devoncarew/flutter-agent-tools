@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/dep_health_check.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/start_dep_check.sh --mode=pub-add",
             "description": "Validates packages before flutter pub add runs"
           }
         ]
@@ -16,8 +16,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/pubspec_guard.sh",
-            "description": "Guards direct pubspec.yaml dependency edits"
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/start_dep_check.sh --mode=pubspec-guard",
+            "description": "Validates packages on direct pubspec.yaml edits"
           }
         ]
       }

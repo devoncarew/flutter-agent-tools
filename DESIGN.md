@@ -21,8 +21,8 @@ command. This gives:
 
 - **Developers:** low-friction installation; no manual server setup or prompt
   engineering required.
-- **Agents:** tools are automatically available via native Claude Code primitives
-  (Hooks, MCP) without requiring explicit instruction.
+- **Agents:** tools are automatically available via native Claude Code
+  primitives (Hooks, MCP) without requiring explicit instruction.
 
 ## Tool 1: Dependency Health Hook
 
@@ -35,30 +35,36 @@ command. This gives:
 
 **Behavior:**
 
-- Queries the pub.dev API to validate each package before it is added.
-- Blocks if a package is officially marked discontinued, and reports the
+All checks are warnings (exit 0) — the agent sees the message and decides
+whether to proceed. The hook never hard-blocks, because the agent may have
+legitimate reasons to override (e.g. a private package not on pub.dev).
+
+- **Discontinued:** if `isDiscontinued == true` on pub.dev, warns with the
   official replacement if one is listed.
-- Warns (without blocking) if a package appears abandoned by heuristics (see
-  below).
-- Fails open on infrastructure errors (network timeout, missing dependencies) —
-  the hook should never block the agent due to its own tooling failures.
+- **Old major version:** if the requested constraint targets an older major
+  version than what pub.dev currently publishes (e.g. `http:^0.13.0` when
+  latest is `1.x`), warns and suggests the current major.
+- **Not found:** if the package name doesn't exist on pub.dev, warns — could
+  be a private package or a typo.
+- **Fails open:** on network errors or any other infrastructure failure, the
+  hook exits cleanly without blocking.
 
-**Abandonment heuristics** (beyond the official `isDiscontinued` flag):
+**Unofficial blocklist (planned):**
 
-- Last publish date older than ~3 years (blunt; useful as a secondary signal
-  only).
-- The package's own dependencies pin to severely outdated versions of core
-  ecosystem packages (e.g., a very old `package:meta`). This is a stronger
-  signal and worth implementing in a future iteration.
-- README or repository signals (fork status, archived repo). Lower priority;
-  requires additional API calls.
+The two failure modes seen in practice are discontinued packages and old major
+versions — both covered above. A third case exists: packages that are
+effectively abandoned but not officially marked `isDiscontinued` on pub.dev
+(e.g. packages that have been superseded by a community fork). A small
+curated blocklist in `lib/src/dep_check/blocklist.dart` would cover these.
+Each entry should name the package, a reason, and the recommended alternative.
 
-**Implementation:** Shell script (`dep_health_check.sh`) receiving JSON on stdin
-from Claude Code. Requires `curl` and `jq`.
+**Implementation:** Dart CLI (`bin/dep_check.dart`) invoked via a thin shell
+launcher (`scripts/start_dep_check.sh`). Reads tool input JSON from stdin;
+mode selected via `--mode=pub-add` or `--mode=pubspec-guard`. The pubspec-guard
+mode diffs the YAML before and after the edit to find newly added packages and
+runs the same checks.
 
-**Current state:** Functional for the `flutter pub add` path. The `pubspec.yaml`
-Write/Edit guard is a stub — it requires diffing the incoming file content to
-isolate newly added packages, which is more complex.
+**Current state:** Both modes functional.
 
 ## Tool 2: Package API Inspector
 
@@ -391,9 +397,9 @@ package_info(package, kind, library?, class?, version?) → String [planned]
 ✓ flutter_inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
 ✓ flutter_evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
 ✓ flutter_query_ui(session_id, mode) → String  // route: ✓ (incl. go_router path enrichment) | semantics: [planned] | widget_tree: [planned]
-[planned] flutter_navigate(session_id, path) → void  // go_router: via InheritedGoRouter + evaluateOnObject
 
 // Tool 3 — app interaction (useful but lower priority for coding agents)
+[planned] flutter_navigate(session_id, path) → void  // go_router: via InheritedGoRouter + evaluateOnObject
 [planned] flutter_tap(session_id, semantics_label) → void
 [planned] flutter_inject_text(session_id, semantics_label, text) → void
 [planned] flutter_scroll_to(session_id, semantics_label) → void
