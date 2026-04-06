@@ -124,6 +124,165 @@ class FlutterServiceExtensions {
   }
 
   // ---------------------------------------------------------------------------
+  // ext.flutter.inspector.getParentChain
+
+  /// Returns the chain of ancestor nodes from the root down to the widget with
+  /// [diagnosticableId], as a [DiagnosticsNode].
+  ///
+  /// Useful for understanding where a widget sits in the overall tree without
+  /// needing to walk the entire tree from the root. Each node in the chain has
+  /// its children populated only enough to show the path.
+  Future<DiagnosticsNode> getParentChain(String diagnosticableId) async {
+    final Response response = await _callExtension(
+      'ext.flutter.inspector.getParentChain',
+      args: {'arg': diagnosticableId, 'objectGroup': inspectorGroup},
+    );
+    return DiagnosticsNode.fromJson(
+      _unwrapResponse('getParentChain', response),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // VM service evaluate on an object instance
+
+  /// Evaluates [expression] in the context of the VM object with [vmObjectId].
+  ///
+  /// Unlike [evaluate] (which runs in the root library scope), this evaluates
+  /// with `this` bound to the specified object — fields and methods of that
+  /// object are directly in scope.
+  ///
+  /// [vmObjectId] must be a raw VM service object ID (e.g. `objects/123`), as
+  /// returned by [evaluateToObjectId]. Inspector group handles such as
+  /// `inspector-29` are NOT valid here — those are scoped to the Flutter
+  /// inspector protocol and cannot be used directly as VM evaluate targets.
+  ///
+  /// Returns the `toString()` of the result. Throws an [RPCError] on failure.
+  Future<String> evaluateOnObject(String vmObjectId, String expression) async {
+    final VM vm = await _vmService.getVM();
+    for (final IsolateRef ref in vm.isolates ?? []) {
+      final Response result = await _vmService.evaluate(
+        ref.id!,
+        vmObjectId,
+        expression,
+      );
+
+      if (result is ErrorRef) {
+        throw rpcError(
+          result.message ?? 'evaluateOnObject failed',
+          fromMethod: 'evaluateOnObject',
+        );
+      }
+      if (result is InstanceRef) {
+        return result.valueAsString ??
+            result.classRef?.name ??
+            result.kind ??
+            '?';
+      }
+    }
+    throw rpcError(
+      'No suitable isolate found for evaluateOnObject',
+      fromMethod: 'evaluateOnObject',
+    );
+  }
+
+  /// Evaluates [expression] in the root library scope and returns the raw VM
+  /// service object ID of the result, rather than its string representation.
+  ///
+  /// Use this to obtain a [vmObjectId] for [evaluateOnObject]. For example,
+  /// to call methods on a GoRouter stored as a top-level variable `_router`:
+  ///
+  /// ```dart
+  /// final id = await extensions.evaluateToObjectId('_router');
+  /// final result = await extensions.evaluateOnObject(id, 'go("/home")');
+  /// ```
+  ///
+  /// Returns null if the result has no object identity (e.g. it is a primitive
+  /// like `int` or `String`). Throws an [RPCError] on failure.
+  Future<String?> evaluateToObjectId(String expression) async {
+    final VM vm = await _vmService.getVM();
+    for (final IsolateRef ref in vm.isolates ?? []) {
+      final Isolate isolate = await _vmService.getIsolate(ref.id!);
+      final String? libId = isolate.rootLib?.id;
+      if (libId == null) continue;
+
+      final Response result = await _vmService.evaluate(
+        ref.id!,
+        libId,
+        expression,
+      );
+
+      if (result is ErrorRef) {
+        throw rpcError(
+          result.message ?? 'evaluateToObjectId failed',
+          fromMethod: 'evaluateToObjectId',
+        );
+      }
+      if (result is InstanceRef) {
+        return result.id;
+      }
+    }
+    throw rpcError(
+      'No suitable isolate found for evaluateToObjectId',
+      fromMethod: 'evaluateToObjectId',
+    );
+  }
+
+  /// Converts an inspector `valueId` (e.g. `"inspector-42"`) to a raw VM
+  /// service object ID (e.g. `"objects/1234"`) suitable for use with
+  /// [evaluateOnObject].
+  ///
+  /// Inspector handles are scoped to the Flutter inspector protocol and cannot
+  /// be passed directly to the VM service `evaluate` RPC as a target object.
+  /// This method bridges them by evaluating
+  /// `WidgetInspectorService.instance.toObject(valueId)` in the inspector
+  /// library scope — the same technique used by DevTools (`evalOnRef` in
+  /// `inspector_service.dart`).
+  ///
+  /// Returns null if the inspector handle cannot be resolved (e.g. the object
+  /// has been garbage collected or the group was disposed). Throws an [RPCError]
+  /// on failure.
+  Future<String?> inspectorIdToVmObjectId(String valueId) async {
+    const String inspectorLibUri =
+        'package:flutter/src/widgets/widget_inspector.dart';
+
+    final VM vm = await _vmService.getVM();
+    for (final IsolateRef ref in vm.isolates ?? []) {
+      final Isolate isolate = await _vmService.getIsolate(ref.id!);
+      final String? libId = _libraryIdForUri(isolate, inspectorLibUri);
+      if (libId == null) continue;
+
+      final Response result = await _vmService.evaluate(
+        ref.id!,
+        libId,
+        "WidgetInspectorService.instance.toObject('$valueId')",
+      );
+
+      if (result is ErrorRef) {
+        throw rpcError(
+          result.message ?? 'inspectorIdToVmObjectId failed',
+          fromMethod: 'inspectorIdToVmObjectId',
+        );
+      }
+      if (result is InstanceRef) {
+        return result.id;
+      }
+    }
+    throw rpcError(
+      'No suitable isolate found for inspectorIdToVmObjectId',
+      fromMethod: 'inspectorIdToVmObjectId',
+    );
+  }
+
+  /// Returns the library ID for the library with [uri] in [isolate], or null
+  /// if no such library is loaded.
+  String? _libraryIdForUri(Isolate isolate, String uri) {
+    for (final lib in isolate.libraries ?? <LibraryRef>[]) {
+      if (lib.uri == uri) return lib.id;
+    }
+    return null;
+  }
+
+  // ---------------------------------------------------------------------------
   // ext.flutter.inspector.setSelectionById
 
   /// Moves the inspector selection to the widget with [id] on the connected

@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
-import 'package:path/path.dart' as path;
 
 import 'diagnostics_node.dart';
 import 'error_summarizers.dart';
@@ -412,12 +412,14 @@ class FlutterRunSession {
 
   Future<void> _connectVmService(String wsUri) async {
     final vmService = await vmServiceConnectUri(wsUri);
+
     _serviceExtensions = FlutterServiceExtensions(
       vmService,
       debugLogger: debugLogger,
     );
 
     await vmService.streamListen(EventStreams.kExtension);
+
     _vmServiceSubscription = vmService.onExtensionEvent.listen((Event event) {
       if (event.extensionKind == 'Flutter.Error') {
         final data = event.extensionData?.data;
@@ -435,6 +437,16 @@ class FlutterRunSession {
             );
           }
         }
+      } else if (event.extensionKind == 'Flutter.Navigation') {
+        final data = event.extensionData?.data;
+        final route = data?['route'];
+        final description =
+            route is Map ? route['description'] as String? : null;
+        _eventListener(
+          DaemonEvent('flutter.navigation', {
+            if (description != null) 'route': description,
+          }),
+        );
       }
     });
   }
