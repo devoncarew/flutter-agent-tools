@@ -42,27 +42,27 @@ legitimate reasons to override (e.g. a private package not on pub.dev).
 - **Discontinued:** if `isDiscontinued == true` on pub.dev, warns with the
   official replacement if one is listed.
 - **Old major version:** if the requested constraint targets an older major
-  version than what pub.dev currently publishes (e.g. `http:^0.13.0` when
-  latest is `1.x`), warns and suggests the current major.
-- **Not found:** if the package name doesn't exist on pub.dev, warns — could
-  be a private package or a typo.
+  version than what pub.dev currently publishes (e.g. `http:^0.13.0` when latest
+  is `1.x`), warns and suggests the current major.
+- **Not found:** if the package name doesn't exist on pub.dev, warns — could be
+  a private package or a typo.
 - **Fails open:** on network errors or any other infrastructure failure, the
   hook exits cleanly without blocking.
 
-**Unofficial blocklist (planned):**
+**Unofficial blocklist:**
 
 The two failure modes seen in practice are discontinued packages and old major
 versions — both covered above. A third case exists: packages that are
 effectively abandoned but not officially marked `isDiscontinued` on pub.dev
-(e.g. packages that have been superseded by a community fork). A small
-curated blocklist in `lib/src/dep_check/blocklist.dart` would cover these.
-Each entry should name the package, a reason, and the recommended alternative.
+(e.g. packages that have been superseded by a community fork). A small curated
+blocklist in `lib/src/deps/blocklist.dart` would cover these. Each entry should
+name the package, a reason, and the recommended alternative.
 
 **Implementation:** Dart CLI (`bin/dep_check.dart`) invoked via a thin shell
-launcher (`scripts/start_dep_check.sh`). Reads tool input JSON from stdin;
-mode selected via `--mode=pub-add` or `--mode=pubspec-guard`. The pubspec-guard
-mode diffs the YAML before and after the edit to find newly added packages and
-runs the same checks.
+launcher (`scripts/start_dep_check.sh`). Reads tool input JSON from stdin; mode
+selected via `--mode=pub-add` or `--mode=pubspec-guard`. The pubspec-guard mode
+diffs the YAML before and after the edit to find newly added packages and runs
+the same checks.
 
 **Current state:** Both modes functional.
 
