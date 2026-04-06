@@ -1,7 +1,7 @@
 import 'package:dart_mcp/server.dart';
 import 'package:vm_service/vm_service.dart' show RPCError;
 
-import 'flutter_run_session.dart';
+import 'app_session.dart';
 import 'utils.dart';
 
 /// A self-contained MCP tool: owns its [Tool] definition and handles
@@ -29,22 +29,19 @@ abstract class FlutterTool {
 /// [FlutterAgentServer], keeping them decoupled from the MCP server
 /// infrastructure and easier to test independently.
 class ToolContext {
-  ToolContext({
-    required Map<String, FlutterRunSession> sessions,
-    required this.log,
-  }) : _sessions = sessions;
+  ToolContext({required Map<String, AppSession> sessions, required this.log})
+    : _sessions = sessions;
 
-  final Map<String, FlutterRunSession> _sessions;
+  final Map<String, AppSession> _sessions;
 
   /// Logs a message at the given level to the MCP client.
   final void Function(LoggingLevel level, String message) log;
 
   /// Returns the session for [sessionId], or null if not found.
-  FlutterRunSession? session(String? sessionId) => _sessions[sessionId];
+  AppSession? session(String? sessionId) => _sessions[sessionId];
 
   /// Removes and returns the session for [sessionId], or null if not found.
-  FlutterRunSession? removeSession(String? sessionId) =>
-      _sessions.remove(sessionId);
+  AppSession? removeSession(String? sessionId) => _sessions.remove(sessionId);
 
   /// Returns an error result indicating no session was found for [sessionId].
   CallToolResult unknownSession(String? sessionId) {

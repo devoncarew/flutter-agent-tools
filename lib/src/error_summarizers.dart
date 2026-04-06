@@ -1,5 +1,5 @@
 import 'diagnostics_node.dart';
-import 'flutter_run_session.dart';
+import 'app_session.dart';
 
 // When the Flutter framework chooses to elide multiple exceptions on stdout,
 // you can infer this from `Flutter.Error` events; the `renderedErrorText` field

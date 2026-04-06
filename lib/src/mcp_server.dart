@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:dart_mcp/server.dart';
-import 'package:unique_names_generator/unique_names_generator.dart';
+import 'package:flutter_agent_tools/src/utils.dart';
 
-import 'flutter_run_session.dart';
+import 'app_session.dart';
 import 'tool_context.dart';
 import 'tools/flutter_close_app.dart';
 import 'tools/flutter_evaluate.dart';
@@ -20,6 +19,17 @@ import 'tools/flutter_take_screenshot.dart';
 /// live in lib/src/tools/ and are decoupled from this class via [ToolContext].
 base class FlutterAgentServer extends MCPServer
     with ToolsSupport, LoggingSupport {
+  static const String _loggerId = 'flutter_agent_tools';
+
+  final Map<String, AppSession> _sessions = {};
+
+  final IdGenerator _idGenerator = IdGenerator();
+
+  late final ToolContext _context = ToolContext(
+    sessions: _sessions,
+    log: (level, message) => log(level, message, logger: _loggerId),
+  );
+
   FlutterAgentServer(super.channel)
     : super.fromStreamChannel(
         implementation: Implementation(
@@ -52,70 +62,40 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     _registerTools();
   }
 
-  final Map<String, FlutterRunSession> _sessions = {};
-  final Map<String, StreamSubscription<DaemonEvent>> _subscriptions = {};
-
-  late final ToolContext _context = ToolContext(
-    sessions: _sessions,
-    log: (level, message) => this.log(level, message, logger: _loggerId),
-  );
-
   void _registerTools() {
     void register(FlutterTool tool) {
       registerTool(tool.definition, (req) => tool.handle(req, _context));
     }
 
-    register(FlutterLaunchAppTool(
-      newSessionId: _newSessionId,
-      registerSession: (id, session) => _sessions[id] = session,
-      eventListener: _handleEvent,
-      debugLog: debugLog,
-    ));
+    register(
+      FlutterLaunchAppTool(
+        sessionIdGenerator: _idGenerator.createNextId,
+        registerSession: (id, session) => _sessions[id] = session,
+        eventListener: _handleEvent,
+        debugLog: debugLog,
+      ),
+    );
     register(FlutterReloadTool());
     register(FlutterTakeScreenshotTool());
     register(FlutterInspectLayoutTool());
     register(FlutterEvaluateTool());
     register(FlutterQueryUiTool());
-    register(FlutterCloseAppTool(
-      cancelSubscription: (id) => _subscriptions.remove(id)?.cancel(),
-    ));
+    register(FlutterCloseAppTool());
   }
 
   @override
   Future<void> shutdown() async {
-    await Future.wait(_subscriptions.values.map((s) => s.cancel()));
-    _subscriptions.clear();
     await Future.wait(_sessions.values.map((session) => session.stop()));
     _sessions.clear();
+
     await super.shutdown();
   }
-
-  final Random _random = Random();
-  final UniqueNamesGenerator _nameGenerator = UniqueNamesGenerator(
-    config: Config(
-      length: 2,
-      dictionaries: [adjectives, animals],
-      separator: '_',
-    ),
-  );
-
-  String _newSessionId() {
-    final String suffix =
-        List.generate(
-          2,
-          (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
-        ).join();
-    return [_nameGenerator.generate(), suffix].join('_');
-  }
-
-  static const String _loggerId = 'flutter_agent_tools';
 
   void _handleEvent(String sessionId, DaemonEvent event) {
     if (event.event == 'app.stop') {
       _sessions.remove(sessionId);
-      _subscriptions.remove(sessionId)?.cancel();
 
-      this.log(
+      log(
         LoggingLevel.info,
         '[$sessionId] App stopped; session released.',
         logger: _loggerId,
@@ -124,11 +104,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     } else if (event.event == 'flutter.error') {
       final String summary =
           event.params['summary'] as String? ?? 'Unknown Flutter error';
-      this.log(
-        LoggingLevel.warning,
-        '[flutter.error] $summary',
-        logger: _loggerId,
-      );
+      log(LoggingLevel.warning, '[flutter.error] $summary', logger: _loggerId);
       return;
     } else if (event.event == 'flutter.navigation') {
       // The Flutter.Navigation event is only emitted by the imperative
@@ -139,7 +115,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
       // Sample go_router pop event description (path template, not path):
       //   _PageBasedMaterialPageRoute<void>(/podcast/:id)
       final routeDesc = event.params['route'];
-      this.log(
+      log(
         LoggingLevel.info,
         '[flutter.navigation] $routeDesc (use flutter_query_ui mode=route to see current stack)',
         logger: _loggerId,
@@ -153,18 +129,18 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
         const appOutputPrefix = 'flutter: ';
         if (item.$2.startsWith(appOutputPrefix)) {
           final msg = item.$2.substring(appOutputPrefix.length);
-          this.log(item.$1, '[app] $msg', logger: _loggerId);
+          log(item.$1, '[app] $msg', logger: _loggerId);
         } else {
-          this.log(item.$1, '[stdout] ${item.$2}', logger: _loggerId);
+          log(item.$1, '[stdout] ${item.$2}', logger: _loggerId);
         }
       } else {
-        this.log(item.$1, '[${event.event}] ${item.$2}', logger: _loggerId);
+        log(item.$1, '[${event.event}] ${item.$2}', logger: _loggerId);
       }
     }
   }
 
   void debugLog(String message) {
-    this.log(LoggingLevel.info, '[debug] $message', logger: _loggerId);
+    log(LoggingLevel.info, '[debug] $message', logger: _loggerId);
   }
 
   (LoggingLevel, String)? _convertToLog(DaemonEvent event) {

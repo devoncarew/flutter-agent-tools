@@ -6,10 +6,7 @@ import '../tool_context.dart';
 ///
 /// Stops a running Flutter app and releases its session.
 class FlutterCloseAppTool extends FlutterTool {
-  FlutterCloseAppTool({required this.cancelSubscription});
-
-  /// Called to cancel the event subscription for [sessionId].
-  final void Function(String sessionId) cancelSubscription;
+  FlutterCloseAppTool();
 
   @override
   final Tool definition = Tool(
@@ -35,8 +32,6 @@ class FlutterCloseAppTool extends FlutterTool {
     if (sessionId == null || session == null) {
       return context.unknownSession(sessionId);
     }
-
-    cancelSubscription(sessionId);
 
     // We don't await this call.
     session.stop();

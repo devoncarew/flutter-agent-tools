@@ -1,14 +1,14 @@
 import 'package:vm_service/vm_service.dart';
 
 import 'diagnostics_node.dart';
-import 'flutter_run_session.dart';
+import 'app_session.dart';
 import 'utils.dart';
 
 /// Provides 1:1 access to Flutter VM service extensions.
 ///
 /// Each method maps directly to one `ext.flutter.*` service extension call.
 /// Higher-level convenience methods that combine multiple calls belong in
-/// [FlutterRunSession] instead.
+/// [AppSession] instead.
 class FlutterServiceExtensions {
   // Object group name used for inspector extension calls. The inspector uses
   // groups to manage the lifetime of server-side object references.

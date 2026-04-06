@@ -1,6 +1,6 @@
 import 'package:dart_mcp/server.dart';
 
-import '../flutter_run_session.dart';
+import '../app_session.dart';
 import '../tool_context.dart';
 
 /// Implements the `flutter_launch_app` MCP tool.
@@ -9,18 +9,17 @@ import '../tool_context.dart';
 /// all other flutter_* tools.
 class FlutterLaunchAppTool extends FlutterTool {
   FlutterLaunchAppTool({
-    required this.newSessionId,
+    required this.sessionIdGenerator,
     required this.registerSession,
     required this.eventListener,
     required this.debugLog,
   });
 
   /// Called to generate a unique session ID for the new session.
-  final String Function() newSessionId;
+  final String Function() sessionIdGenerator;
 
-  /// Called to register a new [FlutterRunSession] under [sessionId].
-  final void Function(String sessionId, FlutterRunSession session)
-  registerSession;
+  /// Called to register a new [AppSession] under [sessionId].
+  final void Function(String sessionId, AppSession session) registerSession;
 
   /// Called to forward daemon events from the session to the server.
   final void Function(String sessionId, DaemonEvent event) eventListener;
@@ -67,11 +66,11 @@ class FlutterLaunchAppTool extends FlutterTool {
     final String? device = args['device'] as String?;
     final String? target = args['target'] as String?;
 
-    final String sessionId = newSessionId();
+    final String sessionId = sessionIdGenerator();
 
-    final FlutterRunSession session;
+    final AppSession session;
     try {
-      session = await FlutterRunSession.start(
+      session = await AppSession.start(
         workingDirectory: workingDirectory,
         eventListener: (event) => eventListener(sessionId, event),
         deviceId: device,

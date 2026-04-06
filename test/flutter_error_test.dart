@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_agent_tools/src/diagnostics_node.dart';
-import 'package:flutter_agent_tools/src/flutter_run_session.dart';
+import 'package:flutter_agent_tools/src/app_session.dart';
 import 'package:test/test.dart';
 
 Map<String, dynamic> _loadFixture(String name) {

@@ -1,6 +1,6 @@
 import 'package:dart_mcp/server.dart';
 
-import '../flutter_run_session.dart';
+import '../app_session.dart';
 import '../tool_context.dart';
 
 /// Implements the `flutter_reload` MCP tool.
