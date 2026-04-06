@@ -19,8 +19,26 @@ base class FlutterAgentServer extends MCPServer
           name: 'flutter-agent-tools',
           version: '0.1.0',
         ),
-        instructions:
-            'Tools for AI agents working on Dart and Flutter projects.',
+        instructions: '''
+Tools for AI agents working on Dart and Flutter projects.
+
+Session lifecycle: call flutter_launch_app first to get a session_id; pass it to all other tools. Call flutter_close_app when done.
+
+Recommended workflow for UI changes:
+1. Edit Dart source files.
+2. flutter_reload — applies changes without losing app state. Use full_restart: true only when state must reset (e.g. initState changes).
+3. flutter_take_screenshot — visually confirm the change. Do this proactively; don't assume the edit was correct.
+4. If the screenshot reveals a problem, use flutter_inspect_layout (for sizing/overflow issues) or flutter_evaluate (for runtime state).
+
+Debugging layout issues:
+- flutter_inspect_layout with no widget_id starts from the root.
+- Widget IDs appear in flutter.error log events — use them to jump directly to the failing widget.
+- Increase subtree_depth to see deeper into the tree.
+
+Orientation:
+- flutter_query_ui mode=route shows the current navigator stack with screen widget names and source locations. Use this to confirm which screen is active before inspecting or editing.
+
+Flutter.Error events are forwarded automatically as MCP log warnings — no polling needed. They include widget IDs for use with flutter_inspect_layout.''',
       ) {
     loggingLevel = LoggingLevel.info;
 
@@ -148,6 +166,25 @@ base class FlutterAgentServer extends MCPServer
       this.log(
         LoggingLevel.warning,
         '[flutter.error] $summary',
+        logger: _loggerId,
+      );
+      return;
+    } else if (event.event == 'flutter.navigation') {
+      // The Flutter.Navigation event is only emitted by the imperative
+      // Navigator API (push/pop/replace). go_router's context.go() however
+      // works declaratively - it rebuilds the Navigator stack rather than
+      // calling Navigator.push(). So, for go_router, we see navigation events
+      // for back-navigation (pop), but not for forward navigation (go()).
+
+      // Sample go_router pop event (note we get a path template, not a path):
+      //
+      //     _PageBasedMaterialPageRoute<void>(/podcast/:id)
+
+      final routeDesc = event.params['route'];
+
+      this.log(
+        LoggingLevel.info,
+        '[flutter.navigation] $routeDesc (use flutter_query_ui mode=route to see current stack)',
         logger: _loggerId,
       );
       return;
@@ -367,9 +404,9 @@ base class FlutterAgentServer extends MCPServer
         'returns the result as a string. Use for binding-layer and '
         'platform-layer state not visible in the widget tree: FlutterView '
         'properties (physicalSize, devicePixelRatio), MediaQueryData, '
-        'Navigator state, or any runtime value. Runs in the root library '
-        'scope, so top-level declarations and globals are in scope. '
-        'Example: "WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio.toString()"',
+        'or any runtime value. Runs in the root library scope, so top-level '
+        'declarations and globals are in scope. Example: '
+        '"WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio.toString()"',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
@@ -413,10 +450,11 @@ base class FlutterAgentServer extends MCPServer
         'specific app state, to confirm a change took effect, or to '
         'understand the current route before drilling into layout details. '
         'Modes: '
+        '"route" — current route name and navigator stack (use this for '
+        '"what screen/route is the app on?" questions); '
         '"semantics" — flat list of visible, interactive nodes (labels, '
         'roles, bounding boxes); '
-        '"widget_tree" — summary widget tree filtered to user-written widgets; '
-        '"route" — current route name and navigator state.',
+        '"widget_tree" — summary widget tree filtered to user-written widgets.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
