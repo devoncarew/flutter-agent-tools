@@ -16,13 +16,13 @@ failure modes:
 
 ## Distribution
 
-The suite is distributed as a **Claude Code plugin**, installable with a single
+The suite is distributed as a Claude Code plugin, installable with a single
 command. This gives:
 
 - **Developers:** low-friction installation; no manual server setup or prompt
   engineering required.
-- **Agents:** tools are automatically available via native Claude Code
-  primitives (Hooks, MCP) without requiring explicit instruction.
+- **Agents:** tools are automatically available via native Claude Code primitives
+  (Hooks, MCP) without requiring explicit instruction.
 
 ## Tool 1: Dependency Health Hook
 
@@ -36,13 +36,12 @@ command. This gives:
 **Behavior:**
 
 - Queries the pub.dev API to validate each package before it is added.
-- **Blocks** if a package is officially marked discontinued, and reports the
+- Blocks if a package is officially marked discontinued, and reports the
   official replacement if one is listed.
-- **Warns** (without blocking) if a package appears abandoned by heuristics (see
+- Warns (without blocking) if a package appears abandoned by heuristics (see
   below).
-- **Fails open** on infrastructure errors (network timeout, missing
-  dependencies) — the hook should never block the agent due to its own tooling
-  failures.
+- Fails open on infrastructure errors (network timeout, missing dependencies) —
+  the hook should never block the agent due to its own tooling failures.
 
 **Abandonment heuristics** (beyond the official `isDiscontinued` flag):
 
@@ -63,11 +62,13 @@ isolate newly added packages, which is more complex.
 
 ## Tool 2: Package API Inspector
 
-**Mechanism:** MCP server command
+Mechanism: MCP server command
 
-**Motivation:** Agents reading raw `.pub-cache` source to discover a package API
-is highly token-inefficient. They read implementation files, private members,
-and method bodies — none of which are needed.
+### Motivation
+
+Agents reading raw `.pub-cache` source to discover a package API is highly
+token-inefficient. They read implementation files, private members, and method
+bodies — none of which are needed.
 
 A more subtle failure mode also occurs: agents frequently rely on their own
 training-data summaries of a package's API, which are often subtly wrong
@@ -76,8 +77,8 @@ constructor shapes). This causes first-attempt code to fail, triggering a
 correction loop that consumes more tokens than reading the source would have. A
 reliable, accurate API dump eliminates this loop entirely.
 
-**Observed agent behaviour during development of this plugin:** During
-development we needed the APIs for `dart_mcp`, `flutter_daemon`, and
+Observed agent behaviour during development of this plugin: During development
+we needed the APIs for `dart_mcp`, `flutter_daemon`, and
 `unique_names_generator`. In each case the pattern was:
 
 1. Agent fetched pub.dev or produced a training-data summary — approximately
@@ -88,7 +89,7 @@ development we needed the APIs for `dart_mcp`, `flutter_daemon`, and
 A Package API Inspector that returns accurate signatures up front would have
 eliminated step 2 in every case.
 
-**Output format: simplified Dart stubs**
+### Output format: simplified Dart stubs
 
 Responses are Dart source files with method bodies removed and private
 declarations omitted — analogous to TypeScript's `.d.ts` declaration files. This
@@ -104,7 +105,7 @@ format is preferred over Markdown because:
 - Doc comments and `/// ```dart` usage examples are co-located with their
   declarations, matching how Dart packages already document themselves.
 
-**Interaction model: agent-directed, progressive detail**
+### Interaction model: agent-directed, progressive detail
 
 Rather than returning a single large dump, the tool accepts a `kind` parameter
 so the agent requests only what it needs at each step:
@@ -123,7 +124,7 @@ The typical call sequence for an unfamiliar package:
 3. `class_stub` or `example` — drill into a specific class or usage pattern if
    signatures alone aren't enough.
 
-**Inputs:**
+Inputs:
 
 - `package`: package name (required).
 - `kind`: one of the values above (required).
@@ -132,10 +133,10 @@ The typical call sequence for an unfamiliar package:
 - `version`: defaults to the version resolved in `pubspec.lock`; override
   allowed for packages not yet in the lockfile.
 
-**Source:** `.pub-cache` only — already downloaded, always matches the resolved
+Source: `.pub-cache` only — already downloaded, always matches the resolved
 version, no network required.
 
-**What the inspector does NOT cover:**
+What the inspector does NOT cover:
 
 - String constants used as protocol/event identifiers (e.g. `'app.started'` in
   the Flutter daemon protocol). These live in implementation code, not the
@@ -143,32 +144,29 @@ version, no network required.
 - Runtime behaviour, error conditions, or semantic nuance not captured in
   signatures or doc comments.
 
-**Design reference:** Modeled on the architecture of the
+Design reference: Modeled on the architecture of the
 [`jot`](https://github.com/devoncarew/jot) tool.
 
-**Implementation notes:**
+### Notes:
 
-- **AST-based** (via `package:analyzer`) is preferred over dartdoc JSON. Dartdoc
+- AST-based (via `package:analyzer`) is preferred over dartdoc JSON. Dartdoc
   requires a prior analysis pass and may not be present; the analyzer element
   model is always derivable from source and correctly resolves mixin
   contributions.
-- **Version resolution**: read from `pubspec.lock` in the current working
-  directory.
-- **Caching**: the pub cache directory is already versioned
+- Version resolution: read from `pubspec.lock` in the current working directory.
+- Caching: the pub cache directory is already versioned
   (`{package}-{version}/`), so source is stable. Parse-result caching is a
   nice-to-have for large packages like `package:analyzer` itself.
 
 ## Tool 3: Flutter UI Agent
 
-**Mechanism:** MCP server commands
+Mechanism: MCP server commands
 
-**Motivation:** A Playwright analogue for Flutter. Enables agents to observe and
+Motivation: A Playwright analogue for Flutter. Enables agents to observe and
 interact with a running Flutter app for layout debugging, state verification,
 and end-to-end workflow validation.
 
-**Behavior:**
-
-_Launch and device selection:_
+### Launch and device selection:
 
 - Automatically builds and launches the Flutter app without manual setup from
   the developer.
@@ -178,24 +176,23 @@ _Launch and device selection:_
   preference order below. The goal is zero-configuration launch on any
   workstation.
 
-  **Preference order:**
-
+  Preference order:
   1. **Desktop matching host OS** (macOS / windows / linux) — always available
      on the host platform, fast to build (no Xcode/Gradle overhead), supports
      hot reload + inspector + screenshots. Best default for agent use.
-  2. **iOS Simulator** (if already running, macOS only) — better mobile
-     fidelity but requires Xcode; the server discovers a booted simulator but
-     never launches one (takes 30+ seconds, and the agent can't know if the
-     user wants it).
+  2. **iOS Simulator** (if already running, macOS only) — better mobile fidelity
+     but requires Xcode; the server discovers a booted simulator but never
+     launches one (takes 30+ seconds, and the agent can't know if the user wants
+     it).
   3. **Android emulator** (if already running) — same rationale as iOS.
   4. **Connected physical device** — least predictable, but usable.
   5. **Web (Chrome)** — deprioritized; web doesn't support
      `ext.flutter.inspector.screenshot` or VM service `evaluate` the same way.
 
-  **Platform-support check:** Before selecting a device, the server verifies
-  the project has the corresponding platform folder (e.g. `macos/` for
-  desktop-macOS). A missing folder means `flutter run -d macos` would fail,
-  so that device is skipped.
+  **Platform-support check:** Before selecting a device, the server verifies the
+  project has the corresponding platform folder (e.g. `macos/` for
+  desktop-macOS). A missing folder means `flutter run -d macos` would fail, so
+  that device is skipped.
 
   **Actionable errors:** If no usable device is found, the error includes the
   full device list and a concrete suggestion (e.g. "Run
@@ -205,13 +202,12 @@ _Launch and device selection:_
   **Explicit override:** When `device_id` is provided, auto-selection is
   bypassed entirely — the value is passed through to `flutter run --device-id`.
 
-  **Why not a separate `flutter_list_devices` tool?** Auto-selection handles
-  the happy path, and the error path handles discovery. A separate list command
-  adds a step agents would need to learn to call first — more friction, not
-  less. If a need emerges later, it can be added without changing the launch
-  flow.
+  **Why not a separate `flutter_list_devices` tool?** Auto-selection handles the
+  happy path, and the error path handles discovery. A separate list command adds
+  a step agents would need to learn to call first — more friction, not less. If
+  a need emerges later, it can be added without changing the launch flow.
 
-_Introspection and interaction (via Dart VM Service):_
+### Introspection and interaction (via Dart VM Service):
 
 - Query semantic/interactive elements (rather than dumping the full widget tree,
   which is token-heavy).
@@ -220,20 +216,12 @@ _Introspection and interaction (via Dart VM Service):_
 - Scroll to bring off-screen elements into view.
 - Pull unhandled exceptions from the runtime.
 
-**Design reference:**
+Design references:
 
 - [Playwright MCP](https://playwright.dev/docs/getting-started-mcp) — overall
   model.
 - [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17)
   — use cases and requirements.
-
-**Resolved questions:**
-
-- Launch abstraction: `flutter run --machine` with VM service attachment is the
-  right approach. It works on all device types without a test harness.
-- Screenshot: feasible on all device types via
-  `ext.flutter.inspector.screenshot` with physical window dimensions from
-  `evaluate`.
 
 ### `flutter_evaluate`
 
@@ -253,7 +241,7 @@ everything else. We already use this internally for `getPhysicalWindowSize()`;
 exposing it as a tool gives agents direct access without requiring a dedicated
 method for every possible query.
 
-### Planned: `flutter_query_ui`
+### `flutter_query_ui`
 
 An experimental tool for agents that want a high-level description of what is
 currently on screen — useful for navigating to a specific app state, confirming
@@ -291,7 +279,7 @@ The semantics tree requires calling `RendererBinding.instance.ensureSemantics()`
 once to enable it; after that, nodes are maintained by the framework. The tree
 will not be present on apps built in release mode.
 
-**`route` mode — capabilities and limitations:**
+#### `route` mode — capabilities and limitations
 
 The `route` mode traverses the summary widget tree to find `Navigator` nodes and
 resolves each stack entry to the first locally-defined screen widget (i.e. not
@@ -299,12 +287,14 @@ from `.pub-cache`). Navigators whose entire stack resolves to private-named
 widgets (e.g. go_router's `_AppShell` shell-route wrapper) are suppressed.
 
 What it is good for:
+
 - Orientation: confirming which screen is currently on top.
 - Back-stack context: understanding how the user arrived at the current screen.
 - Pointing the agent at the right source file (`lib/app/routes.dart:56`) before
   it reads or edits routing code.
 
 Limitations:
+
 - **Route path (non-go_router apps).** For apps not using go_router, the output
   contains widget class names only, not route strings. An agent that needs to
   call `context.go(...)` still has to read the routes file to discover valid
@@ -319,21 +309,21 @@ Limitations:
   suppresses navigators composed entirely of private widgets but cannot
   automatically determine which navigator is "primary" in all cases.
 
-**Route path enrichment via go_router (implemented):**
+Route path enrichment via go_router:
 
 For apps using go_router, the actual current URI is extracted by locating
 `InheritedGoRouter` in the widget tree and evaluating against its instance:
 
 1. Walk the summary tree → find `InheritedGoRouter` node → read its `valueId`
    (e.g. `inspector-29`).
-2. `inspectorIdToVmObjectId(valueId)` → resolve the inspector handle to a raw
-   VM object ID (`objects/1234`) by evaluating
+2. `inspectorIdToVmObjectId(valueId)` → resolve the inspector handle to a raw VM
+   object ID (`objects/1234`) by evaluating
    `WidgetInspectorService.instance.toObject(id)` in the inspector library scope
    (see `FlutterServiceExtensions.inspectorIdToVmObjectId`). Note: this returns
    the `InheritedElement`, not the widget itself.
-3. `evaluateOnObject(vmId, 'widget.goRouter.state.uri.toString()')`
-   → `.widget` reaches the `InheritedGoRouter` widget; `.goRouter` is its
-   field (not `.notifier`); `.state.uri` gives the live current path, e.g.
+3. `evaluateOnObject(vmId, 'widget.goRouter.state.uri.toString()')` → `.widget`
+   reaches the `InheritedGoRouter` widget; `.goRouter` is its field (not
+   `.notifier`); `.state.uri` gives the live current path, e.g.
    `/podcast/787ae263b723`.
 
 Detection: presence of `InheritedGoRouter` in the summary tree is sufficient to
@@ -345,12 +335,12 @@ This enrichment is best-effort: if evaluation fails (e.g. older go_router
 version, or app doesn't use go_router), the route stack is still returned
 without the `Current path:` line.
 
-**Programmatic navigation via go_router (planned):**
+Programmatic navigation via go_router (planned):
 
-Once we have the GoRouter instance via `evaluateOnObject`, we can call navigation
-methods on it directly. Note the field path: the VM object is an `InheritedElement`,
-so `.widget` is needed to reach the `InheritedGoRouter`, then `.goRouter` for the
-`GoRouter` instance:
+Once we have the GoRouter instance via `evaluateOnObject`, we can call
+navigation methods on it directly. Note the field path: the VM object is an
+`InheritedElement`, so `.widget` is needed to reach the `InheritedGoRouter`,
+then `.goRouter` for the `GoRouter` instance:
 
 ```dart
 // Navigate to a new route:
@@ -370,7 +360,7 @@ The agent still needs to know valid route paths and their parameters, which
 means reading the app's route definition file first. This is an acceptable
 prerequisite — the agent already has access to source files.
 
-**Open questions:**
+### Open questions:
 
 - The semantics tree is disabled by default to save resources. We need to
   evaluate whether the one-time enable call has observable performance impact on
@@ -384,11 +374,11 @@ Both Tool 2 and Tool 3 are exposed through a single Dart MCP server. Using Dart
 is the natural fit given the domain and avoids introducing a Node.js runtime
 dependency.
 
-**Tool surface (✓ = implemented, [planned] = not yet):**
+Tool surface (✓ = implemented, [planned] = not yet):
 
 ```
 // Tool 2
-package_info(package, kind, library?, class?, version?) → String  [planned]
+package_info(package, kind, library?, class?, version?) → String [planned]
 
 // Tool 3 — session lifecycle
 ✓ flutter_launch_app(working_directory, target?, device?) → session_id
@@ -409,30 +399,19 @@ package_info(package, kind, library?, class?, version?) → String  [planned]
 [planned] flutter_scroll_to(session_id, semantics_label) → void
 ```
 
-**Declared in `plugin.json`:**
-
-```json
-"mcpServers": {
-  "flutter-agent": {
-    "command": "dart",
-    "args": ["run", "flutter_agent_tools:mcp_server"]
-  }
-}
-```
-
 ## Deferred / Open Questions
 
-- **App state and authentication (Tool 3):** Navigating apps that require login
-  or specific seeded data before reaching the UI under test is unsolved. A
-  future design may define an `.agent_state.md` convention for specifying
-  startup states, mock data, or auth bypasses.
-- **pubspec.yaml guard (Tool 1):** The Write/Edit hook path requires diffing
-  file content to extract newly added packages. Needs a dedicated design pass.
-- **Abandonment heuristics (Tool 1):** The dependency-graph signal (checking a
+- App state and authentication (Tool 3): Navigating apps that require login or
+  specific seeded data before reaching the UI under test is unsolved. A future
+  design may define an `.agent_state.md` convention for specifying startup
+  states, mock data, or auth bypasses.
+- pubspec.yaml guard (Tool 1): The Write/Edit hook path requires diffing file
+  content to extract newly added packages. Needs a dedicated design pass.
+- Abandonment heuristics (Tool 1): The dependency-graph signal (checking a
   package's own deps for staleness) is more reliable than publish date and
   should replace it as the primary heuristic.
-- **Plugin marketplace publication:** Distribution mechanism beyond
-  `--plugin-dir` local testing is not yet planned.
+- Plugin marketplace publication: Distribution mechanism beyond `--plugin-dir`
+  local testing is not yet planned.
 
 ## References
 
