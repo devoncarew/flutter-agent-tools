@@ -1,0 +1,74 @@
+{
+  "description": "Root",
+  "children": [
+    {
+      "description": "Navigator-[LabeledGlobalKey<NavigatorState>#10e9b root]",
+      "widgetRuntimeType": "Navigator",
+      "children": [
+        {
+          "description": "Builder",
+          "creationLocation": {
+            "file": "file:///Users/user/.pub-cache/hosted/pub.dev/go_router-17.1.0/lib/src/builder.dart",
+            "line": 332
+          },
+          "children": [
+            {
+              "description": "_AppShell",
+              "widgetRuntimeType": "_AppShell",
+              "createdByLocalProject": true,
+              "creationLocation": {
+                "file": "file:///Users/user/project/lib/app/routes.dart",
+                "line": 23
+              },
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Navigator-[LabeledGlobalKey<NavigatorState>#48a96]",
+      "widgetRuntimeType": "Navigator",
+      "children": [
+        {
+          "description": "Builder",
+          "creationLocation": {
+            "file": "file:///Users/user/.pub-cache/hosted/pub.dev/go_router-17.1.0/lib/src/builder.dart",
+            "line": 263
+          },
+          "children": [
+            {
+              "description": "PlaylistScreen",
+              "widgetRuntimeType": "PlaylistScreen",
+              "createdByLocalProject": true,
+              "creationLocation": {
+                "file": "file:///Users/user/project/lib/app/routes.dart",
+                "line": 27
+              },
+              "children": []
+            }
+          ]
+        },
+        {
+          "description": "Builder",
+          "creationLocation": {
+            "file": "file:///Users/user/.pub-cache/hosted/pub.dev/go_router-17.1.0/lib/src/builder.dart",
+            "line": 263
+          },
+          "children": [
+            {
+              "description": "EpisodeDetailScreen",
+              "widgetRuntimeType": "EpisodeDetailScreen",
+              "createdByLocalProject": true,
+              "creationLocation": {
+                "file": "file:///Users/user/project/lib/app/routes.dart",
+                "line": 56
+              },
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

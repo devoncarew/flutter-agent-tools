@@ -7,6 +7,7 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import 'flutter_run_session.dart';
 import 'layout_formatter.dart';
+import 'route_formatter.dart';
 import 'utils.dart';
 
 /// The MCP server for flutter-agent-tools.
@@ -452,9 +453,30 @@ base class FlutterAgentServer extends MCPServer
       );
     }
 
-    return CallToolResult(
-      content: [TextContent(text: 'flutter_query_ui (mode=$mode): not yet implemented.')],
-    );
+    try {
+      final extensions = session.serviceExtensions!;
+      switch (mode) {
+        case 'route':
+          final root = await extensions.getRootWidgetTree(
+            isSummaryTree: true,
+            fullDetails: true,
+          );
+          return CallToolResult(
+            content: [TextContent(text: formatRouteInfo(root))],
+          );
+        default:
+          return CallToolResult(
+            isError: true,
+            content: [
+              TextContent(
+                text: 'flutter_query_ui mode "$mode": not yet implemented.',
+              ),
+            ],
+          );
+      }
+    } on RPCError catch (e) {
+      return _rpcErrorResult(e);
+    }
   }
 
   CallToolResult _unknownSessionResult(String? sessionId) {
