@@ -268,7 +268,7 @@ learn what's actually useful:
 | ------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------- |
 | `semantics`   | Flat list of visible, interactive nodes (labels, roles, bounding boxes)        | Semantics tree (via `evaluate` to enable + traverse) |
 | `widget_tree` | Summary widget tree filtered to user-written widgets (omits Flutter internals) | `getRootWidgetTree(isSummaryTree: true)`             |
-| `route`       | Current route name / navigator state                                           | `evaluate` against rootLib                           |
+| `route`       | Navigator stack with screen widget names, source locations, current marker     | `getRootWidgetTree(isSummaryTree: true)`             |
 
 The semantics tree is most token-efficient for "what can I interact with?"
 questions — it's a flat list of user-visible nodes with labels and bounding
@@ -291,13 +291,40 @@ The semantics tree requires calling `RendererBinding.instance.ensureSemantics()`
 once to enable it; after that, nodes are maintained by the framework. The tree
 will not be present on apps built in release mode.
 
+**`route` mode — capabilities and limitations:**
+
+The `route` mode traverses the summary widget tree to find `Navigator` nodes and
+resolves each stack entry to the first locally-defined screen widget (i.e. not
+from `.pub-cache`). Navigators whose entire stack resolves to private-named
+widgets (e.g. go_router's `_AppShell` shell-route wrapper) are suppressed.
+
+What it is good for:
+- Orientation: confirming which screen is currently on top.
+- Back-stack context: understanding how the user arrived at the current screen.
+- Pointing the agent at the right source file (`lib/app/routes.dart:56`) before
+  it reads or edits routing code.
+
+Limitations:
+- **No route path.** The output contains widget class names, not route strings
+  (e.g. `/podcast/:id`). An agent that needs to call `context.go(...)` still
+  has to read the routes file to find the correct path and its parameters.
+  go_router has no VM service extensions that expose the current URI, and
+  `ModalRoute.of(context)` requires a `BuildContext` that cannot be reached
+  cheaply via `evaluate`.
+- **Summary tree depth.** The widget tree is fetched with `isSummaryTree: true`,
+  which omits internal Flutter widgets. If a project wraps all screens in a
+  private class, those wrappers may be the first locally-created widget found,
+  hiding the real screen name.
+- **Multiple navigators.** Nested navigator setups (shell routes, dialog
+  overlays, bottom-sheet navigators) each appear as a separate stack. The tool
+  suppresses navigators composed entirely of private widgets but cannot
+  automatically determine which navigator is "primary" in all cases.
+
 **Open questions:**
 
 - The semantics tree is disabled by default to save resources. We need to
   evaluate whether the one-time enable call has observable performance impact on
   typical development-mode apps.
-- Route name extraction: `ModalRoute.of(context)` requires a `BuildContext`; the
-  best approach via `evaluate` against rootLib is not yet confirmed.
 - App state and authentication: navigating apps that require login or seeded
   data before reaching the UI under test is unsolved.
 
@@ -323,7 +350,7 @@ package_info(package, kind, library?, class?, version?) → String  [planned]
 ✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
 ✓ flutter_inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
 ✓ flutter_evaluate_expression(session_id, expression) → String  // arbitrary Dart on main isolate
-[planned] flutter_query_ui(session_id, mode) → String  // semantics | widget_tree | route
+✓ flutter_query_ui(session_id, mode) → String  // route: ✓ | semantics: [planned] | widget_tree: [planned]
 
 // Tool 3 — app interaction (useful but lower priority for coding agents)
 [planned] flutter_tap(session_id, semantics_label) → void

@@ -7,6 +7,7 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import 'flutter_run_session.dart';
 import 'layout_formatter.dart';
+import 'route_formatter.dart';
 import 'utils.dart';
 
 /// The MCP server for flutter-agent-tools.
@@ -28,6 +29,7 @@ base class FlutterAgentServer extends MCPServer
     registerTool(flutterTakeScreenshotTool, _flutterTakeScreenshot);
     registerTool(flutterInspectLayoutTool, _flutterInspectLayout);
     registerTool(flutterEvaluateTool, _flutterEvaluate);
+    registerTool(flutterQueryUiTool, _flutterQueryUi);
     registerTool(flutterCloseAppTool, _flutterCloseApp);
   }
 
@@ -398,6 +400,80 @@ base class FlutterAgentServer extends MCPServer
         expression,
       );
       return CallToolResult(content: [TextContent(text: result)]);
+    } on RPCError catch (e) {
+      return _rpcErrorResult(e);
+    }
+  }
+
+  final Tool flutterQueryUiTool = Tool(
+    name: 'flutter_query_ui',
+    description:
+        'Returns a high-level description of what is currently on screen in '
+        'the running Flutter app. Use to orient before navigating to a '
+        'specific app state, to confirm a change took effect, or to '
+        'understand the current route before drilling into layout details. '
+        'Modes: '
+        '"semantics" — flat list of visible, interactive nodes (labels, '
+        'roles, bounding boxes); '
+        '"widget_tree" — summary widget tree filtered to user-written widgets; '
+        '"route" — current route name and navigator state.',
+    inputSchema: Schema.object(
+      properties: {
+        'session_id': Schema.string(
+          description: 'The session ID returned by flutter_launch_app.',
+        ),
+        'mode': Schema.string(
+          description:
+              'What to return. One of: "semantics", "widget_tree", "route".',
+        ),
+      },
+      required: ['session_id', 'mode'],
+    ),
+  );
+
+  Future<CallToolResult> _flutterQueryUi(CallToolRequest request) async {
+    final String? sessionId = request.arguments!['session_id'] as String?;
+    final FlutterRunSession? session = _sessions[sessionId];
+    if (sessionId == null || session == null) {
+      return _unknownSessionResult(sessionId);
+    }
+
+    final String? mode = request.arguments!['mode'] as String?;
+    if (mode == null ||
+        !const {'semantics', 'widget_tree', 'route'}.contains(mode)) {
+      return CallToolResult(
+        isError: true,
+        content: [
+          TextContent(
+            text:
+                'Invalid mode "$mode". '
+                'Must be one of: semantics, widget_tree, route.',
+          ),
+        ],
+      );
+    }
+
+    try {
+      final extensions = session.serviceExtensions!;
+      switch (mode) {
+        case 'route':
+          final root = await extensions.getRootWidgetTree(
+            isSummaryTree: true,
+            fullDetails: true,
+          );
+          return CallToolResult(
+            content: [TextContent(text: formatRouteInfo(root))],
+          );
+        default:
+          return CallToolResult(
+            isError: true,
+            content: [
+              TextContent(
+                text: 'flutter_query_ui mode "$mode": not yet implemented.',
+              ),
+            ],
+          );
+      }
     } on RPCError catch (e) {
       return _rpcErrorResult(e);
     }
