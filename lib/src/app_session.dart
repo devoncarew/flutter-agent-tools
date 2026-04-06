@@ -13,12 +13,12 @@ import 'utils.dart';
 
 /// Manages a `flutter run --machine` subprocess.
 ///
-/// Use [FlutterRunSession.start] to launch a Flutter app and obtain a session.
+/// Use [AppSession.start] to launch a Flutter app and obtain a session.
 /// The session provides [events] for monitoring app lifecycle and output,
 /// [restart] for hot reload/restart, [stop] to terminate the app, and
 /// [serviceExtensions] for direct access to Flutter VM service extensions.
-class FlutterRunSession {
-  FlutterRunSession._(
+class AppSession {
+  AppSession._(
     this._process,
     this._eventListener,
     this.debugLogger, {
@@ -84,7 +84,7 @@ class FlutterRunSession {
   ///
   /// Throws a [DaemonException] if the process exits before the app starts
   /// or if no suitable device can be found.
-  static Future<FlutterRunSession> start({
+  static Future<AppSession> start({
     required String workingDirectory,
     required EventCallback eventListener,
     String? deviceId,
@@ -106,7 +106,7 @@ class FlutterRunSession {
       workingDirectory: workingDirectory,
     );
 
-    final FlutterRunSession session = FlutterRunSession._(
+    final AppSession session = AppSession._(
       process,
       eventListener,
       debugLogger,
@@ -462,6 +462,12 @@ class FlutterRunSession {
       c.completeError(rpcError('flutter run process exited'));
     }
     _pending.clear();
+
+    // If the app was running and we didn't initiate the stop ourselves,
+    // emit a synthetic app.stop so the server can clean up the session.
+    if (!_sessionEnded && _appId != null) {
+      _eventListener(DaemonEvent('app.stop', {'appId': _appId}));
+    }
 
     _sessionEnded = true;
 
