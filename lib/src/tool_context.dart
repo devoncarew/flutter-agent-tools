@@ -29,8 +29,10 @@ abstract class FlutterTool {
 /// [FlutterAgentServer], keeping them decoupled from the MCP server
 /// infrastructure and easier to test independently.
 class ToolContext {
-  ToolContext({required Map<String, FlutterRunSession> sessions, required this.log})
-    : _sessions = sessions;
+  ToolContext({
+    required Map<String, FlutterRunSession> sessions,
+    required this.log,
+  }) : _sessions = sessions;
 
   final Map<String, FlutterRunSession> _sessions;
 

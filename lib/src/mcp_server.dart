@@ -48,7 +48,10 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     registerTool(flutterTakeScreenshotTool, _flutterTakeScreenshot);
     registerTool(flutterInspectLayoutTool, _flutterInspectLayout);
     final evaluateTool = FlutterEvaluateTool();
-    registerTool(evaluateTool.definition, (req) => evaluateTool.handle(req, _context));
+    registerTool(
+      evaluateTool.definition,
+      (req) => evaluateTool.handle(req, _context),
+    );
     registerTool(flutterQueryUiTool, _flutterQueryUi);
     registerTool(flutterCloseAppTool, _flutterCloseApp);
   }
