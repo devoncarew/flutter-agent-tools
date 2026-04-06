@@ -22,8 +22,10 @@ void main(List<String> args) async {
   } else if (args.contains('--mode=pubspec-guard')) {
     mode = 'pubspec-guard';
   } else {
-    stderr.writeln('dep_check: unknown mode. Pass --mode=pub-add or '
-        '--mode=pubspec-guard');
+    stderr.writeln(
+      'dep_check: unknown mode. Pass --mode=pub-add or '
+      '--mode=pubspec-guard',
+    );
     exit(0); // Fail open.
   }
 
@@ -69,9 +71,8 @@ Future<void> _handlePubAdd(Map<String, dynamic> input) async {
 
 /// Extracts [(packageName, versionConstraint?)] from a pub add command string.
 List<(String, String?)> _extractPackagesFromCommand(String command) {
-  final withoutCmd = command
-      .replaceAll(RegExp(r'(flutter|dart)\s+pub\s+add\s*'), '')
-      .trim();
+  final withoutCmd =
+      command.replaceAll(RegExp(r'(flutter|dart)\s+pub\s+add\s*'), '').trim();
 
   final results = <(String, String?)>[];
   for (final token in withoutCmd.split(RegExp(r'\s+'))) {
@@ -80,7 +81,10 @@ List<(String, String?)> _extractPackagesFromCommand(String command) {
     final clean = token.replaceAll(RegExp("['\"]"), '');
     final colonIdx = clean.indexOf(':');
     if (colonIdx > 0) {
-      results.add((clean.substring(0, colonIdx), clean.substring(colonIdx + 1)));
+      results.add((
+        clean.substring(0, colonIdx),
+        clean.substring(colonIdx + 1),
+      ));
     } else {
       results.add((clean, null));
     }
@@ -95,7 +99,8 @@ Future<void> _handlePubspecGuard(Map<String, dynamic> input) async {
   final toolName = input['tool_name'] as String?;
   if (toolName != 'Write' && toolName != 'Edit') return;
 
-  final toolInput = (input['tool_input'] as Map?)?.cast<String, dynamic>() ?? {};
+  final toolInput =
+      (input['tool_input'] as Map?)?.cast<String, dynamic>() ?? {};
   final filePath = toolInput['file_path'] as String? ?? '';
 
   if (!filePath.endsWith('pubspec.yaml')) return;
