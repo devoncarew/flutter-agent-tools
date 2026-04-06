@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_agent_tools/src/dep/blocklist.dart';
 import 'package:http/http.dart' as http;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
@@ -175,6 +176,18 @@ Future<void> _checkPackages(List<(String, String?)> packages) async {
   final warnings = <String>[];
 
   for (final (pkg, requestedConstraint) in packages) {
+    // Check unofficial blocklist before hitting pub.dev.
+    final blocklistEntry =
+        unofficialBlocklist.where((e) => e.package == pkg).firstOrNull;
+    if (blocklistEntry != null) {
+      final suggestion =
+          blocklistEntry.suggestion != null
+              ? '; consider ${blocklistEntry.suggestion} instead'
+              : '';
+      warnings.add("  ⚠  '$pkg': ${blocklistEntry.reason}$suggestion");
+      // Still check pub.dev for discontinued status and version warnings.
+    }
+
     final info = await _fetchPubDevInfo(pkg);
     if (info == null) {
       warnings.add("  ⚠  '$pkg': could not reach pub.dev (proceeding anyway)");
