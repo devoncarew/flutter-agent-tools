@@ -157,9 +157,10 @@ Future<void> checkPackages(
     final blocklistEntry =
         unofficialBlocklist.where((e) => e.package == pkg).firstOrNull;
     if (blocklistEntry != null) {
-      final suffix = blocklistEntry.suggestion != null
-          ? '; consider ${blocklistEntry.suggestion} instead'
-          : '';
+      final suffix =
+          blocklistEntry.suggestion != null
+              ? '; consider ${blocklistEntry.suggestion} instead'
+              : '';
       warnings.add("  ⚠  '$pkg': ${blocklistEntry.reason}$suffix");
       // Still check pub.dev for discontinued status and version warnings.
     }
@@ -244,8 +245,7 @@ Future<Map<String, dynamic>?> fetchPubDevInfo(
 ) async {
   try {
     final uri = Uri.parse('https://pub.dev/api/packages/$pkg');
-    final response =
-        await client.get(uri).timeout(const Duration(seconds: 8));
+    final response = await client.get(uri).timeout(const Duration(seconds: 8));
 
     if (response.statusCode == 404) return {'notFound': true};
     if (response.statusCode != 200) return null;
