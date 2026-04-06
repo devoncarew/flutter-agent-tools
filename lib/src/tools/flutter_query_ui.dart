@@ -71,8 +71,35 @@ class FlutterQueryUiTool extends FlutterTool {
             isSummaryTree: true,
             fullDetails: true,
           );
+
+          // Best-effort: resolve the current go_router path via VM evaluate.
+          // Finds InheritedGoRouter in the widget tree, converts its inspector
+          // handle to a VM object ID, then evaluates widget.goRouter.state.uri.
+          String? currentPath;
+          try {
+            final goRouterNodes = findGoRouterNodes(root);
+            if (goRouterNodes.isNotEmpty) {
+              final valueId = goRouterNodes.first.valueId;
+              if (valueId != null) {
+                final vmId = await extensions.inspectorIdToVmObjectId(valueId);
+                if (vmId != null) {
+                  currentPath = await extensions.evaluateOnObject(
+                    vmId,
+                    'widget.goRouter.state.uri.toString()',
+                  );
+                }
+              }
+            }
+          } catch (_) {
+            // go_router enrichment is best-effort — proceed without path info.
+          }
+
           return CallToolResult(
-            content: [TextContent(text: formatRouteInfo(root))],
+            content: [
+              TextContent(
+                text: formatRouteInfo(root, currentPath: currentPath),
+              ),
+            ],
           );
         default:
           return CallToolResult(
