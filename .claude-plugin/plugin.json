@@ -4,8 +4,7 @@
   "description": "Flutter/Dart agent tooling: dependency health, API inspection, and UI runtime introspection.",
   "mcpServers": {
     "flutter-agent": {
-      "command": "dart",
-      "args": ["run", "flutter_agent_tools:mcp_server"]
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/start_mcp_server.sh"
     }
   }
 }

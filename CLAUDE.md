@@ -23,13 +23,12 @@ observe a running Flutter app.
 ## Registered MCP Tools
 
 - `flutter_launch_app` — builds and launches a Flutter app, returns a session ID
-- `flutter_perform_reload` — hot reload or hot restart a running app
+- `flutter_reload` — hot reload or hot restart a running app
 - `flutter_close_app` — stops a running app and releases its session
 - `flutter_take_screenshot` — captures a PNG screenshot via the inspector
   protocol
 - `flutter_inspect_layout` — returns the layout tree for a widget (or root)
-- `flutter_evaluate_expression` — evaluates an arbitrary Dart expression on the
-  main isolate
+- `flutter_evaluate` — evaluates an arbitrary Dart expression on the main isolate
 
 ## Current Status
 
