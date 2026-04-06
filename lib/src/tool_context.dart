@@ -4,6 +4,25 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 import 'flutter_run_session.dart';
 import 'utils.dart';
 
+/// A self-contained MCP tool: owns its [Tool] definition and handles
+/// [CallToolRequest]s via [handle].
+///
+/// Implementations live in `lib/src/tools/` one file per tool, named after
+/// the MCP command (e.g. `flutter_evaluate.dart`). The server registers each
+/// tool with:
+///
+/// ```dart
+/// registerTool(tool.definition, (req) => tool.handle(req, _context));
+/// ```
+abstract class FlutterTool {
+  /// The MCP [Tool] definition (name, description, input schema).
+  Tool get definition;
+
+  /// Handles a [CallToolRequest], using [context] to access sessions and
+  /// shared utilities.
+  Future<CallToolResult> handle(CallToolRequest request, ToolContext context);
+}
+
 /// Provides tool implementations with access to shared server state.
 ///
 /// Tools receive a [ToolContext] rather than a direct reference to
