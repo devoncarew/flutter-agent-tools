@@ -12,9 +12,7 @@ void main() {
     setUpAll(() {
       final data =
           jsonDecode(
-                File(
-                  'test/fixtures/route_widget_tree.json',
-                ).readAsStringSync(),
+                File('test/fixtures/route_widget_tree.json').readAsStringSync(),
               )
               as Map<String, dynamic>;
       root = DiagnosticsNode.fromJson(data);
