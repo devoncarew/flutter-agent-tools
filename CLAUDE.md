@@ -9,44 +9,45 @@ observe a running Flutter app.
 
 - MCP server entry point: `bin/mcp_server.dart`; logic:
   `lib/src/mcp_server.dart`. Declared in `.claude-plugin/plugin.json`.
-- Hook scripts: `scripts/dep_health_check.sh` (Bash) and
-  `scripts/pubspec_guard.sh` (Write/Edit on pubspec.yaml). Configured in
+- Dep check hook: `bin/dep_check.dart`, invoked via
+  `scripts/start_dep_check.sh --mode=pub-add|pubspec-guard`. Configured in
   `hooks/hooks.json`.
-- Hook scripts receive tool input as JSON on stdin; exit 0 to allow, exit 1 to
-  block.
+- Hooks receive tool input as JSON on stdin; exit 0 always (warnings only —
+  hard-blocking is reserved for cases where proceeding would be clearly wrong).
 - Use `${CLAUDE_PLUGIN_ROOT}` for all paths in hook commands — never hardcode.
-- Fail open on infrastructure errors (missing `curl`/`jq`, network timeout):
-  don't block the agent over tooling issues.
-- The MCP server is a Dart CLI package:
-  `dart run flutter_agent_tools:mcp_server`.
+- Fail open on infrastructure errors (network timeout, etc.): don't block the
+  agent over tooling failures.
+- The MCP server is a Dart CLI package: `dart run bin/mcp_server.dart`.
 
 ## Registered MCP Tools
 
 - `flutter_launch_app` — builds and launches a Flutter app, returns a session ID
 - `flutter_reload` — hot reload or hot restart a running app
-- `flutter_close_app` — stops a running app and releases its session
 - `flutter_take_screenshot` — captures a PNG screenshot via the inspector
   protocol
 - `flutter_inspect_layout` — returns the layout tree for a widget (or root)
-- `flutter_evaluate` — evaluates an arbitrary Dart expression on the main isolate
+- `flutter_evaluate` — evaluates an arbitrary Dart expression on the main
+  isolate
+- `flutter_query_ui` - supports different modes to get information of what is
+  currently on screen
+- `flutter_close_app` — stops a running app and releases its session
 
 ## Current Status
 
 - Plugin scaffold: done
-- `dep_health_check.sh`: functional (pub.dev validation, discontinuation check,
-  age heuristic)
-- `pubspec_guard.sh`: stub only
+- Dep health hook (`bin/dep_check.dart`): functional — discontinued check,
+  old major version check, pubspec-guard mode all implemented
 - MCP server: functional — launch, reload, close, screenshot, inspect layout,
-  and evaluate tools are implemented and working
+  evaluate, and query_ui (route mode with go_router path enrichment) all working
 - Flutter.Error events are pushed to agents with widget IDs for use with
   `flutter_inspect_layout`
 
 ## Development
 
 ```sh
-# Test a hook directly:
+# Test the dep-check hook directly:
 echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
-  | ./scripts/dep_health_check.sh
+  | dart run bin/dep_check.dart --mode=pub-add
 
 # Load the plugin locally:
 claude --plugin-dir /path/to/flutter-agent-tools
