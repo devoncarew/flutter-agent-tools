@@ -50,7 +50,11 @@ void main() async {
   buf.writeln('| Command | Description |');
   buf.writeln('|---------|-------------|');
   for (final tool in toolsResult.tools) {
-    buf.write('| `${tool.name}` | ${tool.description} |');
+    final description = tool.description!.substring(
+      0,
+      tool.description!.indexOf('.') + 1,
+    );
+    buf.write('| `${tool.name}` | $description |');
     buf.writeln();
   }
   buf.writeln('<!-- prettier-ignore-end -->');

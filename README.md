@@ -36,12 +36,12 @@ exceptions from the Dart VM Service.
 <!-- prettier-ignore-start -->
 | Command | Description |
 |---------|-------------|
-| `flutter_launch_app` | Builds and launches the Flutter app. Returns a session ID required by all other flutter_* tools. Call this first before inspecting, screenshotting, or evaluating. Flutter.Error events from the running app are automatically forwarded as MCP log warnings — no polling needed. |
-| `flutter_reload` | Applies source file changes to a running Flutter app. Call this after editing Dart files, before taking a screenshot or inspecting layout. Prefer hot reload for iterative changes; use hot restart (full_restart: true) when state needs to be fully reset. |
-| `flutter_take_screenshot` | Captures a PNG screenshot of the running Flutter app. Use proactively after a reload to visually confirm UI changes are correct, and when diagnosing layout or rendering issues. Root widget bounds are resolved automatically. |
-| `flutter_inspect_layout` | Use when debugging layout issues, overflow errors, or unexpected widget sizing. Returns constraints, size, flex parameters, and children for a widget. Omit widget_id to start from the root. Widget IDs are included in flutter.error log events and in the output of prior inspect calls — use them to drill into a specific node. Increase subtree_depth to see deeper child layout. |
-| `flutter_evaluate` | Evaluates a Dart expression on the running app's main isolate and returns the result as a string. Use for binding-layer and platform-layer state not visible in the widget tree: FlutterView properties (physicalSize, devicePixelRatio), MediaQueryData, or any runtime value. Runs in the root library scope, so top-level declarations and globals are in scope. Example: "WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio.toString()" |
-| `flutter_query_ui` | Returns a high-level description of what is currently on screen in the running Flutter app. Use to orient before navigating to a specific app state, to confirm a change took effect, or to understand the current route before drilling into layout details. Modes: "route" — current route name and navigator stack (use this for "what screen/route is the app on?" questions); "semantics" — flat list of visible, interactive nodes (labels, roles, bounding boxes); "widget_tree" — summary widget tree filtered to user-written widgets. |
+| `flutter_launch_app` | Builds and launches the Flutter app. |
+| `flutter_reload` | Applies source file changes to a running Flutter app. |
+| `flutter_take_screenshot` | Captures a PNG screenshot of the running Flutter app. |
+| `flutter_inspect_layout` | Use when debugging layout issues, overflow errors, or unexpected widget sizing. |
+| `flutter_evaluate` | Evaluates a Dart expression on the running app's main isolate and returns the result as a string. |
+| `flutter_query_ui` | Returns a high-level description of what is currently on screen in the running Flutter app. |
 | `flutter_close_app` | Stops a running Flutter app and releases its session. |
 <!-- prettier-ignore-end -->
 <!-- flutter commands -->
