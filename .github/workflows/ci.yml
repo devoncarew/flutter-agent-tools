@@ -17,6 +17,7 @@ jobs:
       # Check the shell scripts.
       - run: bash -n scripts/deps_check.sh
       - run: bash -n scripts/start_inspector.sh
+      - run: bash -n scripts/start_shorthand.sh
 
       # Dart checks.
       - run: dart pub get

@@ -3,8 +3,11 @@
   "version": "0.1.0",
   "description": "Flutter/Dart agent tooling: dependency health, package API summarization, and UI runtime introspection.",
   "mcpServers": {
-    "flutter-agent": {
+    "flutter-inspect": {
       "command": "${CLAUDE_PLUGIN_ROOT}/scripts/start_inspector.sh"
+    },
+    "dart-api": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/start_shorthand.sh"
     }
   }
 }

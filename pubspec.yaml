@@ -3,17 +3,12 @@ description: >-
   A Claude Code plugin to help AI coding agents write better Dart and Flutter
   code.
 version: 0.1.0
-
 publish_to: none
 
 repository: https://github.com/devoncarew/flutter-agent-tools
 
 environment:
   sdk: ^3.7.0
-
-executables:
-  dep_check: dep_check
-  mcp_server: mcp_server
 
 dependencies:
   collection: ^1.19.1

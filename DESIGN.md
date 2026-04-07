@@ -24,7 +24,7 @@ command. This gives:
 - **Agents:** tools are automatically available via native Claude Code
   primitives (Hooks, MCP) without requiring explicit instruction.
 
-## Tool 1: Dependency Health Hook
+## Tool 1: Package Currency Hook
 
 **Mechanism:** Claude Code `PreToolUse` hook
 
@@ -58,42 +58,43 @@ effectively abandoned but not officially marked `isDiscontinued` on pub.dev
 blocklist in `lib/src/deps/blocklist.dart` would cover these. Each entry should
 name the package, a reason, and the recommended alternative.
 
-**Implementation:** Dart CLI (`bin/dep_check.dart`) invoked via a thin shell
-launcher (`scripts/start_dep_check.sh`). Reads tool input JSON from stdin; mode
+**Implementation:** Dart CLI (`bin/deps_check.dart`) invoked via a thin shell
+launcher (`scripts/deps_check.sh`). Reads tool input JSON from stdin; mode
 selected via `--mode=pub-add` or `--mode=pubspec-guard`. The pubspec-guard mode
 diffs the YAML before and after the edit to find newly added packages and runs
 the same checks.
 
 **Current state:** Both modes functional.
 
-## Tool 2: Package API Inspector
+## Tool 2: Package API Retrieval and Summarization
 
-Mechanism: MCP server command
+MCP server name: `dart-api` | Entry point: `bin/shorthand_mcp.dart`
 
 ### Motivation
 
-Agents reading raw `.pub-cache` source to discover a package API is highly
-token-inefficient. They read implementation files, private members, and method
-bodies — none of which are needed.
+Agents working on Dart and Flutter projects need accurate package API
+information, but their two natural paths to get it are both expensive:
 
-A more subtle failure mode also occurs: agents frequently rely on their own
-training-data summaries of a package's API, which are often subtly wrong
-(incorrect parameter names, missing required vs. optional distinctions, wrong
-constructor shapes). This causes first-attempt code to fail, triggering a
-correction loop that consumes more tokens than reading the source would have. A
-reliable, accurate API dump eliminates this loop entirely.
+- **Reading `.pub-cache` source directly** is token-inefficient — they read
+  implementation files, private members, and method bodies, none of which are
+  needed.
+- **Relying on training-data summaries** produces subtly wrong results —
+  incorrect parameter names, missing required vs. optional distinctions, wrong
+  constructor shapes. This causes first-attempt code to fail, triggering a
+  correction loop that consumes more tokens than reading the source would have.
 
-Observed agent behaviour during development of this plugin: During development
-we needed the APIs for `dart_mcp`, `flutter_daemon`, and
-`unique_names_generator`. In each case the pattern was:
+This tool eliminates both problems by retrieving the public API surface from
+the local pub cache and summarizing it into a compact, accurate form.
 
-1. Agent fetched pub.dev or produced a training-data summary — approximately
-   right but with meaningful errors (wrong `registerTool` signature, wrong
-   `log()` signature, missing name clash with `dart:developer`).
+Observed agent behaviour during development of this plugin: we needed the APIs
+for `dart_mcp`, `flutter_daemon`, and `unique_names_generator`. In each case:
+
+1. Agent produced a training-data summary — approximately right but with
+   meaningful errors (wrong `registerTool` signature, wrong `log()` signature,
+   missing name clash with `dart:developer`).
 2. We had to go back to the pub cache to read actual source and fix the errors.
 
-A Package API Inspector that returns accurate signatures up front would have
-eliminated step 2 in every case.
+Retrieving accurate signatures up front would have eliminated step 2 each time.
 
 ### Output format: simplified Dart stubs
 
@@ -142,7 +143,7 @@ Inputs:
 Source: `.pub-cache` only — already downloaded, always matches the resolved
 version, no network required.
 
-What the inspector does NOT cover:
+What this tool does NOT cover:
 
 - String constants used as protocol/event identifiers (e.g. `'app.started'` in
   the Flutter daemon protocol). These live in implementation code, not the
@@ -376,29 +377,31 @@ prerequisite — the agent already has access to source files.
 
 ## MCP Server Architecture
 
-Both Tool 2 and Tool 3 are exposed through a single Dart MCP server. Using Dart
-is the natural fit given the domain and avoids introducing a Node.js runtime
-dependency.
+Tools 2 and 3 are separate Dart MCP servers (`dart-api` and `flutter-inspect`).
+Using Dart is the natural fit given the domain and avoids introducing a Node.js
+runtime dependency. Separate servers give independent lifecycles and failure
+modes — the API retrieval server is stateless; the runtime inspection server is
+stateful and subprocess-heavy.
 
 Tool surface (✓ = implemented, [planned] = not yet):
 
 ```
-// Tool 2
+// dart-api server (Tool 2)
 package_info(package, kind, library?, class?, version?) → String [planned]
 
-// Tool 3 — session lifecycle
+// flutter-inspect server (Tool 3) — session lifecycle
 ✓ flutter_launch_app(working_directory, target?, device?) → session_id
 ✓ flutter_reload(session_id, full_restart?) → void
 ✓ flutter_close_app(session_id) → void
 
-// Tool 3 — inspection (high value)
+// flutter-inspect server (Tool 3) — inspection (high value)
 ✓ flutter_take_screenshot(session_id, pixel_ratio?) → PNG
 ✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
 ✓ flutter_inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
 ✓ flutter_evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
 ✓ flutter_query_ui(session_id, mode) → String  // route: ✓ (incl. go_router path enrichment) | semantics: [planned] | widget_tree: [planned]
 
-// Tool 3 — app interaction (useful but lower priority for coding agents)
+// flutter-inspect server (Tool 3) — app interaction (useful but lower priority for coding agents)
 [planned] flutter_navigate(session_id, path) → void  // go_router: via InheritedGoRouter + evaluateOnObject
 [planned] flutter_tap(session_id, semantics_label) → void
 [planned] flutter_inject_text(session_id, semantics_label, text) → void

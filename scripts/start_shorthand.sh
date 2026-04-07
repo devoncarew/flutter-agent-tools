@@ -1,16 +1,14 @@
 #!/usr/bin/env bash
 
-# deps_check.sh
+# start_shorthand.sh
 #
-# PreToolUse hook entry point for dependency health checks.
+# Entry point for the dart-api MCP server (package API summarization).
 #
 # Uses $0 to locate itself, so it works regardless of how ${CLAUDE_PLUGIN_ROOT}
 # is resolved by the host — the script is its own source of truth for the
 # plugin root directory.
-#
-# All arguments are forwarded to deps_check.dart (e.g. --mode=pub-add).
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-(cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check.dart" "$@")
+(cd $PLUGIN_ROOT && exec dart run "bin/shorthand_mcp.dart")
