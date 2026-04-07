@@ -133,7 +133,18 @@ class PackageInfoTool {
 
     // Header.
     buf.writeln('Package: $packageName $resolvedVersion');
-    buf.writeln("import 'package:$packageName/$packageName.dart';");
+
+    // Entry-point import — only if the conventional lib/name.dart exists.
+    final mainLibFile = File(
+      p.join(packageDir.path, 'lib', '$packageName.dart'),
+    );
+    final mainLibUri =
+        mainLibFile.existsSync()
+            ? 'package:$packageName/$packageName.dart'
+            : null;
+    if (mainLibUri != null) {
+      buf.writeln("import '$mainLibUri';");
+    }
 
     // README excerpt.
     final readme = _readmeExcerpt(packageDir);
@@ -143,15 +154,25 @@ class PackageInfoTool {
       buf.writeln(readme);
     }
 
-    // Public library list.
+    // Public library list: all .dart files under lib/, excluding lib/src/.
     final libDir = Directory(p.join(packageDir.path, 'lib'));
+    final libSrcPrefix =
+        p.join(packageDir.path, 'lib', 'src') + Platform.pathSeparator;
     final publicLibraries =
         libDir.existsSync()
             ? libDir
-                .listSync()
+                .listSync(recursive: true)
                 .whereType<File>()
-                .where((f) => f.path.endsWith('.dart'))
-                .map((f) => 'package:$packageName/${p.basename(f.path)}')
+                .where(
+                  (f) =>
+                      f.path.endsWith('.dart') &&
+                      !f.path.startsWith(libSrcPrefix),
+                )
+                .map(
+                  (f) =>
+                      'package:$packageName/'
+                      '${p.relative(f.path, from: p.join(packageDir.path, 'lib'))}',
+                )
                 .toList()
             : <String>[];
     publicLibraries.sort();
@@ -163,13 +184,12 @@ class PackageInfoTool {
     }
 
     // Exported names from the main library (requires analysis).
-    final mainLibUri = 'package:$packageName/$packageName.dart';
     final packageConfigFile = p.join(
       projectDirectory,
       '.dart_tool',
       'package_config.json',
     );
-    if (File(packageConfigFile).existsSync()) {
+    if (mainLibUri != null && File(packageConfigFile).existsSync()) {
       final resolver = _getResolver(packageDir, packageConfigFile);
       final library = await resolver.resolve(mainLibUri);
       if (library != null) {
