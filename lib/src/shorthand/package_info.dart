@@ -6,6 +6,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 import 'resolver.dart';
+import 'stub_emitter.dart';
 
 /// Implements the `package_info` MCP tool.
 ///
@@ -116,7 +117,11 @@ class PackageInfoTool {
         resolvedVersion: resolvedVersion,
         projectDirectory: projectDirectory,
       ),
-      'library_stub' => _notImplemented(kind),
+      'library_stub' => await _libraryStub(
+        packageDir: packageDir,
+        projectDirectory: projectDirectory,
+        libraryUri: request.arguments?['library'] as String? ?? '',
+      ),
       'class_stub' => _notImplemented(kind),
       _ => _error(
         "Unknown kind '$kind'. Use: package_summary, library_stub, "
@@ -234,6 +239,45 @@ class PackageInfoTool {
     }
 
     return paragraph.isEmpty ? null : paragraph.join('\n');
+  }
+
+  Future<CallToolResult> _libraryStub({
+    required Directory packageDir,
+    required String projectDirectory,
+    required String libraryUri,
+  }) async {
+    if (libraryUri.isEmpty) {
+      return _error(
+        'Missing required argument: library '
+        '(e.g. "package:http/http.dart").',
+      );
+    }
+
+    final packageConfigFile = p.join(
+      projectDirectory,
+      '.dart_tool',
+      'package_config.json',
+    );
+    if (!File(packageConfigFile).existsSync()) {
+      return _error(
+        'package_config.json not found at $packageConfigFile. '
+        'Run `dart pub get` in the project directory first.',
+      );
+    }
+
+    final resolver = _getResolver(packageDir, packageConfigFile);
+    final library = await resolver.resolve(libraryUri);
+    if (library == null) {
+      return _error(
+        "Could not resolve '$libraryUri'. "
+        'Check that the library URI is correct and the package is in '
+        'pubspec.lock.',
+      );
+    }
+
+    return CallToolResult(
+      content: [TextContent(text: emitLibraryStub(library))],
+    );
   }
 
   static CallToolResult _error(String message) =>
