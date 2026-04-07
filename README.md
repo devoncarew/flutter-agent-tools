@@ -1,30 +1,49 @@
 # flutter-agent-tools
 
-A Claude Code plugin that helps AI coding agents write better Dart and Flutter
-code.
+A Claude Code plugin that makes AI coding agents more effective for Dart and
+Flutter projects.
+
+AI agents working on Dart and Flutter run into two recurring problems. First,
+their training data has a cutoff — they'll reach for discontinued packages, pin
+outdated major versions, or produce subtly wrong API signatures that compile
+only after a correction loop. Second, Flutter development is inherently visual
+and stateful, and agents have no way to see a running app: they can't observe a
+layout failure, verify that a state change took effect, or confirm that a
+navigation worked.
+
+This plugin addresses both. It adds hooks that catch stale package choices
+before they land in `pubspec.yaml`, an MCP tool that retrieves accurate package
+API signatures directly from the local pub cache, and a suite of MCP commands
+for launching, inspecting, and interacting with a running Flutter app.
+
+## Installation
+
+```sh
+# Test locally:
+claude --plugin-dir </path/to>/flutter-agent-tools
+```
 
 ## Tools
 
-### Package Currency Hook
+### Package currency hook
 
-Two `PreToolUse` hooks that help agents use current, well-maintained packages.
-Fires when adding packages via `flutter pub add` / `dart pub add` or by directly
-editing `pubspec.yaml`. Emits advisory warnings and lets the agent decide; never
-hard-blocks.
+A `PreToolUse` hook that fires when an agent adds a package via
+`flutter pub add` / `dart pub add` or edits `pubspec.yaml` directly. Emits
+advisory warnings and lets the agent decide; never hard-blocks.
 
-Checks performed:
+Checks:
 
 - **Discontinued:** warns with the official replacement if one is listed.
-- **Old major version:** warns when the requested constraint targets an older
-  major than what pub.dev currently publishes (e.g. `http:^0.13.0` vs latest
-  `1.x`).
+- **Old major version:** warns when the constraint targets an older major than
+  what pub.dev currently publishes (e.g. `http:^0.13.0` vs latest `1.x`).
 - **Not found:** warns if the package name doesn't exist on pub.dev.
 
-### Package API Retrieval and Summarization
+### Package API retrieval (`dart-api`)
 
-An MCP server (`dart-api`) that retrieves and summarizes a package's public API
-directly from the local pub cache — giving agents accurate, version-matched
-signatures without reading raw source or relying on training-data summaries.
+Retrieves a package's public API surface directly from the local pub cache and
+returns it as a compact Dart stub — signatures only, no bodies, no private
+members. Agents get accurate, version-matched API information without reading
+raw source files or relying on training-data summaries.
 
 <!-- dart-api -->
 <!-- prettier-ignore-start -->
@@ -34,11 +53,18 @@ signatures without reading raw source or relying on training-data summaries.
 <!-- prettier-ignore-end -->
 <!-- dart-api -->
 
-### Flutter UI Agent
+`package_info` supports three levels of detail via its `kind` parameter:
 
-MCP commands for building, launching, and introspecting a running Flutter app at
-runtime: query semantic elements, inject text, trigger taps, and pull unhandled
-exceptions from the Dart VM Service.
+- `package_summary` (orient on an unfamiliar package)
+- `library_stub` (full public API for one library)
+- `class_stub` (a single named class or mixin)
+
+### Flutter UI agent (`flutter-inspect`)
+
+MCP commands for launching and introspecting a running Flutter app. Gives agents
+a [Playwright](https://playwright.dev/)-style interface to the running app: take
+screenshots, inspect the widget tree, evaluate arbitrary Dart expressions, and
+observe runtime errors with widget IDs.
 
 <!-- flutter-inspect -->
 <!-- prettier-ignore-start -->
@@ -53,16 +79,6 @@ exceptions from the Dart VM Service.
 | `flutter_close_app` | Stops a running Flutter app and releases its session. |
 <!-- prettier-ignore-end -->
 <!-- flutter-inspect -->
-
-## Installation
-
-```sh
-# Install from a marketplace (once published):
-/plugin install flutter-agent-tools
-
-# Or test locally:
-claude --plugin-dir </path/to>/flutter-agent-tools
-```
 
 ## Contributing
 

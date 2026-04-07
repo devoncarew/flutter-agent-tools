@@ -56,9 +56,8 @@ class PackageResolver {
 
   Future<void> dispose() async => _context.dispose();
 
-  static String _sdkPath() =>
   // dart executable is at <sdk>/bin/dart; SDK root is two levels up.
-  p.dirname(p.dirname(Platform.resolvedExecutable));
+  static String _sdkPath() => p.dirname(p.dirname(Platform.resolvedExecutable));
 }
 
 /// Returns the names exported by [library], grouped by kind, as a
@@ -96,7 +95,7 @@ String exportedNamesSummary(LibraryElement library) {
     }
   }
 
-  for (final item in [
+  for (final names in [
     classes,
     mixins,
     extensions,
@@ -105,7 +104,7 @@ String exportedNamesSummary(LibraryElement library) {
     typedefs,
     enums,
   ]) {
-    item.sort();
+    names.sort();
   }
 
   final buf = StringBuffer();
