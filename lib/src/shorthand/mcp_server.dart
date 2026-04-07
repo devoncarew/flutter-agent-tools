@@ -7,10 +7,7 @@ import 'package:dart_mcp/server.dart';
 base class ShorthandServer extends MCPServer with ToolsSupport, LoggingSupport {
   ShorthandServer(super.channel)
     : super.fromStreamChannel(
-        implementation: Implementation(
-          name: 'dart-api',
-          version: '0.1.0',
-        ),
+        implementation: Implementation(name: 'dart-api', version: '0.1.0'),
         instructions: '''
 Tools for querying Dart and Flutter package APIs directly from the pub cache.
 
