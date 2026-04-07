@@ -2,7 +2,7 @@
 
 # start_inspector.sh
 #
-# Entry point for the flutter-agent-tools inspector MCP server.
+# Entry point for the flutter-inspect MCP server (Flutter UI agent).
 #
 # Uses $0 to locate itself, so it works regardless of how ${CLAUDE_PLUGIN_ROOT}
 # is resolved by the host — the script is its own source of truth for the

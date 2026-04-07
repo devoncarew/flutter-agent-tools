@@ -1,7 +1,7 @@
 name: flutter_agent_tools
 description: >-
-  A Claude Code plugin to help AI coding agents write better Dart and Flutter
-  code.
+  A Claude Code plugin to make AI coding agents more effective for Dart and
+  Flutter projects
 version: 0.1.0
 publish_to: none
 

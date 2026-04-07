@@ -49,22 +49,22 @@ raw source files or relying on training-data summaries.
 <!-- prettier-ignore-start -->
 | Command | Description |
 |---------|-------------|
-| `package_info` | Returns API summaries of Dart or Flutter packages. |
+| `package_info` | Returns API summaries for Dart or Flutter packages. |
 <!-- prettier-ignore-end -->
 <!-- dart-api -->
 
 `package_info` supports three levels of detail via its `kind` parameter:
 
-- `package_summary` (orient on an unfamiliar package)
+- `package_summary` (the default; orient on an unfamiliar package)
 - `library_stub` (full public API for one library)
 - `class_stub` (a single named class or mixin)
 
 ### Flutter UI agent (`flutter-inspect`)
 
-MCP commands for launching and introspecting a running Flutter app. Gives agents
-a [Playwright](https://playwright.dev/)-style interface to the running app: take
-screenshots, inspect the widget tree, evaluate arbitrary Dart expressions, and
-observe runtime errors with widget IDs.
+MCP commands for launching, inspecting, and interacting with a running Flutter
+app. Gives agents a [Playwright](https://playwright.dev/)-style interface to the
+running app: take screenshots, inspect the widget tree, evaluate arbitrary Dart
+expressions, and observe runtime errors with widget IDs.
 
 <!-- flutter-inspect -->
 <!-- prettier-ignore-start -->
