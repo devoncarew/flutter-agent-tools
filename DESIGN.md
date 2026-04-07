@@ -83,8 +83,8 @@ information, but their two natural paths to get it are both expensive:
   constructor shapes. This causes first-attempt code to fail, triggering a
   correction loop that consumes more tokens than reading the source would have.
 
-This tool eliminates both problems by retrieving the public API surface from
-the local pub cache and summarizing it into a compact, accurate form.
+This tool eliminates both problems by retrieving the public API surface from the
+local pub cache and summarizing it into a compact, accurate form.
 
 Observed agent behaviour during development of this plugin: we needed the APIs
 for `dart_mcp`, `flutter_daemon`, and `unique_names_generator`. In each case:
@@ -122,7 +122,6 @@ so the agent requests only what it needs at each step:
 | `package_summary` | Version, entry-point import, one-paragraph README orientation, list of public libraries and top-level exported names. Enough to orient and decide what to look at next.                                                |
 | `library_stub`    | Full public API for one library as a Dart stub file: all exported classes, mixins, extensions, top-level functions and constants, with signatures but no bodies. Mixin-contributed methods are inlined and attributed. |
 | `class_stub`      | Stub for a single named class/mixin/extension, including inherited and mixin-contributed members. Useful when the agent knows exactly what it needs.                                                                   |
-| `example`         | Contents of a specific example file from `example/` or inline `/// ```dart` samples extracted from a class or library.                                                                                                 |
 
 The typical call sequence for an unfamiliar package:
 
@@ -154,62 +153,17 @@ What this tool does NOT cover:
 Design reference: Modeled on the architecture of the
 [`jot`](https://github.com/devoncarew/jot) tool.
 
-### Implementation architecture
-
-The pipeline has three stages:
-
-**1. Context setup (`lib/src/shorthand/analysis_context.dart`)**
-
-Resolution uses the caller's already-resolved dependency graph rather than
-running a fresh `pub get`. This is correct by construction: the target
-package's deps are a subset of the user's resolved graph, so all imports
-resolve cleanly, and the agent sees exactly the API their compiler sees.
-
-- Read `.dart_tool/package_config.json` from the `project_directory`.
-- Construct an `AnalysisContextCollection` pointed at the target package's
-  directory in the pub cache, using that package config for resolution.
-- Cache the last `AnalysisContextCollection` (keyed by package + version) and
-  discard it when a different package is requested. Usage clusters around one
-  package per conversation, so a single-entry cache is sufficient. Analyzer
-  context construction is fast enough for this use case.
-
-Constraint: the package must already be in the project's `pubspec.lock`
-(i.e. `pub get` has been run). This is acceptable — agents will have just
-added the package, or it was already present. Supporting arbitrary versions
-not in the lockfile is deferred unless there is clear demand.
-
-**2. Resolution (`lib/src/shorthand/resolver.dart`)**
-
-`resolveLibrary(projectDir, packageName, libraryUri) → LibraryElement?`
-
-- Locates the package dir in the pub cache using `resolveVersionFromLockfile`
-  + `findPackageInPubCache`.
-- Gets or creates the `AnalysisContextCollection` for that package.
-- Resolves the target library file and returns its `LibraryElement`.
-
-**3. Stub emission (`lib/src/shorthand/stub_emitter.dart`)**
-
-Walks the `LibraryElement` directly — no intermediate model — and emits Dart
-stub text:
-
-- Top-level functions, variables, and typedefs: signature only, no body.
-- Classes, mixins, extensions: public members only; mixin-contributed methods
-  inlined with a `// from MixinName` attribution comment.
-- Doc comments (`///`) preserved; `@internal` / private members omitted.
-- Import lines emitted as-is from the element's source imports (filtered to
-  public packages).
-
-Mixin attribution (`ClassElement.mixins` → `MixinElement.methods`) is the one
-place that requires resolved elements rather than raw AST, which is why
-`package:analyzer` is used instead of a simpler parse-only approach.
-
 ### Current state
 
-- `package_info` tool: functional — resolves version from `pubspec.lock`,
-  returns public library list and main entry-point source. No analyzer
-  resolution yet; `kind` parameter not yet implemented.
-- Analyzer context setup and resolution: not yet started.
-- Stub emitter: not yet started.
+- `PackageResolver` (`lib/src/shorthand/resolver.dart`): functional — resolves a
+  `package:` URI to a `LibraryElement` using the project's
+  `.dart_tool/package_config.json`. Single-entry caching is the caller's
+  responsibility.
+- `emitLibraryStub` (`lib/src/shorthand/stub_emitter.dart`): functional — emits
+  a full public-API Dart stub from a `LibraryElement`.
+- `package_info` MCP tool: partially implemented — resolves version and lists
+  public libraries, but `kind` parameter not yet implemented. See `docs/plan.md`
+  for the remaining steps.
 
 ## Tool 3: Flutter UI Agent
 
