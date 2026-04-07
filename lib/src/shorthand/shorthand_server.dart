@@ -1,6 +1,6 @@
 import 'package:dart_mcp/server.dart';
 
-import 'package_info.dart';
+import 'package_info_tool.dart';
 
 /// The MCP server for the dart-api (shorthand) package API summarization tool.
 ///
