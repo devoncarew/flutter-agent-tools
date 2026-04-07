@@ -115,7 +115,12 @@ class PackageInfoTool {
         projectDirectory: projectDirectory,
         libraryUri: request.arguments?['library'] as String? ?? '',
       ),
-      'class_stub' => _notImplemented(kind),
+      'class_stub' => await _classStub(
+        packageDir: packageDir,
+        projectDirectory: projectDirectory,
+        libraryUri: request.arguments?['library'] as String? ?? '',
+        className: request.arguments?['class'] as String? ?? '',
+      ),
       _ => _error(
         "Unknown kind '$kind'. Use: package_summary, library_stub, "
         'class_stub.',
@@ -133,7 +138,18 @@ class PackageInfoTool {
 
     // Header.
     buf.writeln('Package: $packageName $resolvedVersion');
-    buf.writeln("import 'package:$packageName/$packageName.dart';");
+
+    // Entry-point import — only if the conventional lib/name.dart exists.
+    final mainLibFile = File(
+      p.join(packageDir.path, 'lib', '$packageName.dart'),
+    );
+    final mainLibUri =
+        mainLibFile.existsSync()
+            ? 'package:$packageName/$packageName.dart'
+            : null;
+    if (mainLibUri != null) {
+      buf.writeln("import '$mainLibUri';");
+    }
 
     // README excerpt.
     final readme = _readmeExcerpt(packageDir);
@@ -143,15 +159,25 @@ class PackageInfoTool {
       buf.writeln(readme);
     }
 
-    // Public library list.
+    // Public library list: all .dart files under lib/, excluding lib/src/.
     final libDir = Directory(p.join(packageDir.path, 'lib'));
+    final libSrcPrefix =
+        p.join(packageDir.path, 'lib', 'src') + Platform.pathSeparator;
     final publicLibraries =
         libDir.existsSync()
             ? libDir
-                .listSync()
+                .listSync(recursive: true)
                 .whereType<File>()
-                .where((f) => f.path.endsWith('.dart'))
-                .map((f) => 'package:$packageName/${p.basename(f.path)}')
+                .where(
+                  (f) =>
+                      f.path.endsWith('.dart') &&
+                      !f.path.startsWith(libSrcPrefix),
+                )
+                .map(
+                  (f) =>
+                      'package:$packageName/'
+                      '${p.relative(f.path, from: p.join(packageDir.path, 'lib'))}',
+                )
                 .toList()
             : <String>[];
     publicLibraries.sort();
@@ -163,13 +189,12 @@ class PackageInfoTool {
     }
 
     // Exported names from the main library (requires analysis).
-    final mainLibUri = 'package:$packageName/$packageName.dart';
     final packageConfigFile = p.join(
       projectDirectory,
       '.dart_tool',
       'package_config.json',
     );
-    if (File(packageConfigFile).existsSync()) {
+    if (mainLibUri != null && File(packageConfigFile).existsSync()) {
       final resolver = _getResolver(packageDir, packageConfigFile);
       final library = await resolver.resolve(mainLibUri);
       if (library != null) {
@@ -273,13 +298,57 @@ class PackageInfoTool {
     );
   }
 
+  Future<CallToolResult> _classStub({
+    required Directory packageDir,
+    required String projectDirectory,
+    required String libraryUri,
+    required String className,
+  }) async {
+    if (libraryUri.isEmpty) {
+      return _error(
+        'Missing required argument: library '
+        '(e.g. "package:http/http.dart").',
+      );
+    }
+    if (className.isEmpty) {
+      return _error('Missing required argument: class (e.g. "Client").');
+    }
+
+    final packageConfigFile = p.join(
+      projectDirectory,
+      '.dart_tool',
+      'package_config.json',
+    );
+    if (!File(packageConfigFile).existsSync()) {
+      return _error(
+        'package_config.json not found at $packageConfigFile. '
+        'Run `dart pub get` in the project directory first.',
+      );
+    }
+
+    final resolver = _getResolver(packageDir, packageConfigFile);
+    final library = await resolver.resolve(libraryUri);
+    if (library == null) {
+      return _error(
+        "Could not resolve '$libraryUri'. "
+        'Check that the library URI is correct and the package is in '
+        'pubspec.lock.',
+      );
+    }
+
+    final stub = emitElementStub(library, className);
+    if (stub == null) {
+      return _error(
+        "'$className' not found in '$libraryUri'. "
+        'Use kind=package_summary to list exported names.',
+      );
+    }
+
+    return CallToolResult(content: [TextContent(text: stub)]);
+  }
+
   static CallToolResult _error(String message) =>
       CallToolResult(isError: true, content: [TextContent(text: message)]);
-
-  static CallToolResult _notImplemented(String kind) => CallToolResult(
-    isError: true,
-    content: [TextContent(text: "'$kind' is not yet implemented.")],
-  );
 }
 
 // ---------------------------------------------------------------------------
