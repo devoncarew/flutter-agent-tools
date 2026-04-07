@@ -23,10 +23,10 @@ dependencies:
   http: ^1.0.0
   path: ^1.9.0
 ''';
-      expect(newlyAddedPackages(old, next), unorderedEquals([
-        ('http', '^1.0.0'),
-        ('path', '^1.9.0'),
-      ]));
+      expect(
+        newlyAddedPackages(old, next),
+        unorderedEquals([('http', '^1.0.0'), ('path', '^1.9.0')]),
+      );
     });
 
     test('adding one dep to an existing section', () {
@@ -68,10 +68,10 @@ dev_dependencies:
   lints: ^6.0.0
   test: ^1.25.0
 ''';
-      expect(newlyAddedPackages(old, next), unorderedEquals([
-        ('lints', '^6.0.0'),
-        ('test', '^1.25.0'),
-      ]));
+      expect(
+        newlyAddedPackages(old, next),
+        unorderedEquals([('lints', '^6.0.0'), ('test', '^1.25.0')]),
+      );
     });
 
     test('changing only a version constraint is not reported', () {
@@ -173,10 +173,7 @@ dependencies:
   http: ^1.0.0
   path: ^1.9.0
 ''';
-      expect(parsePubspecDeps(yaml), {
-        'http': '^1.0.0',
-        'path': '^1.9.0',
-      });
+      expect(parsePubspecDeps(yaml), {'http': '^1.0.0', 'path': '^1.9.0'});
     });
 
     test('parses dev_dependencies section', () {
