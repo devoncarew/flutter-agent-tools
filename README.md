@@ -20,11 +20,19 @@ Checks performed:
   `1.x`).
 - **Not found:** warns if the package name doesn't exist on pub.dev.
 
-### Package API Retrieval and Summarization (planned)
+### Package API Retrieval and Summarization
 
 An MCP server (`dart-api`) that retrieves and summarizes a package's public API
 directly from the local pub cache — giving agents accurate, version-matched
 signatures without reading raw source or relying on training-data summaries.
+
+<!-- dart-api -->
+<!-- prettier-ignore-start -->
+| Command | Description |
+|---------|-------------|
+| `package_info` | Returns public API information for a Dart or Flutter package directly from the local pub cache. |
+<!-- prettier-ignore-end -->
+<!-- dart-api -->
 
 ### Flutter UI Agent
 
@@ -32,7 +40,7 @@ MCP commands for building, launching, and introspecting a running Flutter app at
 runtime: query semantic elements, inject text, trigger taps, and pull unhandled
 exceptions from the Dart VM Service.
 
-<!-- flutter commands -->
+<!-- flutter-inspect -->
 <!-- prettier-ignore-start -->
 | Command | Description |
 |---------|-------------|
@@ -44,7 +52,7 @@ exceptions from the Dart VM Service.
 | `flutter_query_ui` | Returns a high-level description of what is currently on screen in the running Flutter app. |
 | `flutter_close_app` | Stops a running Flutter app and releases its session. |
 <!-- prettier-ignore-end -->
-<!-- flutter commands -->
+<!-- flutter-inspect -->
 
 ## Installation
 

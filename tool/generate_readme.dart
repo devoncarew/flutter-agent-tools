@@ -1,4 +1,4 @@
-// Generates the MCP commands table in README.md.
+// Generates the MCP commands tables in README.md.
 //
 // Run with: dart run tool/generate_readme.dart
 
@@ -7,12 +7,25 @@ import 'dart:io';
 
 import 'package:dart_mcp/client.dart';
 import 'package:flutter_agent_tools/inspector_mcp.dart';
+import 'package:flutter_agent_tools/shorthand_mcp.dart';
 import 'package:stream_channel/stream_channel.dart';
 
-const _marker = '<!-- flutter commands -->';
-
 void main() async {
-  // Wire up an in-process client/server pair.
+  await _updateSection(
+    marker: '<!-- dart-api -->',
+    tools: await _listTools(ShorthandServer.new),
+  );
+  await _updateSection(
+    marker: '<!-- flutter-inspect -->',
+    tools: await _listTools(InspectorServer.new),
+  );
+  print('README.md updated.');
+}
+
+/// Starts [serverFactory] in-process, lists its tools, and returns them.
+Future<List<Tool>> _listTools(
+  Function(StreamChannel<String>) serverFactory,
+) async {
   final clientController = StreamController<String>();
   final serverController = StreamController<String>();
 
@@ -25,7 +38,7 @@ void main() async {
     serverController.sink,
   );
 
-  final server = InspectorServer(serverChannel);
+  final server = serverFactory(serverChannel);
   final client = _ScriptClient();
   final connection = client.connectServer(clientChannel);
 
@@ -44,41 +57,44 @@ void main() async {
   await client.shutdown();
   await server.shutdown();
 
-  // Build the markdown table.
+  return toolsResult.tools;
+}
+
+/// Replaces the content between the two [marker] tags in README.md.
+Future<void> _updateSection({
+  required String marker,
+  required List<Tool> tools,
+}) async {
   final buf = StringBuffer();
   buf.writeln('<!-- prettier-ignore-start -->');
   buf.writeln('| Command | Description |');
   buf.writeln('|---------|-------------|');
-  for (final tool in toolsResult.tools) {
-    final description = tool.description!.substring(
-      0,
-      tool.description!.indexOf('.') + 1,
-    );
-    buf.write('| `${tool.name}` | $description |');
-    buf.writeln();
+  for (final tool in tools) {
+    final desc = tool.description ?? '';
+    final period = desc.indexOf('.');
+    final summary = period >= 0 ? desc.substring(0, period + 1) : desc;
+    buf.writeln('| `${tool.name}` | $summary |');
   }
   buf.writeln('<!-- prettier-ignore-end -->');
 
-  // Splice the table into README.md between the two markers.
   final readme = File('README.md');
   final original = readme.readAsStringSync();
 
-  final start = original.indexOf(_marker);
-  final end = original.indexOf(_marker, start + _marker.length);
+  final start = original.indexOf(marker);
+  final end = original.indexOf(marker, start + marker.length);
 
   if (start == -1 || end == -1) {
-    stderr.writeln('Could not find $_marker markers in README.md');
+    stderr.writeln('Could not find $marker markers in README.md');
     exitCode = 1;
     return;
   }
 
   final updated =
-      '${original.substring(0, start + _marker.length)}\n'
+      '${original.substring(0, start + marker.length)}\n'
       '${buf.toString()}'
       '${original.substring(end)}';
 
   readme.writeAsStringSync(updated);
-  print('README.md updated.');
 }
 
 base class _ScriptClient extends MCPClient {
