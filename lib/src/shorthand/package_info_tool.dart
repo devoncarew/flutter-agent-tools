@@ -21,8 +21,7 @@ class PackageInfoTool {
   Tool get definition => Tool(
     name: 'package_info',
     description:
-        'Returns public API information for a Dart or Flutter package '
-        'directly from the local pub cache. '
+        'Returns API summaries of Dart or Flutter packages. '
         'Use this to get accurate, version-matched API signatures instead of '
         'relying on training-data summaries, which are often subtly wrong.\n\n'
         'kind values:\n'
