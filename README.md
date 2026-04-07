@@ -30,7 +30,7 @@ signatures without reading raw source or relying on training-data summaries.
 <!-- prettier-ignore-start -->
 | Command | Description |
 |---------|-------------|
-| `package_info` | Returns public API information for a Dart or Flutter package directly from the local pub cache. |
+| `package_info` | Returns API summaries of Dart or Flutter packages. |
 <!-- prettier-ignore-end -->
 <!-- dart-api -->
 
@@ -64,19 +64,6 @@ exceptions from the Dart VM Service.
 claude --plugin-dir </path/to>/flutter-agent-tools
 ```
 
-## Development
+## Contributing
 
-```sh
-# To Test the deps-check hook manually:
-echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
-  | dart run bin/deps_check.dart --mode=pub-add
-```
-
-## Links
-
-- [flight_check issue #2](https://github.com/devoncarew/flight_check/issues/2) —
-  pub outdated hook generalization
-- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17)
-  — Flutter UI agent use cases
-- [Playwright MCP](https://playwright.dev/docs/getting-started-mcp) —
-  inspiration for Tool 3
+See [CONTRIBUTING.md](CONTRIBUTING.md).
