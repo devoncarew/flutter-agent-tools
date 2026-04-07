@@ -13,12 +13,11 @@ import 'tools/query_ui.dart';
 import 'tools/reload.dart';
 import 'tools/take_screenshot.dart';
 
-/// The MCP server for flutter-agent-tools.
+/// The MCP server for the runtime inspector feature.
 ///
 /// Owns the session map and event-to-log translation. Tool implementations
 /// live in lib/src/tools/ and are decoupled from this class via [ToolContext].
-base class FlutterAgentServer extends MCPServer
-    with ToolsSupport, LoggingSupport {
+base class InspectorServer extends MCPServer with ToolsSupport, LoggingSupport {
   static const String _loggerId = 'flutter_agent_tools';
 
   final Map<String, AppSession> _sessions = {};
@@ -30,7 +29,7 @@ base class FlutterAgentServer extends MCPServer
     log: (level, message) => log(level, message, logger: _loggerId),
   );
 
-  FlutterAgentServer(super.channel)
+  InspectorServer(super.channel)
     : super.fromStreamChannel(
         implementation: Implementation(
           name: 'flutter-agent-tools',

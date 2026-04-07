@@ -20,26 +20,19 @@ Infrastructure already complete: `PackageResolver` resolves a library URI to a
 
 ---
 
-## Step 1 — Revamp tool schema; implement `package_summary`
+## Step 1 — Revamp tool schema; implement `package_summary` ✓
 
-**Files:** `lib/src/shorthand/package_info.dart`, `lib/src/shorthand/mcp_server.dart`
+**Files:** `lib/src/shorthand/package_info.dart`, `lib/src/shorthand/resolver.dart`
 
-- Add `kind` (required; enum: `package_summary | library_stub | class_stub`),
-  `library` (optional string), and `class` (optional string) to the tool's
-  `inputSchema`. Keep `package`, `project_directory`, `version`.
-- Dispatch `handle()` to a per-kind method.
-- Implement `_packageSummary()`:
-  - Header: `Package: name version`
-  - Entry-point import: `import 'package:name/name.dart';`
-  - README excerpt: first non-empty paragraph from `README.md` (or nothing if
-    absent)
-  - Public library list (filenames, as before)
-  - Exported name groups from the main library via `PackageResolver` +
-    `exportedNamesSummary()`
-- Add a single-entry `PackageResolver` cache to `PackageInfoTool` (field:
-  `_resolver`; keyed on `packageDir.path`; disposed and replaced when a
-  different package is requested).
-- Update the tool description in `definition`.
+- Added `kind` (required), `library` (optional), `class` (optional) to the
+  tool's `inputSchema`; `handle()` dispatches on `kind`.
+- `package_summary` returns: version header, entry-point import, README first
+  paragraph, public library list, exported name groups from the main library.
+- Single-entry `PackageResolver` cache in `PackageInfoTool`, keyed on
+  `(packageDir.path, packageConfigFile)`; disposed on eviction.
+- Fixed `exportedNamesSummary()` in `resolver.dart` to capture top-level
+  variables (they appear as `GetterElement` in the export namespace, not
+  `TopLevelVariableElement`).
 
 ---
 

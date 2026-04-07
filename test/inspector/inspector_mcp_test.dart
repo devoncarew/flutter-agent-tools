@@ -6,10 +6,10 @@ import 'test_utils.dart';
 
 void main() {
   group('flutter_close_app tool', () {
-    late TestEnvironment<TestMCPClient, FlutterAgentServer> env;
+    late TestEnvironment<TestMCPClient, InspectorServer> env;
 
     setUp(() async {
-      env = TestEnvironment(TestMCPClient(), FlutterAgentServer.new);
+      env = TestEnvironment(TestMCPClient(), InspectorServer.new);
       await env.initializeServer();
     });
 

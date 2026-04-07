@@ -5,31 +5,59 @@ import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
+import 'resolver.dart';
+
 /// Implements the `package_info` MCP tool.
 ///
 /// Resolves a Dart package from the local pub cache and returns its public API
 /// surface. Version resolution order: explicit `version` argument →
 /// `pubspec.lock` in `project_directory` → latest cached version.
 class PackageInfoTool {
+  // Single-entry cache: reused when consecutive calls target the same package.
+  PackageResolver? _resolver;
+  String? _resolverKey;
+
   Tool get definition => Tool(
     name: 'package_info',
     description:
         'Returns public API information for a Dart or Flutter package '
         'directly from the local pub cache. '
         'Use this to get accurate, version-matched API signatures instead of '
-        'relying on training-data summaries, which are often subtly wrong. '
-        'Returns the package version, the list of public library files, and '
-        'the content of the main library entry point.',
+        'relying on training-data summaries, which are often subtly wrong.\n\n'
+        'kind values:\n'
+        '  package_summary — version, entry-point import, README excerpt, '
+        'public library list, and exported name groups for the main library. '
+        'Start here to orient on an unfamiliar package.\n'
+        '  library_stub — full public API for one library as a Dart stub '
+        '(signatures only, no bodies). Requires the `library` parameter.\n'
+        '  class_stub — stub for a single named class, mixin, or extension. '
+        'Requires both `library` and `class` parameters.',
     inputSchema: Schema.object(
       properties: {
         'package': Schema.string(
           description: 'The package name (e.g. "http", "provider").',
         ),
+        'kind': Schema.string(
+          description:
+              'What to return. One of: package_summary, library_stub, '
+              'class_stub.',
+        ),
         'project_directory': Schema.string(
           description:
               'Absolute path to the Dart/Flutter project directory '
               '(the folder containing pubspec.yaml). Used to resolve the '
-              'package version from pubspec.lock.',
+              'package version from pubspec.lock and to locate the '
+              'package_config.json for analysis.',
+        ),
+        'library': Schema.string(
+          description:
+              'The library URI to target, e.g. "package:http/http.dart". '
+              'Required for library_stub and class_stub.',
+        ),
+        'class': Schema.string(
+          description:
+              'The class, mixin, or extension name to target. '
+              'Required for class_stub.',
         ),
         'version': Schema.string(
           description:
@@ -39,31 +67,28 @@ class PackageInfoTool {
               'lockfile.',
         ),
       },
-      required: ['package', 'project_directory'],
+      required: ['package', 'kind', 'project_directory'],
     ),
   );
 
   Future<CallToolResult> handle(CallToolRequest request) async {
     final String? packageName = request.arguments?['package'] as String?;
     if (packageName == null || packageName.isEmpty) {
-      return CallToolResult(
-        isError: true,
-        content: [TextContent(text: 'Missing required argument: package')],
-      );
+      return _error('Missing required argument: package');
+    }
+
+    final String? kind = request.arguments?['kind'] as String?;
+    if (kind == null || kind.isEmpty) {
+      return _error('Missing required argument: kind');
     }
 
     final String? projectDirectory =
         request.arguments?['project_directory'] as String?;
     if (projectDirectory == null || projectDirectory.isEmpty) {
-      return CallToolResult(
-        isError: true,
-        content: [
-          TextContent(text: 'Missing required argument: project_directory'),
-        ],
-      );
+      return _error('Missing required argument: project_directory');
     }
 
-    // Resolve the version: explicit arg → pubspec.lock → latest cached.
+    // Resolve version: explicit arg → pubspec.lock → latest cached.
     final String? explicitVersion = request.arguments?['version'] as String?;
     final String? version =
         (explicitVersion != null && explicitVersion.isNotEmpty)
@@ -78,15 +103,51 @@ class PackageInfoTool {
                   'cache. Run `dart pub get` to download it.'
               : "Package '$packageName' not found in pub cache. Add it to "
                   'pubspec.yaml and run `dart pub get`.';
-      return CallToolResult(isError: true, content: [TextContent(text: msg)]);
+      return _error(msg);
     }
 
     final resolvedVersion =
         version ?? readPackageVersion(packageDir) ?? 'unknown';
 
-    // List public library files (lib/*.dart, not lib/src/).
+    return switch (kind) {
+      'package_summary' => await _packageSummary(
+        packageName: packageName,
+        packageDir: packageDir,
+        resolvedVersion: resolvedVersion,
+        projectDirectory: projectDirectory,
+      ),
+      'library_stub' => _notImplemented(kind),
+      'class_stub' => _notImplemented(kind),
+      _ => _error(
+        "Unknown kind '$kind'. Use: package_summary, library_stub, "
+        'class_stub.',
+      ),
+    };
+  }
+
+  Future<CallToolResult> _packageSummary({
+    required String packageName,
+    required Directory packageDir,
+    required String resolvedVersion,
+    required String projectDirectory,
+  }) async {
+    final buf = StringBuffer();
+
+    // Header.
+    buf.writeln('Package: $packageName $resolvedVersion');
+    buf.writeln("import 'package:$packageName/$packageName.dart';");
+
+    // README excerpt.
+    final readme = _readmeExcerpt(packageDir);
+    if (readme != null) {
+      buf.writeln();
+      buf.writeln('## Overview');
+      buf.writeln(readme);
+    }
+
+    // Public library list.
     final libDir = Directory(p.join(packageDir.path, 'lib'));
-    final List<String> publicLibraries =
+    final publicLibraries =
         libDir.existsSync()
             ? libDir
                 .listSync()
@@ -94,34 +155,98 @@ class PackageInfoTool {
                 .where((f) => f.path.endsWith('.dart'))
                 .map((f) => 'package:$packageName/${p.basename(f.path)}')
                 .toList()
-            : [];
+            : <String>[];
     publicLibraries.sort();
 
-    // Read the main entry point: lib/{package}.dart.
-    final mainLibPath = p.join(packageDir.path, 'lib', '$packageName.dart');
-    final mainLibFile = File(mainLibPath);
-    final String mainLibContent =
-        mainLibFile.existsSync()
-            ? mainLibFile.readAsStringSync()
-            : '// No lib/$packageName.dart found.';
-
-    final buffer = StringBuffer();
-    buffer.writeln('Package: $packageName $resolvedVersion');
-    buffer.writeln('Pub cache: ${packageDir.path}');
-    buffer.writeln();
-
-    buffer.writeln('Public libraries:');
+    buf.writeln();
+    buf.writeln('## Libraries');
     for (final lib in publicLibraries) {
-      buffer.writeln('  $lib');
+      buf.writeln('  $lib');
     }
-    buffer.writeln();
 
-    buffer.writeln('// lib/$packageName.dart');
-    buffer.writeln(mainLibContent);
+    // Exported names from the main library (requires analysis).
+    final mainLibUri = 'package:$packageName/$packageName.dart';
+    final packageConfigFile = p.join(
+      projectDirectory,
+      '.dart_tool',
+      'package_config.json',
+    );
+    if (File(packageConfigFile).existsSync()) {
+      final resolver = _getResolver(packageDir, packageConfigFile);
+      final library = await resolver.resolve(mainLibUri);
+      if (library != null) {
+        final summary = exportedNamesSummary(library);
+        if (summary.isNotEmpty) {
+          buf.writeln();
+          buf.writeln('## Exports ($mainLibUri)');
+          buf.writeln(summary);
+        }
+      }
+    }
 
-    return CallToolResult(content: [TextContent(text: buffer.toString())]);
+    return CallToolResult(content: [TextContent(text: buf.toString())]);
   }
+
+  /// Returns or creates a [PackageResolver] for the given [packageDir] and
+  /// [packageConfigFile], reusing the cached instance when the key matches.
+  PackageResolver _getResolver(Directory packageDir, String packageConfigFile) {
+    final key = '${packageDir.path}|$packageConfigFile';
+    if (_resolverKey != key) {
+      _resolver?.dispose(); // fire-and-forget
+      _resolver = PackageResolver(
+        packageDir: packageDir,
+        packageConfigFile: packageConfigFile,
+      );
+      _resolverKey = key;
+    }
+    return _resolver!;
+  }
+
+  /// Reads the first descriptive paragraph from README.md (skipping headings
+  /// and badge lines).
+  String? _readmeExcerpt(Directory packageDir) {
+    for (final name in ['README.md', 'readme.md', 'README']) {
+      final file = File(p.join(packageDir.path, name));
+      if (file.existsSync()) {
+        return _extractFirstParagraph(file.readAsStringSync());
+      }
+    }
+    return null;
+  }
+
+  String? _extractFirstParagraph(String content) {
+    final lines = content.split('\n');
+    final paragraph = <String>[];
+    var started = false;
+
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (!started) {
+        if (trimmed.isEmpty) continue;
+        if (trimmed.startsWith('#')) continue;
+        if (trimmed.startsWith('[![')) continue; // badge lines
+        started = true;
+        paragraph.add(trimmed);
+      } else {
+        if (trimmed.isEmpty) break;
+        paragraph.add(trimmed);
+      }
+    }
+
+    return paragraph.isEmpty ? null : paragraph.join('\n');
+  }
+
+  static CallToolResult _error(String message) =>
+      CallToolResult(isError: true, content: [TextContent(text: message)]);
+
+  static CallToolResult _notImplemented(String kind) => CallToolResult(
+    isError: true,
+    content: [TextContent(text: "'$kind' is not yet implemented.")],
+  );
 }
+
+// ---------------------------------------------------------------------------
+// Package resolution helpers (top-level functions for testability)
 
 /// Returns the resolved version for [packageName] from the nearest
 /// `pubspec.lock` found by walking up from [projectDirectory].

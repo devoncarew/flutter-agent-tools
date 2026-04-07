@@ -1,1 +1,1 @@
-export 'src/inspector/mcp_server.dart';
+export 'src/inspector/inspector_server.dart';
