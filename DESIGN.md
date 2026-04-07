@@ -382,7 +382,7 @@ package_info(package, kind, library?, class?, version?) → String
 ✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
 ✓ flutter_inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
 ✓ flutter_evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
-✓ flutter_query_ui(session_id, mode) → String  // route: ✓ | semantics: [planned] | widget_tree: [planned]
+✓ flutter_query_ui(session_id, mode) → String  // route: ✓ | semantics: | widget_tree: [planned]
 
 // flutter-inspect server (Tool 3) — app interaction (useful but lower priority for coding agents)
 [planned] flutter_navigate(session_id, path) → void  // go_router: via InheritedGoRouter + evaluateOnObject

@@ -2,6 +2,7 @@ import 'package:dart_mcp/server.dart';
 import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../route_formatter.dart';
+import '../semantics_formatter.dart';
 import '../tool_context.dart';
 
 /// Implements the `flutter_query_ui` MCP tool.
@@ -100,6 +101,11 @@ class FlutterQueryUiTool extends FlutterTool {
                 text: formatRouteInfo(root, currentPath: currentPath),
               ),
             ],
+          );
+        case 'semantics':
+          final json = await extensions.getSemanticsTree();
+          return CallToolResult(
+            content: [TextContent(text: formatSemanticsTree(json))],
           );
         default:
           return CallToolResult(

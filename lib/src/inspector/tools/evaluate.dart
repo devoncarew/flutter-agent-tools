@@ -16,8 +16,12 @@ class FlutterEvaluateTool extends FlutterTool {
         'returns the result as a string. Use for binding-layer and '
         'platform-layer state not visible in the widget tree: FlutterView '
         'properties (physicalSize, devicePixelRatio), MediaQueryData, '
-        'or any runtime value. Runs in the root library scope, so top-level '
-        'declarations and globals are in scope. Example: '
+        'or any runtime value. By default runs in the root library scope '
+        '(main.dart), so top-level declarations and globals are in scope. '
+        'Pass library_uri to evaluate in a different library scope — for '
+        'example, "package:flutter/src/widgets/widget_inspector.dart" makes '
+        'RendererBinding, SemanticsNode, CheckedState, and Tristate available. '
+        'Example: '
         '"WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio.toString()"',
     inputSchema: Schema.object(
       properties: {
@@ -30,6 +34,14 @@ class FlutterEvaluateTool extends FlutterTool {
               'useful toString(). Example: '
               '"WidgetsBinding.instance.platformDispatcher'
               '.views.first.devicePixelRatio.toString()"',
+        ),
+        'library_uri': Schema.string(
+          description:
+              'Optional. The URI of the library scope in which to evaluate '
+              'the expression. Defaults to the app\'s root library (main.dart). '
+              'Use "package:flutter/src/widgets/widget_inspector.dart" to '
+              'access Flutter rendering and semantics APIs such as '
+              'RendererBinding, SemanticsNode, CheckedState, and Tristate.',
         ),
       },
       required: ['session_id', 'expression'],
@@ -48,9 +60,11 @@ class FlutterEvaluateTool extends FlutterTool {
     }
 
     final String expression = request.arguments!['expression'] as String;
+    final String? libraryUri = request.arguments!['library_uri'] as String?;
     try {
       final String result = await session.serviceExtensions!.evaluate(
         expression,
+        libraryUri: libraryUri,
       );
       return CallToolResult(content: [TextContent(text: result)]);
     } on RPCError catch (e) {
