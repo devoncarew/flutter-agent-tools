@@ -103,18 +103,18 @@ class PackageInfoTool {
         version ?? readPackageVersion(packageDir) ?? 'unknown';
 
     return switch (kind) {
-      'package_summary' => await _packageSummary(
+      'package_summary' => await _handlePackageSummary(
         packageName: packageName,
         packageDir: packageDir,
         resolvedVersion: resolvedVersion,
         projectDirectory: projectDirectory,
       ),
-      'library_stub' => await _libraryStub(
+      'library_stub' => await _handleLibraryStub(
         packageDir: packageDir,
         projectDirectory: projectDirectory,
         libraryUri: request.arguments?['library'] as String? ?? '',
       ),
-      'class_stub' => await _classStub(
+      'class_stub' => await _handleClassStub(
         packageDir: packageDir,
         projectDirectory: projectDirectory,
         libraryUri: request.arguments?['library'] as String? ?? '',
@@ -127,7 +127,7 @@ class PackageInfoTool {
     };
   }
 
-  Future<CallToolResult> _packageSummary({
+  Future<CallToolResult> _handlePackageSummary({
     required String packageName,
     required Directory packageDir,
     required String resolvedVersion,
@@ -137,6 +137,7 @@ class PackageInfoTool {
 
     // Header.
     buf.writeln('Package: $packageName $resolvedVersion');
+    buf.writeln('Source: ${packageDir.path}');
 
     // Entry-point import — only if the conventional lib/name.dart exists.
     final mainLibFile = File(
@@ -206,7 +207,115 @@ class PackageInfoTool {
       }
     }
 
+    // Example files.
+    final exampleDir = Directory(p.join(packageDir.path, 'example'));
+    if (exampleDir.existsSync()) {
+      final examples =
+          exampleDir
+              .listSync(recursive: true)
+              .whereType<File>()
+              .where((f) => f.path.endsWith('.dart'))
+              .map((f) => p.relative(f.path, from: packageDir.path))
+              .toList()
+            ..sort();
+      if (examples.isNotEmpty) {
+        buf.writeln();
+        buf.writeln('## Examples');
+        for (final ex in examples) {
+          buf.writeln('  ${packageDir.path}/$ex');
+        }
+      }
+    }
+
     return CallToolResult(content: [TextContent(text: buf.toString())]);
+  }
+
+  Future<CallToolResult> _handleLibraryStub({
+    required Directory packageDir,
+    required String projectDirectory,
+    required String libraryUri,
+  }) async {
+    if (libraryUri.isEmpty) {
+      return _error(
+        'Missing required argument: library '
+        '(e.g. "package:http/http.dart").',
+      );
+    }
+
+    final packageConfigFile = p.join(
+      projectDirectory,
+      '.dart_tool',
+      'package_config.json',
+    );
+    if (!File(packageConfigFile).existsSync()) {
+      return _error(
+        'package_config.json not found at $packageConfigFile. '
+        'Run `dart pub get` in the project directory first.',
+      );
+    }
+
+    final resolver = _getResolver(packageDir, packageConfigFile);
+    final library = await resolver.resolve(libraryUri);
+    if (library == null) {
+      return _error(
+        "Could not resolve '$libraryUri'. "
+        'Check that the library URI is correct and the package is in '
+        'pubspec.lock.',
+      );
+    }
+
+    return CallToolResult(
+      content: [TextContent(text: emitLibraryStub(library))],
+    );
+  }
+
+  Future<CallToolResult> _handleClassStub({
+    required Directory packageDir,
+    required String projectDirectory,
+    required String libraryUri,
+    required String className,
+  }) async {
+    if (libraryUri.isEmpty) {
+      return _error(
+        'Missing required argument: library '
+        '(e.g. "package:http/http.dart").',
+      );
+    }
+    if (className.isEmpty) {
+      return _error('Missing required argument: class (e.g. "Client").');
+    }
+
+    final packageConfigFile = p.join(
+      projectDirectory,
+      '.dart_tool',
+      'package_config.json',
+    );
+    if (!File(packageConfigFile).existsSync()) {
+      return _error(
+        'package_config.json not found at $packageConfigFile. '
+        'Run `dart pub get` in the project directory first.',
+      );
+    }
+
+    final resolver = _getResolver(packageDir, packageConfigFile);
+    final library = await resolver.resolve(libraryUri);
+    if (library == null) {
+      return _error(
+        "Could not resolve '$libraryUri'. "
+        'Check that the library URI is correct and the package is in '
+        'pubspec.lock.',
+      );
+    }
+
+    final stub = emitElementStub(library, className);
+    if (stub == null) {
+      return _error(
+        "'$className' not found in '$libraryUri'. "
+        'Use kind=package_summary to list exported names.',
+      );
+    }
+
+    return CallToolResult(content: [TextContent(text: stub)]);
   }
 
   /// Returns or creates a [PackageResolver] for the given [packageDir] and
@@ -256,94 +365,6 @@ class PackageInfoTool {
     }
 
     return paragraph.isEmpty ? null : paragraph.join('\n');
-  }
-
-  Future<CallToolResult> _libraryStub({
-    required Directory packageDir,
-    required String projectDirectory,
-    required String libraryUri,
-  }) async {
-    if (libraryUri.isEmpty) {
-      return _error(
-        'Missing required argument: library '
-        '(e.g. "package:http/http.dart").',
-      );
-    }
-
-    final packageConfigFile = p.join(
-      projectDirectory,
-      '.dart_tool',
-      'package_config.json',
-    );
-    if (!File(packageConfigFile).existsSync()) {
-      return _error(
-        'package_config.json not found at $packageConfigFile. '
-        'Run `dart pub get` in the project directory first.',
-      );
-    }
-
-    final resolver = _getResolver(packageDir, packageConfigFile);
-    final library = await resolver.resolve(libraryUri);
-    if (library == null) {
-      return _error(
-        "Could not resolve '$libraryUri'. "
-        'Check that the library URI is correct and the package is in '
-        'pubspec.lock.',
-      );
-    }
-
-    return CallToolResult(
-      content: [TextContent(text: emitLibraryStub(library))],
-    );
-  }
-
-  Future<CallToolResult> _classStub({
-    required Directory packageDir,
-    required String projectDirectory,
-    required String libraryUri,
-    required String className,
-  }) async {
-    if (libraryUri.isEmpty) {
-      return _error(
-        'Missing required argument: library '
-        '(e.g. "package:http/http.dart").',
-      );
-    }
-    if (className.isEmpty) {
-      return _error('Missing required argument: class (e.g. "Client").');
-    }
-
-    final packageConfigFile = p.join(
-      projectDirectory,
-      '.dart_tool',
-      'package_config.json',
-    );
-    if (!File(packageConfigFile).existsSync()) {
-      return _error(
-        'package_config.json not found at $packageConfigFile. '
-        'Run `dart pub get` in the project directory first.',
-      );
-    }
-
-    final resolver = _getResolver(packageDir, packageConfigFile);
-    final library = await resolver.resolve(libraryUri);
-    if (library == null) {
-      return _error(
-        "Could not resolve '$libraryUri'. "
-        'Check that the library URI is correct and the package is in '
-        'pubspec.lock.',
-      );
-    }
-
-    final stub = emitElementStub(library, className);
-    if (stub == null) {
-      return _error(
-        "'$className' not found in '$libraryUri'. "
-        'Use kind=package_summary to list exported names.',
-      );
-    }
-
-    return CallToolResult(content: [TextContent(text: stub)]);
   }
 
   static CallToolResult _error(String message) =>
