@@ -87,8 +87,10 @@ String exportedNamesSummary(LibraryElement library) {
         extensions.add(name);
       case TopLevelFunctionElement():
         functions.add(name);
-      case TopLevelVariableElement():
-        variables.add(name);
+      // Top-level variables appear in the namespace as GetterElements.
+      case GetterElement e when e.isOriginVariable:
+        final v = e.variable;
+        if (v is TopLevelVariableElement) variables.add(name);
       case TypeAliasElement():
         typedefs.add(name);
     }
