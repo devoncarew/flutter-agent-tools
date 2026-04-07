@@ -127,17 +127,15 @@ The typical call sequence for an unfamiliar package:
 
 1. `package_summary` — orient, identify the relevant library.
 2. `library_stub` — get all signatures for that library.
-3. `class_stub` or `example` — drill into a specific class or usage pattern if
-   signatures alone aren't enough.
+3. `class_stub` — drill into a specific class if signatures alone aren't enough.
 
 Inputs:
 
 - `package`: package name (required).
-- `kind`: one of the values above (required).
-- `library` / `class`: target for `library_stub`, `class_stub`, `example`
-  (required for those kinds).
-- `version`: defaults to the version resolved in `pubspec.lock`; override
-  allowed for packages not yet in the lockfile.
+- `kind`: one of the values above; defaults to `package_summary`.
+- `project_directory`: path to the Dart/Flutter project (required).
+- `library`: target library URI for `library_stub` and `class_stub`.
+- `class`: target class/mixin/extension name for `class_stub`.
 
 Source: `.pub-cache` only — already downloaded, always matches the resolved
 version, no network required.
@@ -155,15 +153,7 @@ Design reference: Modeled on the architecture of the
 
 ### Current state
 
-- `PackageResolver` (`lib/src/shorthand/resolver.dart`): functional — resolves a
-  `package:` URI to a `LibraryElement` using the project's
-  `.dart_tool/package_config.json`. Single-entry caching is the caller's
-  responsibility.
-- `emitLibraryStub` (`lib/src/shorthand/stub_emitter.dart`): functional — emits
-  a full public-API Dart stub from a `LibraryElement`.
-- `package_info` MCP tool: partially implemented — resolves version and lists
-  public libraries, but `kind` parameter not yet implemented. See `docs/plan.md`
-  for the remaining steps.
+All three kinds are implemented and the MCP server is registered in the plugin.
 
 ## Tool 3: Flutter UI Agent
 

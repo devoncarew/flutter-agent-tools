@@ -1,10 +1,12 @@
 # Implementation plan: `package_info` kind parameter
 
+**Status: complete.** All three steps are implemented.
+
 ## Context
 
-The `package_info` MCP tool currently returns a package version, a list of
+The `package_info` MCP tool originally returned a package version, a list of
 public library filenames, and the raw source of the main entry-point file.
-The goal is to replace this with a `kind`-dispatched API that gives agents
+This plan replaced it with a `kind`-dispatched API that gives agents
 progressively more detail:
 
 | `kind`          | Returns                                                               |
