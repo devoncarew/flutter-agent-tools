@@ -46,23 +46,20 @@ Infrastructure already complete: `PackageResolver` resolves a library URI to a
 
 ---
 
-## Step 3 — Implement `class_stub`
+## Step 3 — Implement `class_stub` ✓
 
 **Files:** `lib/src/shorthand/stub_emitter.dart`,
 `test/shorthand/stub_emitter_golden_test.dart`,
 `lib/src/shorthand/package_info.dart`
 
-- Add `emitElementStub(LibraryElement library, String name) → String?` to
-  `stub_emitter.dart`. Searches the export namespace for a matching class,
-  mixin, extension, or enum by name; emits just that element; returns null if
-  not found.
-- Add golden tests for `emitElementStub` covering: class, abstract class,
-  mixin, extension, enum.
-- Add `_classStub()` handler in `package_info.dart`:
-  - Requires both `library` and `class` params.
-  - Resolves the library, calls `emitElementStub()`, returns result or an
-    informative error if the name isn't found.
-- Update tool description.
+- Added `emitElementStub(LibraryElement library, String name) → String?`:
+  matches classes, mixins, extensions, enums, and typedefs by name; returns
+  null for not-found or non-stub-able elements (functions, variables).
+- Added 7 golden tests covering class, abstract class, mixin, extension, enum,
+  not-found, and top-level function (returns null).
+- Added `_classStub()` handler: validates `library` and `class` params,
+  resolves via `PackageResolver`, calls `emitElementStub()`, returns an
+  informative error if the name isn't found.
 
 ---
 

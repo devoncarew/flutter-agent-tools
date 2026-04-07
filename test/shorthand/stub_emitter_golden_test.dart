@@ -590,4 +590,94 @@ class Foo {
       expect(stub, contains('void doThing();'));
     });
   });
+
+  // -------------------------------------------------------------------------
+  // emitElementStub
+
+  group('emitElementStub', () {
+    test('class', () async {
+      final lib = await libraryElementFromSource('''
+class Counter {
+  int count = 0;
+  void increment() {}
+}
+''');
+      expect(
+        emitElementStub(lib, 'Counter')?.trim(),
+        equals('''
+class Counter {
+  int count;
+  void increment();
+}'''),
+      );
+    });
+
+    test('abstract class', () async {
+      final lib = await libraryElementFromSource('''
+abstract class Shape {
+  double area();
+}
+''');
+      expect(
+        emitElementStub(lib, 'Shape')?.trim(),
+        equals('''
+abstract class Shape {
+  abstract double area();
+}'''),
+      );
+    });
+
+    test('mixin', () async {
+      final lib = await libraryElementFromSource('''
+mixin Logger {
+  void log(String msg) {}
+}
+''');
+      expect(
+        emitElementStub(lib, 'Logger')?.trim(),
+        equals('''
+mixin Logger {
+  void log(String msg);
+}'''),
+      );
+    });
+
+    test('extension', () async {
+      final lib = await libraryElementFromSource('''
+extension StringX on String {
+  String shout() => toUpperCase();
+}
+''');
+      expect(
+        emitElementStub(lib, 'StringX')?.trim(),
+        equals('''
+extension StringX on String {
+  String shout();
+}'''),
+      );
+    });
+
+    test('enum', () async {
+      final lib = await libraryElementFromSource('''
+enum Direction { north, south, east, west }
+''');
+      expect(
+        emitElementStub(lib, 'Direction')?.trim(),
+        equals('''
+enum Direction {
+  north, south, east, west,
+}'''),
+      );
+    });
+
+    test('not found returns null', () async {
+      final lib = await libraryElementFromSource('class Foo {}');
+      expect(emitElementStub(lib, 'Bar'), isNull);
+    });
+
+    test('top-level function returns null', () async {
+      final lib = await libraryElementFromSource('int add(int a, int b) => 0;');
+      expect(emitElementStub(lib, 'add'), isNull);
+    });
+  });
 }

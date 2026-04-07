@@ -109,6 +109,33 @@ String emitLibraryStub(LibraryElement library) {
   return buf.toString();
 }
 
+/// Emits a stub for the single named element [name] exported by [library].
+///
+/// Matches classes, mixins, extensions, enums, and typedefs. Returns the stub
+/// string, or null if no matching element is found (including for top-level
+/// functions and variables, which are not meaningful targets for a class stub).
+String? emitElementStub(LibraryElement library, String name) {
+  final element = library.exportNamespace.definedNames2[name];
+  if (element == null) return null;
+
+  final buf = StringBuffer();
+  switch (element) {
+    case EnumElement e:
+      _emitEnum(buf, e);
+    case MixinElement e:
+      _emitInterface(buf, e);
+    case InterfaceElement e:
+      _emitInterface(buf, e);
+    case ExtensionElement e:
+      _emitExtension(buf, e);
+    case TypeAliasElement e:
+      _emitTypeAlias(buf, e);
+    default:
+      return null;
+  }
+  return buf.toString();
+}
+
 // ---------------------------------------------------------------------------
 // Interface types (class, mixin, abstract class)
 
