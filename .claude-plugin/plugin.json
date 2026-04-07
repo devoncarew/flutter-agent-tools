@@ -2,6 +2,13 @@
   "name": "flutter-agent-tools",
   "version": "0.1.0",
   "description": "Flutter/Dart agent tooling: dependency health, package API summarization, and UI runtime introspection.",
+  "author": {
+    "name": "Devon Carew",
+    "url": "https://github.com/devoncarew"
+  },
+  "repository": "https://github.com/devoncarew/flutter-agent-tools",
+  "license": "BSD-3-Clause license",
+  "keywords": ["dart", "flutter"],
   "mcpServers": {
     "flutter-inspect": {
       "command": "${CLAUDE_PLUGIN_ROOT}/scripts/start_inspector.sh"
@@ -9,5 +16,29 @@
     "dart-api": {
       "command": "${CLAUDE_PLUGIN_ROOT}/scripts/start_shorthand.sh"
     }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/deps_check.sh --mode=pub-add",
+            "description": "Validates packages before flutter pub add runs"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/deps_check.sh --mode=pubspec-guard",
+            "description": "Validates packages on direct pubspec.yaml edits"
+          }
+        ]
+      }
+    ]
   }
 }
