@@ -36,17 +36,13 @@ Infrastructure already complete: `PackageResolver` resolves a library URI to a
 
 ---
 
-## Step 2 — Implement `library_stub`
+## Step 2 — Implement `library_stub` ✓
 
 **Files:** `lib/src/shorthand/package_info.dart`
 
-- Add `_libraryStub()` method, called when `kind == 'library_stub'`.
-- Validate that `library` param is present (e.g. `package:http/http.dart`);
-  return an error if absent.
-- Use the cached `PackageResolver` to resolve the library → `LibraryElement`.
-- Call `emitLibraryStub(library)` and return the result as text.
-- Update the tool description to document `library_stub` and the `library`
-  param.
+- Added `_libraryStub()`: validates `library` param and `package_config.json`
+  presence, resolves the library via the cached `PackageResolver`, calls
+  `emitLibraryStub()`, and returns the stub text.
 
 ---
 

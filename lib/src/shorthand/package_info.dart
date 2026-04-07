@@ -6,12 +6,13 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 import 'resolver.dart';
+import 'stub_emitter.dart';
 
 /// Implements the `package_info` MCP tool.
 ///
 /// Resolves a Dart package from the local pub cache and returns its public API
-/// surface. Version resolution order: explicit `version` argument →
-/// `pubspec.lock` in `project_directory` → latest cached version.
+/// surface. Version resolution order: `pubspec.lock` in `project_directory` →
+/// latest cached version.
 class PackageInfoTool {
   // Single-entry cache: reused when consecutive calls target the same package.
   PackageResolver? _resolver;
@@ -34,20 +35,20 @@ class PackageInfoTool {
         'Requires both `library` and `class` parameters.',
     inputSchema: Schema.object(
       properties: {
-        'package': Schema.string(
-          description: 'The package name (e.g. "http", "provider").',
-        ),
-        'kind': Schema.string(
-          description:
-              'What to return. One of: package_summary, library_stub, '
-              'class_stub.',
-        ),
         'project_directory': Schema.string(
           description:
               'Absolute path to the Dart/Flutter project directory '
               '(the folder containing pubspec.yaml). Used to resolve the '
               'package version from pubspec.lock and to locate the '
               'package_config.json for analysis.',
+        ),
+        'package': Schema.string(
+          description: 'The package name (e.g. "http", "provider").',
+        ),
+        'kind': Schema.string(
+          description:
+              'What to return. One of: package_summary, library_stub, '
+              'class_stub. Defaults to package_summary.',
         ),
         'library': Schema.string(
           description:
@@ -59,15 +60,8 @@ class PackageInfoTool {
               'The class, mixin, or extension name to target. '
               'Required for class_stub.',
         ),
-        'version': Schema.string(
-          description:
-              'Specific version to look up (e.g. "1.6.0"). Optional — '
-              'defaults to the version resolved in pubspec.lock, or the '
-              'latest cached version if the package is not yet in the '
-              'lockfile.',
-        ),
       },
-      required: ['package', 'kind', 'project_directory'],
+      required: ['project_directory', 'package'],
     ),
   );
 
@@ -77,10 +71,11 @@ class PackageInfoTool {
       return _error('Missing required argument: package');
     }
 
-    final String? kind = request.arguments?['kind'] as String?;
-    if (kind == null || kind.isEmpty) {
-      return _error('Missing required argument: kind');
-    }
+    final String? explicitKind = request.arguments?['kind'] as String?;
+    final kind =
+        explicitKind == null || explicitKind.isEmpty
+            ? 'package_summary'
+            : explicitKind;
 
     final String? projectDirectory =
         request.arguments?['project_directory'] as String?;
@@ -88,12 +83,11 @@ class PackageInfoTool {
       return _error('Missing required argument: project_directory');
     }
 
-    // Resolve version: explicit arg → pubspec.lock → latest cached.
-    final String? explicitVersion = request.arguments?['version'] as String?;
-    final String? version =
-        (explicitVersion != null && explicitVersion.isNotEmpty)
-            ? explicitVersion
-            : resolveVersionFromLockfile(packageName, projectDirectory);
+    // Resolve version: pubspec.lock → latest cached.
+    final String? version = resolveVersionFromLockfile(
+      packageName,
+      projectDirectory,
+    );
     final Directory? packageDir = findPackageInPubCache(packageName, version);
 
     if (packageDir == null) {
@@ -116,7 +110,11 @@ class PackageInfoTool {
         resolvedVersion: resolvedVersion,
         projectDirectory: projectDirectory,
       ),
-      'library_stub' => _notImplemented(kind),
+      'library_stub' => await _libraryStub(
+        packageDir: packageDir,
+        projectDirectory: projectDirectory,
+        libraryUri: request.arguments?['library'] as String? ?? '',
+      ),
       'class_stub' => _notImplemented(kind),
       _ => _error(
         "Unknown kind '$kind'. Use: package_summary, library_stub, "
@@ -234,6 +232,45 @@ class PackageInfoTool {
     }
 
     return paragraph.isEmpty ? null : paragraph.join('\n');
+  }
+
+  Future<CallToolResult> _libraryStub({
+    required Directory packageDir,
+    required String projectDirectory,
+    required String libraryUri,
+  }) async {
+    if (libraryUri.isEmpty) {
+      return _error(
+        'Missing required argument: library '
+        '(e.g. "package:http/http.dart").',
+      );
+    }
+
+    final packageConfigFile = p.join(
+      projectDirectory,
+      '.dart_tool',
+      'package_config.json',
+    );
+    if (!File(packageConfigFile).existsSync()) {
+      return _error(
+        'package_config.json not found at $packageConfigFile. '
+        'Run `dart pub get` in the project directory first.',
+      );
+    }
+
+    final resolver = _getResolver(packageDir, packageConfigFile);
+    final library = await resolver.resolve(libraryUri);
+    if (library == null) {
+      return _error(
+        "Could not resolve '$libraryUri'. "
+        'Check that the library URI is correct and the package is in '
+        'pubspec.lock.',
+      );
+    }
+
+    return CallToolResult(
+      content: [TextContent(text: emitLibraryStub(library))],
+    );
   }
 
   static CallToolResult _error(String message) =>
