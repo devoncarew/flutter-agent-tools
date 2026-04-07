@@ -15,7 +15,7 @@ import 'blocklist.dart';
 /// [input] is the decoded hook JSON from stdin. Emits any warnings to stdout
 /// and returns. Never throws.
 Future<void> handlePubAdd(
-  Map<String, dynamic> input, {
+  Map<String, Object?> input, {
   http.Client? httpClient,
 }) async {
   final toolName = input['tool_name'] as String?;
@@ -65,23 +65,22 @@ List<(String, String?)> extractPackagesFromCommand(String command) {
 /// [input] is the decoded hook JSON from stdin. Emits any warnings to stdout
 /// and returns. Never throws.
 Future<void> handlePubspecGuard(
-  Map<String, dynamic> input, {
+  Map<String, Object?> input, {
   http.Client? httpClient,
 }) async {
   final toolName = input['tool_name'] as String?;
   if (toolName != 'Write' && toolName != 'Edit') return;
 
   final toolInput =
-      (input['tool_input'] as Map?)?.cast<String, dynamic>() ?? {};
+      (input['tool_input'] as Map?)?.cast<String, Object?>() ?? {};
   final filePath = toolInput['file_path'] as String? ?? '';
 
   if (!filePath.endsWith('pubspec.yaml')) return;
 
   // Read the current file from disk (before the edit).
-  Map<String, String> oldDeps = {};
+  String oldContent = '';
   try {
-    final currentContent = File(filePath).readAsStringSync();
-    oldDeps = parsePubspecDeps(currentContent);
+    oldContent = File(filePath).readAsStringSync();
   } catch (_) {
     // File doesn't exist yet or unreadable — treat all incoming deps as new.
   }
@@ -92,26 +91,36 @@ Future<void> handlePubspecGuard(
     newContent = toolInput['content'] as String? ?? '';
   } else {
     // Edit: apply old_string → new_string substitution.
-    final oldFile = File(filePath);
-    final String currentContent =
-        oldFile.existsSync() ? oldFile.readAsStringSync() : '';
     final oldString = toolInput['old_string'] as String? ?? '';
     final newString = toolInput['new_string'] as String? ?? '';
-    newContent = currentContent.replaceFirst(oldString, newString);
+    newContent = oldContent.replaceFirst(oldString, newString);
   }
 
+  final added = newlyAddedPackages(oldContent, newContent);
+  if (added.isEmpty) return;
+  await checkPackages(added, httpClient: httpClient);
+}
+
+/// Returns the list of packages newly added between [oldContent] and
+/// [newContent] (both raw pubspec.yaml strings), as
+/// `[(packageName, versionConstraint?)]`.
+///
+/// Only packages absent from [oldContent] and present in [newContent] are
+/// returned. Constraint changes to existing packages are ignored.
+List<(String, String?)> newlyAddedPackages(
+  String oldContent,
+  String newContent,
+) {
+  final oldDeps = parsePubspecDeps(oldContent);
   final newDeps = parsePubspecDeps(newContent);
 
-  // Find newly added packages (ignore constraint changes to existing ones).
   final added = <(String, String?)>[];
   for (final entry in newDeps.entries) {
     if (!oldDeps.containsKey(entry.key)) {
       added.add((entry.key, entry.value.isEmpty ? null : entry.value));
     }
   }
-
-  if (added.isEmpty) return;
-  await checkPackages(added, httpClient: httpClient);
+  return added;
 }
 
 /// Parses a pubspec.yaml string and returns a flat map of
@@ -239,7 +248,7 @@ String? checkMajorVersion(
 ///
 /// Returns a map with keys `isDiscontinued`, `replacedBy`, `latestVersion`,
 /// or `{'notFound': true}` for a 404. Returns null on network errors.
-Future<Map<String, dynamic>?> fetchPubDevInfo(
+Future<Map<String, Object?>?> fetchPubDevInfo(
   String pkg,
   http.Client client,
 ) async {
@@ -250,8 +259,8 @@ Future<Map<String, dynamic>?> fetchPubDevInfo(
     if (response.statusCode == 404) return {'notFound': true};
     if (response.statusCode != 200) return null;
 
-    final body = jsonDecode(response.body) as Map<String, dynamic>;
-    final latest = body['latest'] as Map<String, dynamic>?;
+    final body = jsonDecode(response.body) as Map<String, Object?>;
+    final latest = body['latest'] as Map<String, Object?>?;
 
     return {
       'isDiscontinued': body['isDiscontinued'] as bool? ?? false,

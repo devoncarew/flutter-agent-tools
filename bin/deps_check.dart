@@ -31,9 +31,10 @@ void main(List<String> args) async {
     exit(0);
   }
 
-  final Map<String, dynamic> input;
+  final Map<String, Object?> input;
+
   try {
-    input = (jsonDecode(rawInput) as Map).cast<String, dynamic>();
+    input = (jsonDecode(rawInput) as Map).cast<String, Object?>();
   } catch (_) {
     exit(0);
   }
