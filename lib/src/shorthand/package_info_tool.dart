@@ -184,8 +184,12 @@ class PackageInfoTool {
 
     buf.writeln();
     buf.writeln('## Libraries');
-    for (final lib in publicLibraries) {
-      buf.writeln('  $lib');
+    if (publicLibraries.isEmpty) {
+      buf.writeln('  (none)');
+    } else {
+      for (final lib in publicLibraries) {
+        buf.writeln('  $lib');
+      }
     }
 
     // Exported names from the main library (requires analysis).
@@ -222,7 +226,7 @@ class PackageInfoTool {
         buf.writeln();
         buf.writeln('## Examples');
         for (final ex in examples) {
-          buf.writeln('  ${packageDir.path}/$ex');
+          buf.writeln('  $ex');
         }
       }
     }
