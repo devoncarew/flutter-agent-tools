@@ -5,12 +5,12 @@ code.
 
 ## Tools
 
-### Dependency Health Hook
+### Package Currency Hook
 
-Two `PreToolUse` hooks that validate packages against pub.dev before they are
-added — either via `flutter pub add` / `dart pub add` or by directly editing
-`pubspec.yaml`. Both emit warnings and let the agent decide; neither
-hard-blocks.
+Two `PreToolUse` hooks that help agents use current, well-maintained packages.
+Fires when adding packages via `flutter pub add` / `dart pub add` or by
+directly editing `pubspec.yaml`. Emits advisory warnings and lets the agent
+decide; never hard-blocks.
 
 Checks performed:
 
@@ -20,10 +20,11 @@ Checks performed:
   `1.x`).
 - **Not found:** warns if the package name doesn't exist on pub.dev.
 
-### Package API Inspector (planned)
+### Package API Retrieval and Summarization (planned)
 
-An MCP command that returns a token-efficient summary of a package's public API
-— without requiring the agent to read raw source from `.pub-cache`.
+An MCP server (`dart-api`) that retrieves and summarizes a package's public API
+directly from the local pub cache — giving agents accurate, version-matched
+signatures without reading raw source or relying on training-data summaries.
 
 ### Flutter UI Agent
 

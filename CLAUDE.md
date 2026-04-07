@@ -9,7 +9,7 @@ observe a running Flutter app.
 
 - Inspector MCP server entry point: `bin/inspector_mcp.dart`; logic:
   `lib/src/inspector/mcp_server.dart`. Declared in `.claude-plugin/plugin.json`.
-- Dep check hook: `bin/deps_check.dart`, invoked via
+- Package currency hook: `bin/deps_check.dart`, invoked via
   `scripts/deps_check.sh --mode=pub-add|pubspec-guard`. Configured in
   `hooks/hooks.json`.
 - Hooks receive tool input as JSON on stdin; exit 0 always (warnings only —
@@ -35,8 +35,8 @@ observe a running Flutter app.
 ## Current Status
 
 - Plugin scaffold: done
-- Dep health hook (`bin/deps_check.dart`): functional — discontinued check, old
-  major version check, pubspec-guard mode all implemented
+- Package currency hook (`bin/deps_check.dart`): functional — discontinued
+  check, old major version check, pubspec-guard mode all implemented
 - MCP server: functional — launch, reload, close, screenshot, inspect layout,
   evaluate, and query_ui (route mode with go_router path enrichment) all working
 - Flutter.Error events are pushed to agents with widget IDs for use with
