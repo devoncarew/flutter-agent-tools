@@ -1,17 +1,17 @@
 import 'dart:async';
 
 import 'package:dart_mcp/server.dart';
-import 'package:flutter_agent_tools/src/utils.dart';
+import 'utils.dart';
 
 import 'app_session.dart';
 import 'tool_context.dart';
-import 'tools/flutter_close_app.dart';
-import 'tools/flutter_evaluate.dart';
-import 'tools/flutter_inspect_layout.dart';
-import 'tools/flutter_launch_app.dart';
-import 'tools/flutter_query_ui.dart';
-import 'tools/flutter_reload.dart';
-import 'tools/flutter_take_screenshot.dart';
+import 'tools/close_app.dart';
+import 'tools/evaluate.dart';
+import 'tools/inspect_layout.dart';
+import 'tools/launch_app.dart';
+import 'tools/query_ui.dart';
+import 'tools/reload.dart';
+import 'tools/take_screenshot.dart';
 
 /// The MCP server for flutter-agent-tools.
 ///
