@@ -1,5 +1,6 @@
 import 'package:dart_mcp/server.dart';
 
+import '../version.dart';
 import 'package_info_tool.dart';
 
 /// The MCP server for the dart-api (shorthand) package API summarization tool.
@@ -9,7 +10,10 @@ import 'package_info_tool.dart';
 base class ShorthandServer extends MCPServer with ToolsSupport, LoggingSupport {
   ShorthandServer(super.channel)
     : super.fromStreamChannel(
-        implementation: Implementation(name: 'dart-api', version: '0.1.0'),
+        implementation: Implementation(
+          name: 'dart-api',
+          version: packageVersion,
+        ),
         instructions: '''
 Tools for querying Dart and Flutter package APIs directly from the pub cache.
 

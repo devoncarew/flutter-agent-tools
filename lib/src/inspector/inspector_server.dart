@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dart_mcp/server.dart';
+import '../version.dart';
 import 'utils.dart';
 
 import 'app_session.dart';
@@ -32,11 +33,11 @@ base class InspectorServer extends MCPServer with ToolsSupport, LoggingSupport {
   InspectorServer(super.channel)
     : super.fromStreamChannel(
         implementation: Implementation(
-          name: 'flutter-agent-tools',
-          version: '0.1.0',
+          name: 'flutter-inspect',
+          version: packageVersion,
         ),
         instructions: '''
-Tools for AI agents working on Dart and Flutter projects.
+Tools for for launching, inspecting, and interacting with a running Flutter app.
 
 Session lifecycle: call flutter_launch_app first to get a session_id; pass it to all other tools. Call flutter_close_app when done.
 
