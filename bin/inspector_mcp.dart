@@ -4,5 +4,5 @@ import 'package:dart_mcp/stdio.dart';
 import 'package:flutter_agent_tools/inspector_mcp.dart';
 
 void main() {
-  FlutterAgentServer(stdioChannel(input: io.stdin, output: io.stdout));
+  InspectorServer(stdioChannel(input: io.stdin, output: io.stdout));
 }

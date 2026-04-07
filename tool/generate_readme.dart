@@ -25,7 +25,7 @@ void main() async {
     serverController.sink,
   );
 
-  final server = FlutterAgentServer(serverChannel);
+  final server = InspectorServer(serverChannel);
   final client = _ScriptClient();
   final connection = client.connectServer(clientChannel);
 

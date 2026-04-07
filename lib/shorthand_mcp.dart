@@ -1,1 +1,1 @@
-export 'src/shorthand/mcp_server.dart';
+export 'src/shorthand/shorthand_server.dart';
