@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_mcp/client.dart';
-import 'package:flutter_agent_tools/mcp_server.dart';
+import 'package:flutter_agent_tools/inspector_mcp.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 const _marker = '<!-- flutter commands -->';

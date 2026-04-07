@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_agent_tools/src/diagnostics_node.dart';
-import 'package:flutter_agent_tools/src/app_session.dart';
+import 'package:flutter_agent_tools/src/inspector/diagnostics_node.dart';
+import 'package:flutter_agent_tools/src/inspector/app_session.dart';
 import 'package:test/test.dart';
 
 Map<String, dynamic> _loadFixture(String name) {
-  final file = File('test/fixtures/errors/$name');
+  final file = File('test/inspector/fixtures/errors/$name');
   return jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
 }
 

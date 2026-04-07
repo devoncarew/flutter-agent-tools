@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_agent_tools/src/error_summarizers.dart';
-import 'package:flutter_agent_tools/src/app_session.dart';
+import 'package:flutter_agent_tools/src/inspector/error_summarizers.dart';
+import 'package:flutter_agent_tools/src/inspector/app_session.dart';
 import 'package:test/test.dart';
 
 FlutterError _loadError(String name) {
   final data =
-      jsonDecode(File('test/fixtures/errors/$name').readAsStringSync())
+      jsonDecode(
+            File('test/inspector/fixtures/errors/$name').readAsStringSync(),
+          )
           as Map<String, dynamic>;
   return FlutterError.tryParse(data)!;
 }

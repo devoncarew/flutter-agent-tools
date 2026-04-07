@@ -15,8 +15,8 @@ jobs:
       - uses: dart-lang/setup-dart@v1
 
       # Check the shell scripts.
-      - run: bash -n scripts/start_dep_check.sh
-      - run: bash -n scripts/start_mcp_server.sh
+      - run: bash -n scripts/deps_check.sh
+      - run: bash -n scripts/start_inspector.sh
 
       # Dart checks.
       - run: dart pub get

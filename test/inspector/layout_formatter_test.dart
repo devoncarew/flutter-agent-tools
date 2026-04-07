@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_agent_tools/src/diagnostics_node.dart';
-import 'package:flutter_agent_tools/src/layout_formatter.dart';
+import 'package:flutter_agent_tools/src/inspector/diagnostics_node.dart';
+import 'package:flutter_agent_tools/src/inspector/layout_formatter.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -13,7 +13,7 @@ void main() {
       final data =
           jsonDecode(
                 File(
-                  'test/fixtures/render_trees/overflow_details.json',
+                  'test/inspector/fixtures/render_trees/overflow_details.json',
                 ).readAsStringSync(),
               )
               as Map<String, dynamic>;
@@ -23,7 +23,7 @@ void main() {
     test('matches golden output', () {
       final golden =
           File(
-            'test/fixtures/render_trees/overflow_details_formatted.txt',
+            'test/inspector/fixtures/render_trees/overflow_details_formatted.txt',
           ).readAsStringSync().trimRight();
       // maxDepth: 1 matches the default used by flutter_inspect_layout.
       expect(formatLayoutDetails(node, maxDepth: 1), equals(golden));

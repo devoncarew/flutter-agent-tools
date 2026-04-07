@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
-# start_dep_check.sh
+
+# start_mcp_server.sh
 #
-# PreToolUse hook entry point for dependency health checks.
+# Entry point for the flutter-agent-tools inspector MCP server.
 #
 # Uses $0 to locate itself, so it works regardless of how ${CLAUDE_PLUGIN_ROOT}
 # is resolved by the host — the script is its own source of truth for the
 # plugin root directory.
-#
-# All arguments are forwarded to dep_check.dart (e.g. --mode=pub-add).
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-(cd "$PLUGIN_ROOT" && exec dart run "bin/dep_check.dart" "$@")
+(cd $PLUGIN_ROOT && exec dart run "bin/inspector_mcp.dart")
