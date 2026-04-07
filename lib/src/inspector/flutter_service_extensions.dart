@@ -42,6 +42,107 @@ class FlutterServiceExtensions {
   }
 
   // ---------------------------------------------------------------------------
+  // Semantics
+
+  /// Enables the Flutter semantics tree.
+  ///
+  /// Evaluates `RendererBinding.instance.ensureSemantics()` on the main
+  /// isolate. The returned [SemanticsHandle] is intentionally not retained —
+  /// Dart's GC does not call [SemanticsHandle.dispose], so the reference
+  /// count stays incremented and the semantics tree remains active for the
+  /// lifetime of the app process.
+  ///
+  /// Safe to call multiple times.
+  Future<void> enableSemantics() async {
+    // RendererBinding is not in the app's root library scope, so we evaluate
+    // in widget_inspector.dart which imports package:flutter/rendering.dart.
+    await evaluate(
+      'RendererBinding.instance.ensureSemantics()',
+      libraryUri: 'package:flutter/src/widgets/widget_inspector.dart',
+    );
+  }
+
+  /// Returns a JSON string representing the current semantics tree.
+  ///
+  /// Each node in the JSON tree has the shape:
+  /// ```json
+  /// {
+  ///   "id": 42,
+  ///   "role": "button",
+  ///   "label": "Sign in",
+  ///   "value": "",
+  ///   "hint": "Double tap to activate",
+  ///   "tooltip": "",
+  ///   "checked": null,
+  ///   "toggled": null,
+  ///   "selected": null,
+  ///   "enabled": true,
+  ///   "focused": false,
+  ///   "actions": 1,
+  ///   "rect": [100.0, 200.0, 200.0, 250.0],
+  ///   "children": []
+  /// }
+  /// ```
+  ///
+  /// `role` is one of: `"button"`, `"textfield"`, `"slider"`, `"link"`,
+  /// `"image"`, `"header"`, `"checkbox"`, `"toggle"`, `"radio"`, or `""`
+  /// (generic/container). State fields (`checked`, `toggled`, `selected`,
+  /// `enabled`) are `null` when the concept does not apply to the node.
+  /// `rect` is `[left, top, right, bottom]` in the node's local coordinate
+  /// space (the root's local space is screen coordinates).
+  /// `actions` is a [SemanticsAction] bitmask.
+  ///
+  /// Returns `{"error":"..."}` if semantics is not yet enabled or the tree
+  /// is empty. Throws an [RPCError] on VM service failures.
+  ///
+  /// The expression is evaluated in the `semantics.dart` library scope, where
+  /// `SemanticsNode`, `SemanticsBinding`, `CheckedState`, and `Tristate` are
+  /// all in scope. `RendererBinding` is accessed via
+  /// `(SemanticsBinding.instance as dynamic).pipelineOwner`.
+  Future<String> getSemanticsTree() async {
+    // Evaluate in semantics.dart scope: SemanticsNode, SemanticsBinding,
+    // CheckedState, and Tristate are all in scope there. RendererBinding is
+    // not in scope, but we access pipelineOwner via
+    // (SemanticsBinding.instance as dynamic).pipelineOwner.
+    const String inspectorLibUri =
+        'package:flutter/src/semantics/semantics.dart';
+
+    final VM vm = await _vmService.getVM();
+    for (final IsolateRef ref in vm.isolates ?? []) {
+      final Isolate isolate = await _vmService.getIsolate(ref.id!);
+      final String? libId = _libraryIdForUri(isolate, inspectorLibUri);
+      if (libId == null) continue;
+
+      final Response result = await _vmService.evaluate(
+        ref.id!,
+        libId,
+        _kSemanticsTreeExpression,
+      );
+
+      if (result is ErrorRef) {
+        throw rpcError(
+          result.message ?? 'getSemanticsTree failed',
+          fromMethod: 'getSemanticsTree',
+        );
+      }
+      if (result is InstanceRef) {
+        // valueAsString is truncated for long strings — fetch the full object.
+        if (result.valueAsStringIsTruncated == true) {
+          final obj = await _vmService.getObject(ref.id!, result.id!);
+          if (obj is Instance) {
+            return obj.valueAsString ?? '{"error":"null result"}';
+          }
+        }
+        return result.valueAsString ?? '{"error":"null result"}';
+      }
+    }
+    throw rpcError(
+      'No suitable isolate found for getSemanticsTree',
+      fromMethod: 'getSemanticsTree',
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // ext.flutter.debugPaint
 
   /// Returns whether the debug paint overlay is currently enabled.
@@ -338,22 +439,29 @@ class FlutterServiceExtensions {
   // ---------------------------------------------------------------------------
   // VM service evaluate
 
-  /// Evaluates [expression] on the main isolate's root library and returns the
-  /// result as a string.
+  /// Evaluates [expression] on the main isolate and returns the result as a
+  /// string.
   ///
-  /// The expression is evaluated in the context of the isolate's root library,
-  /// so top-level declarations and imports of the app's `main.dart` are in
-  /// scope. This is the right context for accessing globals like
-  /// `WidgetsBinding.instance`, `FlutterView` properties, etc.
+  /// By default the expression is evaluated in the context of the isolate's
+  /// root library (`main.dart`), so top-level declarations and globals like
+  /// `WidgetsBinding.instance` are in scope.
+  ///
+  /// Pass [libraryUri] to evaluate in a different library scope. For example,
+  /// `package:flutter/src/widgets/widget_inspector.dart` imports
+  /// `package:flutter/rendering.dart` and `dart:ui`, making `RendererBinding`,
+  /// `SemanticsNode`, `CheckedState`, `Tristate`, etc. available.
   ///
   /// Returns the `toString()` of the result. Throws an [RPCError] if the
   /// expression fails to compile or throws at runtime — the error message
   /// includes the Dart exception text.
-  Future<String> evaluate(String expression) async {
+  Future<String> evaluate(String expression, {String? libraryUri}) async {
     final VM vm = await _vmService.getVM();
     for (final IsolateRef ref in vm.isolates ?? []) {
       final Isolate isolate = await _vmService.getIsolate(ref.id!);
-      final String? libId = isolate.rootLib?.id;
+      final String? libId =
+          libraryUri != null
+              ? _libraryIdForUri(isolate, libraryUri)
+              : isolate.rootLib?.id;
       if (libId == null) continue;
 
       final Response result = await _vmService.evaluate(
@@ -530,6 +638,50 @@ class FlutterServiceExtensions {
     throw rpcError('No isolate found with extension: $extension');
   }
 }
+
+// ---------------------------------------------------------------------------
+// Dart IIFE evaluated inside the running app to dump the semantics tree.
+//
+// Design constraints:
+//   - No local named function declarations — some Dart VM evaluate
+//     implementations do not support them. All logic is inlined.
+//   - No '{' or '}' inside string literals — avoid potential brace-counting
+//     bugs in simpler expression parsers. Error results use the prefix
+//     "error:" and the data format uses JSON arrays ([]) not objects ({}).
+//   - Evaluated in widget_inspector.dart library scope, which imports
+//     package:flutter/rendering.dart and dart:ui so RendererBinding,
+//     SemanticsNode, CheckedState, and Tristate are all in scope.
+//
+// Output: a flat JSON array of tuples, one per visible non-hidden node:
+//   [[id, role, label, value, hint, checked, toggled, selected, enabled,
+//     focused, actions, rectLeft, rectTop, rectRight, rectBottom], ...]
+//
+// Field indices (0-based):
+//   0  id       int     — SemanticsNode.id (usable with performSemanticsAction)
+//   1  role     String  — "button"|"textfield"|"slider"|"link"|"image"|
+//                         "header"|"checkbox"|"toggle"|"radio"|""
+//   2  label    String  — primary accessibility label
+//   3  value    String  — current value (slider pos, text content, etc.)
+//   4  hint     String  — hint text
+//   5  checked  bool?   — null if not applicable
+//   6  toggled  bool?   — null if not applicable (Switch)
+//   7  selected bool?   — null if not applicable (Tab, ListItem)
+//   8  enabled  bool?   — null if not applicable
+//   9  focused  bool
+//   10 actions  int     — SemanticsAction bitmask
+//   11..14 rect doubles — left, top, right, bottom in local coordinates
+//
+// On error, returns the string "error:<message>".
+// The expression must be a single line — the Dart VM evaluate endpoint does
+// not support multi-line IIFE bodies. Named local functions and multi-line
+// strings with { } characters also cause "Can't find '}' to match '{'" errors.
+//
+// Library scope: package:flutter/src/semantics/semantics.dart
+// (SemanticsNode, SemanticsBinding, CheckedState, Tristate all in scope)
+// RendererBinding is not in scope there, so we reach pipelineOwner via
+// (SemanticsBinding.instance as dynamic).pipelineOwner.
+const String _kSemanticsTreeExpression =
+    r"""(() { final owner = (SemanticsBinding.instance as dynamic).pipelineOwner.semanticsOwner; if (owner == null) return 'error:semantics not enabled'; final root = owner.rootSemanticsNode; if (root == null) return 'error:semantics tree empty - retry after a frame renders'; final parts = []; final stack = [root]; while (stack.isNotEmpty) { final node = stack.removeLast(); if (node.isInvisible) continue; final d = node.getSemanticsData(); final f = d.flagsCollection; if (f.isHidden) continue; final r = node.rect; final role = f.isButton ? 'button' : f.isTextField ? 'textfield' : f.isSlider ? 'slider' : f.isLink ? 'link' : f.isImage ? 'image' : f.isHeader ? 'header' : f.isChecked != CheckedState.none ? 'checkbox' : f.isToggled != Tristate.none ? 'toggle' : f.isInMutuallyExclusiveGroup ? 'radio' : ''; final lb = '${node.label}'.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', ' '); final vl = '${node.value}'.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', ' '); final hn = '${node.hint}'.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', ' '); final checked = f.isChecked == CheckedState.none ? 'null' : f.isChecked == CheckedState.isTrue ? 'true' : 'false'; final toggled = f.isToggled == Tristate.none ? 'null' : f.isToggled == Tristate.isTrue ? 'true' : 'false'; final selected = f.isSelected == Tristate.none ? 'null' : f.isSelected == Tristate.isTrue ? 'true' : 'false'; final enabled = f.isEnabled == Tristate.none ? 'null' : f.isEnabled == Tristate.isTrue ? 'true' : 'false'; final focused = f.isFocused == Tristate.isTrue; parts.add('[${node.id},"$role","$lb","$vl","$hn",$checked,$toggled,$selected,$enabled,$focused,${d.actions},${r.left},${r.top},${r.right},${r.bottom}]'); if (!node.mergeAllDescendantsIntoThisNode) node.visitChildren((child) => (stack..add(child)).isNotEmpty); } return '[${parts.join(",")}]'; })()""";
 
 RPCError rpcError(String message, {String? fromMethod}) =>
     RPCError(fromMethod, 0, message);

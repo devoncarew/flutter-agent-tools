@@ -394,7 +394,9 @@ class AppSession {
       if (event == 'app.start') {
         _appId = params['appId'] as String?;
       } else if (event == 'app.started') {
-        if (!_startedCompleter.isCompleted) _startedCompleter.complete();
+        if (!_startedCompleter.isCompleted) {
+          _startedCompleter.complete();
+        }
       } else if (event == 'app.debugPort') {
         _vmServiceUri = params['wsUri'] as String?;
         _connectVmService(_vmServiceUri!);
@@ -419,6 +421,11 @@ class AppSession {
     );
 
     await vmService.streamListen(EventStreams.kExtension);
+
+    // Enable semantics so flutter_query_ui mode=semantics works. Best-effort.
+    try {
+      await _serviceExtensions!.enableSemantics();
+    } catch (_) {}
 
     _vmServiceSubscription = vmService.onExtensionEvent.listen((Event event) {
       if (event.extensionKind == 'Flutter.Error') {
