@@ -8,6 +8,6 @@ existing examples (from example/, from the REDAME.md, ...).
 ## Flutter UI Agent
 
 - [x] make sure we get stdout from apps
-- [ ] make sure we get stderr from apps
-- [ ] make sure we get exceptions from apps
+- [x] make sure we get stderr from apps
+- [x] make sure we get exceptions from apps
 - [ ] is SemanticsBinding.performSemanticsAction() a good way to drive the UI?
