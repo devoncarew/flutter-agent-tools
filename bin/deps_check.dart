@@ -6,8 +6,8 @@ import 'package:flutter_agent_tools/src/deps/deps_check.dart';
 /// PreToolUse hook: validates Dart/Flutter package additions against pub.dev.
 ///
 /// Usage:
-///   dart run flutter_agent_tools:dep_check --mode=pub-add
-///   dart run flutter_agent_tools:dep_check --mode=pubspec-guard
+///   dart run bin/deps_check.dart --mode=pub-add
+///   dart run bin/deps_check.dart --mode=pubspec-guard
 ///
 /// Reads tool input JSON from stdin. Always exits 0 (warnings only — the
 /// agent decides whether to proceed).
@@ -19,7 +19,7 @@ void main(List<String> args) async {
     mode = 'pubspec-guard';
   } else {
     stderr.writeln(
-      'dep_check: unknown mode. Pass --mode=pub-add or --mode=pubspec-guard',
+      'deps_check: unknown mode. Pass --mode=pub-add or --mode=pubspec-guard',
     );
     exit(0); // Fail open.
   }

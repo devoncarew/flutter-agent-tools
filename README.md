@@ -64,7 +64,7 @@ chmod +x scripts/*.sh
 
 # Test the dep-check hook manually:
 echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
-  | dart run bin/dep_check.dart --mode=pub-add
+  | dart run bin/deps_check.dart --mode=pub-add
 ```
 
 ## Links

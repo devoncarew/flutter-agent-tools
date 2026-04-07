@@ -7,17 +7,17 @@ observe a running Flutter app.
 
 ## Key Conventions
 
-- MCP server entry point: `bin/mcp_server.dart`; logic:
-  `lib/src/mcp_server.dart`. Declared in `.claude-plugin/plugin.json`.
-- Dep check hook: `bin/dep_check.dart`, invoked via
-  `scripts/start_dep_check.sh --mode=pub-add|pubspec-guard`. Configured in
+- Inspector MCP server entry point: `bin/inspector_mcp.dart`; logic:
+  `lib/src/inspector/mcp_server.dart`. Declared in `.claude-plugin/plugin.json`.
+- Dep check hook: `bin/deps_check.dart`, invoked via
+  `scripts/deps_check.sh --mode=pub-add|pubspec-guard`. Configured in
   `hooks/hooks.json`.
 - Hooks receive tool input as JSON on stdin; exit 0 always (warnings only —
   hard-blocking is reserved for cases where proceeding would be clearly wrong).
 - Use `${CLAUDE_PLUGIN_ROOT}` for all paths in hook commands — never hardcode.
 - Fail open on infrastructure errors (network timeout, etc.): don't block the
   agent over tooling failures.
-- The MCP server is a Dart CLI package: `dart run bin/mcp_server.dart`.
+- The MCP server is a Dart CLI package: `dart run bin/inspector_mcp.dart`.
 
 ## Registered MCP Tools
 
@@ -35,8 +35,8 @@ observe a running Flutter app.
 ## Current Status
 
 - Plugin scaffold: done
-- Dep health hook (`bin/dep_check.dart`): functional — discontinued check,
-  old major version check, pubspec-guard mode all implemented
+- Dep health hook (`bin/deps_check.dart`): functional — discontinued check, old
+  major version check, pubspec-guard mode all implemented
 - MCP server: functional — launch, reload, close, screenshot, inspect layout,
   evaluate, and query_ui (route mode with go_router path enrichment) all working
 - Flutter.Error events are pushed to agents with widget IDs for use with
@@ -45,9 +45,9 @@ observe a running Flutter app.
 ## Development
 
 ```sh
-# Test the dep-check hook directly:
+# Test the deps-check hook directly:
 echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
-  | dart run bin/dep_check.dart --mode=pub-add
+  | dart run bin/deps_check.dart --mode=pub-add
 
 # Load the plugin locally:
 claude --plugin-dir /path/to/flutter-agent-tools

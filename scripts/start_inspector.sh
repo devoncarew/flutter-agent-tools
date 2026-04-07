@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# start_mcp_server.sh
+# start_inspector.sh
 #
 # Entry point for the flutter-agent-tools inspector MCP server.
 #

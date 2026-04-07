@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# start_dep_check.sh
+# deps_check.sh
 #
 # PreToolUse hook entry point for dependency health checks.
 #
@@ -8,7 +8,7 @@
 # is resolved by the host — the script is its own source of truth for the
 # plugin root directory.
 #
-# All arguments are forwarded to dep_check.dart (e.g. --mode=pub-add).
+# All arguments are forwarded to deps_check.dart (e.g. --mode=pub-add).
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
