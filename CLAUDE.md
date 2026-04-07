@@ -8,7 +8,9 @@ observe a running Flutter app.
 ## Key Conventions
 
 - Inspector MCP server entry point: `bin/inspector_mcp.dart`; logic:
-  `lib/src/inspector/mcp_server.dart`. Declared in `.claude-plugin/plugin.json`.
+  `lib/src/inspector/inspector_server.dart`. Declared in `.claude-plugin/plugin.json`.
+- Shorthand MCP server entry point: `bin/shorthand_mcp.dart`; logic:
+  `lib/src/shorthand/shorthand_server.dart`. Declared in `.claude-plugin/plugin.json`.
 - Package currency hook: `bin/deps_check.dart`, invoked via
   `scripts/deps_check.sh --mode=pub-add|pubspec-guard`. Configured in
   `hooks/hooks.json`.
@@ -17,19 +19,24 @@ observe a running Flutter app.
 - Use `${CLAUDE_PLUGIN_ROOT}` for all paths in hook commands — never hardcode.
 - Fail open on infrastructure errors (network timeout, etc.): don't block the
   agent over tooling failures.
-- The MCP server is a Dart CLI package: `dart run bin/inspector_mcp.dart`.
 
 ## Registered MCP Tools
 
+### dart-api server (`bin/shorthand_mcp.dart`)
+
+- `package_info` — returns API summaries for Dart/Flutter packages from the
+  local pub cache. `kind` parameter: `package_summary` (default), `library_stub`,
+  `class_stub`.
+
+### flutter-inspect server (`bin/inspector_mcp.dart`)
+
 - `flutter_launch_app` — builds and launches a Flutter app, returns a session ID
 - `flutter_reload` — hot reload or hot restart a running app
-- `flutter_take_screenshot` — captures a PNG screenshot via the inspector
-  protocol
+- `flutter_take_screenshot` — captures a PNG screenshot via the inspector protocol
 - `flutter_inspect_layout` — returns the layout tree for a widget (or root)
-- `flutter_evaluate` — evaluates an arbitrary Dart expression on the main
-  isolate
-- `flutter_query_ui` - supports different modes to get information of what is
-  currently on screen
+- `flutter_evaluate` — evaluates an arbitrary Dart expression on the main isolate
+- `flutter_query_ui` — returns a high-level description of what is on screen;
+  supports `mode=route` (with go_router path enrichment)
 - `flutter_close_app` — stops a running app and releases its session
 
 ## Current Status
@@ -37,8 +44,11 @@ observe a running Flutter app.
 - Plugin scaffold: done
 - Package currency hook (`bin/deps_check.dart`): functional — discontinued
   check, old major version check, pubspec-guard mode all implemented
-- MCP server: functional — launch, reload, close, screenshot, inspect layout,
-  evaluate, and query_ui (route mode with go_router path enrichment) all working
+- dart-api MCP server: functional — `package_summary`, `library_stub`, and
+  `class_stub` all implemented
+- flutter-inspect MCP server: functional — launch, reload, close, screenshot,
+  inspect layout, evaluate, and query_ui (route mode with go_router path
+  enrichment) all working
 - Flutter.Error events are pushed to agents with widget IDs for use with
   `flutter_inspect_layout`
 
