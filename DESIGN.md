@@ -154,16 +154,62 @@ What this tool does NOT cover:
 Design reference: Modeled on the architecture of the
 [`jot`](https://github.com/devoncarew/jot) tool.
 
-### Notes:
+### Implementation architecture
 
-- AST-based (via `package:analyzer`) is preferred over dartdoc JSON. Dartdoc
-  requires a prior analysis pass and may not be present; the analyzer element
-  model is always derivable from source and correctly resolves mixin
-  contributions.
-- Version resolution: read from `pubspec.lock` in the current working directory.
-- Caching: the pub cache directory is already versioned
-  (`{package}-{version}/`), so source is stable. Parse-result caching is a
-  nice-to-have for large packages like `package:analyzer` itself.
+The pipeline has three stages:
+
+**1. Context setup (`lib/src/shorthand/analysis_context.dart`)**
+
+Resolution uses the caller's already-resolved dependency graph rather than
+running a fresh `pub get`. This is correct by construction: the target
+package's deps are a subset of the user's resolved graph, so all imports
+resolve cleanly, and the agent sees exactly the API their compiler sees.
+
+- Read `.dart_tool/package_config.json` from the `project_directory`.
+- Construct an `AnalysisContextCollection` pointed at the target package's
+  directory in the pub cache, using that package config for resolution.
+- Cache the last `AnalysisContextCollection` (keyed by package + version) and
+  discard it when a different package is requested. Usage clusters around one
+  package per conversation, so a single-entry cache is sufficient. Analyzer
+  context construction is fast enough for this use case.
+
+Constraint: the package must already be in the project's `pubspec.lock`
+(i.e. `pub get` has been run). This is acceptable — agents will have just
+added the package, or it was already present. Supporting arbitrary versions
+not in the lockfile is deferred unless there is clear demand.
+
+**2. Resolution (`lib/src/shorthand/resolver.dart`)**
+
+`resolveLibrary(projectDir, packageName, libraryUri) → LibraryElement?`
+
+- Locates the package dir in the pub cache using `resolveVersionFromLockfile`
+  + `findPackageInPubCache`.
+- Gets or creates the `AnalysisContextCollection` for that package.
+- Resolves the target library file and returns its `LibraryElement`.
+
+**3. Stub emission (`lib/src/shorthand/stub_emitter.dart`)**
+
+Walks the `LibraryElement` directly — no intermediate model — and emits Dart
+stub text:
+
+- Top-level functions, variables, and typedefs: signature only, no body.
+- Classes, mixins, extensions: public members only; mixin-contributed methods
+  inlined with a `// from MixinName` attribution comment.
+- Doc comments (`///`) preserved; `@internal` / private members omitted.
+- Import lines emitted as-is from the element's source imports (filtered to
+  public packages).
+
+Mixin attribution (`ClassElement.mixins` → `MixinElement.methods`) is the one
+place that requires resolved elements rather than raw AST, which is why
+`package:analyzer` is used instead of a simpler parse-only approach.
+
+### Current state
+
+- `package_info` tool: functional — resolves version from `pubspec.lock`,
+  returns public library list and main entry-point source. No analyzer
+  resolution yet; `kind` parameter not yet implemented.
+- Analyzer context setup and resolution: not yet started.
+- Stub emitter: not yet started.
 
 ## Tool 3: Flutter UI Agent
 
