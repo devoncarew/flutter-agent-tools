@@ -8,9 +8,9 @@ code.
 ### Package Currency Hook
 
 Two `PreToolUse` hooks that help agents use current, well-maintained packages.
-Fires when adding packages via `flutter pub add` / `dart pub add` or by
-directly editing `pubspec.yaml`. Emits advisory warnings and lets the agent
-decide; never hard-blocks.
+Fires when adding packages via `flutter pub add` / `dart pub add` or by directly
+editing `pubspec.yaml`. Emits advisory warnings and lets the agent decide; never
+hard-blocks.
 
 Checks performed:
 
@@ -59,20 +59,16 @@ claude --plugin-dir </path/to>/flutter-agent-tools
 ## Development
 
 ```sh
-git clone https://github.com/devoncarew/flutter-agent-tools
-cd flutter-agent-tools
-chmod +x scripts/*.sh
-
-# Test the dep-check hook manually:
+# To Test the deps-check hook manually:
 echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
   | dart run bin/deps_check.dart --mode=pub-add
 ```
 
 ## Links
 
-- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17)
-  — Flutter UI agent use cases
 - [flight_check issue #2](https://github.com/devoncarew/flight_check/issues/2) —
   pub outdated hook generalization
+- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17)
+  — Flutter UI agent use cases
 - [Playwright MCP](https://playwright.dev/docs/getting-started-mcp) —
   inspiration for Tool 3
