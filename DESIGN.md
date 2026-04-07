@@ -127,17 +127,15 @@ The typical call sequence for an unfamiliar package:
 
 1. `package_summary` — orient, identify the relevant library.
 2. `library_stub` — get all signatures for that library.
-3. `class_stub` or `example` — drill into a specific class or usage pattern if
-   signatures alone aren't enough.
+3. `class_stub` — drill into a specific class if signatures alone aren't enough.
 
 Inputs:
 
 - `package`: package name (required).
-- `kind`: one of the values above (required).
-- `library` / `class`: target for `library_stub`, `class_stub`, `example`
-  (required for those kinds).
-- `version`: defaults to the version resolved in `pubspec.lock`; override
-  allowed for packages not yet in the lockfile.
+- `kind`: one of the values above; defaults to `package_summary`.
+- `project_directory`: path to the Dart/Flutter project (required).
+- `library`: target library URI for `library_stub` and `class_stub`.
+- `class`: target class/mixin/extension name for `class_stub`.
 
 Source: `.pub-cache` only — already downloaded, always matches the resolved
 version, no network required.
@@ -149,21 +147,6 @@ What this tool does NOT cover:
   public API surface.
 - Runtime behaviour, error conditions, or semantic nuance not captured in
   signatures or doc comments.
-
-Design reference: Modeled on the architecture of the
-[`jot`](https://github.com/devoncarew/jot) tool.
-
-### Current state
-
-- `PackageResolver` (`lib/src/shorthand/resolver.dart`): functional — resolves a
-  `package:` URI to a `LibraryElement` using the project's
-  `.dart_tool/package_config.json`. Single-entry caching is the caller's
-  responsibility.
-- `emitLibraryStub` (`lib/src/shorthand/stub_emitter.dart`): functional — emits
-  a full public-API Dart stub from a `LibraryElement`.
-- `package_info` MCP tool: partially implemented — resolves version and lists
-  public libraries, but `kind` parameter not yet implemented. See `docs/plan.md`
-  for the remaining steps.
 
 ## Tool 3: Flutter UI Agent
 
@@ -342,7 +325,7 @@ This enrichment is best-effort: if evaluation fails (e.g. older go_router
 version, or app doesn't use go_router), the route stack is still returned
 without the `Current path:` line.
 
-Programmatic navigation via go_router (planned):
+Programmatic navigation via go_router [planned]:
 
 Once we have the GoRouter instance via `evaluateOnObject`, we can call
 navigation methods on it directly. Note the field path: the VM object is an
@@ -387,7 +370,7 @@ Tool surface (✓ = implemented, [planned] = not yet):
 
 ```
 // dart-api server (Tool 2)
-package_info(package, kind, library?, class?, version?) → String [planned]
+package_info(package, kind, library?, class?, version?) → String
 
 // flutter-inspect server (Tool 3) — session lifecycle
 ✓ flutter_launch_app(working_directory, target?, device?) → session_id
@@ -399,7 +382,7 @@ package_info(package, kind, library?, class?, version?) → String [planned]
 ✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
 ✓ flutter_inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
 ✓ flutter_evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
-✓ flutter_query_ui(session_id, mode) → String  // route: ✓ (incl. go_router path enrichment) | semantics: [planned] | widget_tree: [planned]
+✓ flutter_query_ui(session_id, mode) → String  // route: ✓ | semantics: [planned] | widget_tree: [planned]
 
 // flutter-inspect server (Tool 3) — app interaction (useful but lower priority for coding agents)
 [planned] flutter_navigate(session_id, path) → void  // go_router: via InheritedGoRouter + evaluateOnObject
