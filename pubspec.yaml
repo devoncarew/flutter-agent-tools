@@ -6,7 +6,7 @@ description: >-
 # Versioning for the plugin is tracked at .claude-plugin/plugin.json.
 publish_to: none
 
-repository: https://github.com/devoncarew/flutter-agent-tools
+repository: https://github.com/devoncarew/flutter-slipstream
 
 environment:
   sdk: ^3.7.0
