@@ -10,7 +10,7 @@ import 'tools/close_app_tool.dart';
 import 'tools/evaluate_tool.dart';
 import 'tools/get_route_tool.dart';
 import 'tools/get_semantics_tool.dart';
-import 'tools/inject_text_tool.dart';
+import 'tools/set_text_tool.dart';
 import 'tools/inspect_layout_tool.dart';
 import 'tools/navigate_tool.dart';
 import 'tools/run_app_tool.dart';

@@ -166,9 +166,6 @@ plugin:flutter-agent-tools:packages - api (MCP) ( ... )
 - [x] flutter_close_app -> close_app
 - [x] flutter_inject_text => set_text? perform_set_text?
 - [x] flutter_tap => tap? perform_tap?
-- [ ] make session_id optional? There's generally only ever going to be one
-      session
-- [ ] when starting a session, send back a short how-to guide?
 
 - [x] .github/workflows/ci.yml
 - [x] .claude-plugin/plugin.json
