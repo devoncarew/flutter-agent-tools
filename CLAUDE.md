@@ -41,6 +41,7 @@ observe a running Flutter app.
   isolate
 - `flutter_get_route` — returns the navigator stack with screen names and
   source locations; enriches with go_router path when available
+- `flutter_navigate` — navigates to a go_router path via `GoRouter.go()`
 - `flutter_get_semantics` — returns a flat list of visible semantics nodes
   (role, ID, state, actions, label, size); node IDs usable with flutter_tap
 - `flutter_tap` — tap an element by semantics node ID or label
@@ -55,7 +56,7 @@ observe a running Flutter app.
   `class_stub` all implemented
 - flutter-inspect MCP server: functional — launch, reload, close, screenshot,
   inspect layout, evaluate, get_route (with go_router path enrichment),
-  get_semantics, and tap all working
+  navigate, get_semantics, and tap all working
 - Flutter.Error events are pushed to agents with widget IDs for use with
   `flutter_inspect_layout`
 

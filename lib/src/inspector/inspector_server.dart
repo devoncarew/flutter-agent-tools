@@ -11,6 +11,7 @@ import 'tools/evaluate.dart';
 import 'tools/get_route.dart';
 import 'tools/get_semantics.dart';
 import 'tools/inspect_layout.dart';
+import 'tools/navigate.dart';
 import 'tools/launch_app.dart';
 import 'tools/reload.dart';
 import 'tools/take_screenshot.dart';
@@ -83,6 +84,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     register(FlutterInspectLayoutTool());
     register(FlutterEvaluateTool());
     register(FlutterGetRouteTool());
+    register(FlutterNavigateTool());
     register(FlutterGetSemanticsTool());
     register(FlutterTapTool());
     register(FlutterCloseAppTool());

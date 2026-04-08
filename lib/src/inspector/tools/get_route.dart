@@ -1,7 +1,7 @@
 import 'package:dart_mcp/server.dart';
 import 'package:vm_service/vm_service.dart' show RPCError;
 
-import '../route_formatter.dart';
+import '../route_formatter.dart' show formatRouteInfo;
 import '../tool_context.dart';
 
 /// Implements the `flutter_get_route` MCP tool.
@@ -49,18 +49,12 @@ class FlutterGetRouteTool extends FlutterTool {
       // Best-effort: resolve the current go_router path via VM evaluate.
       String? currentPath;
       try {
-        final goRouterNodes = findGoRouterNodes(root);
-        if (goRouterNodes.isNotEmpty) {
-          final valueId = goRouterNodes.first.valueId;
-          if (valueId != null) {
-            final vmId = await extensions.inspectorIdToVmObjectId(valueId);
-            if (vmId != null) {
-              currentPath = await extensions.evaluateOnObject(
-                vmId,
-                'widget.goRouter.state.uri.toString()',
-              );
-            }
-          }
+        final vmId = await extensions.resolveGoRouterVmId();
+        if (vmId != null) {
+          currentPath = await extensions.evaluateOnObject(
+            vmId,
+            'widget.goRouter.state.uri.toString()',
+          );
         }
       } catch (_) {
         // go_router enrichment is best-effort — proceed without path info.
