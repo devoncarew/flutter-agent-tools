@@ -24,8 +24,10 @@ Tools for querying Dart and Flutter package APIs directly from the pub cache.
 Use these tools when you need accurate, up-to-date API signatures for a package
 rather than relying on training-data summaries, which are often subtly wrong.
 
-Call the 'library_stub' tool with a package name to get its version, public
-library list, and the content of its main entry-point library.
+Typical call sequence:
+1. package_summary — orient on the package: version, library list, exported names.
+2. library_stub — get full API signatures for one library.
+3. class_stub — drill into a specific class when you know exactly what you need.
 
 Source is the local pub cache — already downloaded, always matches the resolved
 version in pubspec.lock, no network required.''',

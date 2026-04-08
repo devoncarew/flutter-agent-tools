@@ -1,4 +1,3 @@
-// todo:
 import 'dart:io';
 
 import 'package:dart_mcp/server.dart';

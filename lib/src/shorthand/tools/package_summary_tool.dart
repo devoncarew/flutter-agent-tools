@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 import '../context.dart';
 import '../resolver.dart';
 
-/// Implements the `api` MCP tool.
+/// Implements the `package_summary` MCP tool.
 ///
 /// Resolves a Dart package from the local pub cache and returns its public API
 /// surface. Version resolution order: `pubspec.lock` in `project_directory` →
