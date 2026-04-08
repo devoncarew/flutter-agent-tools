@@ -3,14 +3,14 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../tool_context.dart';
 
-/// Implements the `perform_tap` MCP tool.
+/// Implements the `tap` MCP tool.
 ///
 /// Taps a widget identified by semantics node ID or label, using
 /// `SemanticsBinding.performSemanticsAction`. No screen coordinates needed.
-class PerformTapTool extends FlutterTool {
+class TapTool extends FlutterTool {
   @override
   final Tool definition = Tool(
-    name: 'perform_tap',
+    name: 'tap',
     description:
         'Taps a widget by its semantics node ID or label. '
         'Dispatches a tap action via SemanticsBinding.performSemanticsAction — '
@@ -59,7 +59,7 @@ class PerformTapTool extends FlutterTool {
         isError: true,
         content: [
           TextContent(
-            text: 'perform_tap: one of "node_id" or "label" must be provided.',
+            text: 'tap: one of "node_id" or "label" must be provided.',
           ),
         ],
       );

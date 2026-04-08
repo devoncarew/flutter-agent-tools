@@ -3,14 +3,14 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../tool_context.dart';
 
-/// Implements the `perform_set_text` MCP tool.
+/// Implements the `set_text` MCP tool.
 ///
 /// Sets the text content of a text field identified by semantics node ID or
 /// label, using `SemanticsAction.setText`.
-class PerformSetTextTool extends FlutterTool {
+class SetTextTool extends FlutterTool {
   @override
   final Tool definition = Tool(
-    name: 'perform_set_text',
+    name: 'set_text',
     description:
         'Sets the text content of a text field by its semantics node ID or '
         'label. Dispatches SemanticsAction.setText — replaces the field\'s '
@@ -18,7 +18,7 @@ class PerformSetTextTool extends FlutterTool {
         'One of "node_id" or "label" must be provided. '
         'Prefer "node_id" when available (faster — skips tree fetch). '
         'Semantics node IDs and labels appear in get_semantics output. '
-        'Tip: tap the field first (perform_tap) if the app requires focus '
+        "Tip: tap the field first ('tap') if the app requires focus "
         'before accepting text input.',
     inputSchema: Schema.object(
       properties: {
@@ -66,9 +66,7 @@ class PerformSetTextTool extends FlutterTool {
         isError: true,
         content: [
           TextContent(
-            text:
-                'perform_set_text: one of "node_id" or "label" must be '
-                'provided.',
+            text: 'set_text: one of "node_id" or "label" must be provided.',
           ),
         ],
       );

@@ -175,12 +175,10 @@ plugin:flutter-agent-tools:packages - api (MCP) ( ... )
 - [x] bin/
 - [x] scripts/
 
-```
-plugin:flutter-agent-tools:packages - api (MCP) ( ... )
+- plugin:flutter-toolkit:inspector (for runtime state and interaction)
+- plugin:flutter-toolkit:packages (for API summarization)
 
-or
-
-plugin:flutter-agent-tools:dart_api - package_summary (MCP) ( ... )
-plugin:flutter-agent-tools:dart_api - library_stub (MCP) ( ... )
-plugin:flutter-agent-tools:dart_api - class_stub (MCP) ( ... )
-```
+- [x] rename dart api server to packages
+- [x] rename screenshot to take_screenshot
+- rename plugin to flutter-toolkit
+- split packages:api command into package_summary, library_stub, and class_stub

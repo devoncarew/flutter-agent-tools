@@ -3,10 +3,10 @@ import 'package:dart_mcp/server.dart';
 import '../version.dart';
 import 'api_tool.dart';
 
-/// The MCP server for the packages (shorthand) package API summarization tool.
+/// The MCP server for the 'packages' package API summarization tool.
 ///
 /// Provides token-efficient access to Dart package public APIs, reading
-/// directly from the local pub cache. Implementation lives in lib/src/shorthand/.
+/// directly from the local pub cache.
 base class PackagesMCPServer extends MCPServer
     with ToolsSupport, LoggingSupport {
   PackagesMCPServer(super.channel)

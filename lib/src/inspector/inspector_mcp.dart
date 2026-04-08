@@ -59,7 +59,7 @@ Debugging layout issues:
 
 Orientation:
 - get_route shows the current navigator stack with screen widget names and source locations. Use this to confirm which screen is active before inspecting or editing.
-- get_semantics lists visible, interactive nodes with their IDs. Pass node IDs directly to perform_tap, perform_set_text, and perform_scroll_to.
+- get_semantics lists visible, interactive nodes with their IDs. Pass node IDs directly to 'tap', 'set_text', and perform_scroll_to.
 
 Flutter.Error events are forwarded automatically as MCP log warnings — no polling needed. They include widget IDs for use with inspect_layout.''',
       ) {
@@ -82,14 +82,14 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
       ),
     );
     register(ReloadTool());
-    register(ScreenshotTool());
+    register(TakeScreenshotTool());
     register(InspectLayoutTool());
     register(EvaluateTool());
     register(GetRouteTool());
     register(NavigateTool());
     register(GetSemanticsTool());
-    register(PerformTapTool());
-    register(PerformSetTextTool());
+    register(TapTool());
+    register(SetTextTool());
     register(CloseAppTool());
   }
 

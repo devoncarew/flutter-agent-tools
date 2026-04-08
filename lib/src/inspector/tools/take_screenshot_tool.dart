@@ -3,13 +3,13 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../tool_context.dart';
 
-/// Implements the `screenshot` MCP tool.
+/// Implements the `take_screenshot` MCP tool.
 ///
 /// Captures a PNG screenshot of the running Flutter app.
-class ScreenshotTool extends FlutterTool {
+class TakeScreenshotTool extends FlutterTool {
   @override
   final Tool definition = Tool(
-    name: 'screenshot',
+    name: 'take_screenshot',
     description:
         'Captures a PNG screenshot of the running Flutter app. Use '
         'proactively after a reload to visually confirm UI changes are '

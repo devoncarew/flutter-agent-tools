@@ -8,10 +8,10 @@ observe a running Flutter app.
 ## Key Conventions
 
 - Inspector MCP server entry point: `bin/inspector_mcp.dart`; logic:
-  `lib/src/inspector/inspector_server.dart`. Declared in
+  `lib/src/inspector/inspector_mcp.dart`. Declared in
   `.claude-plugin/plugin.json`.
-- Shorthand MCP server entry point: `bin/shorthand_mcp.dart`; logic:
-  `lib/src/shorthand/shorthand_server.dart`. Declared in
+- Dart API MCP server entry point: `bin/packages_mcp.dart`; logic:
+  `lib/src/shorthand/packages_mcp.dart`. Declared in
   `.claude-plugin/plugin.json`.
 - Package currency hook: `bin/deps_check.dart`, invoked via
   `scripts/deps_check.sh --mode=pub-add|pubspec-guard`. Configured in
@@ -24,7 +24,7 @@ observe a running Flutter app.
 
 ## Registered MCP Tools
 
-### packages server (`bin/shorthand_mcp.dart`)
+### packages server (`bin/packages_mcp.dart`)
 
 - `api` — returns API summaries for Dart/Flutter packages from the local pub
   cache. `kind` parameter: `package_summary` (default), `library_stub`,
@@ -34,16 +34,16 @@ observe a running Flutter app.
 
 - `run_app` — builds and launches a Flutter app, returns a session ID
 - `reload` — hot reload or hot restart a running app
-- `screenshot` — captures a PNG screenshot via the inspector protocol
+- `take_screenshot` — captures a PNG screenshot via the inspector protocol
 - `inspect_layout` — returns the layout tree for a widget (or root)
 - `evaluate` — evaluates an arbitrary Dart expression on the main isolate
 - `get_route` — returns the navigator stack with screen names and source
   locations; enriches with go_router path when available
 - `navigate` — navigates to a go_router path via `GoRouter.go()`
 - `get_semantics` — returns a flat list of visible semantics nodes (role, ID,
-  state, actions, label, size); node IDs usable with perform_tap
-- `perform_tap` — tap an element by semantics node ID or label
-- `perform_set_text` — set text field content by semantics node ID or label
+  state, actions, label, size); node IDs usable with 'tap'
+- `tap` — tap an element by semantics node ID or label
+- `set_text` — set text field content by semantics node ID or label
 - `close_app` — stops a running app and releases its session
 
 ## Current Status
@@ -53,9 +53,9 @@ observe a running Flutter app.
   check, old major version check, pubspec-guard mode all implemented
 - packages MCP server: functional — `package_summary`, `library_stub`, and
   `class_stub` all implemented
-- inspector MCP server: functional — launch, reload, close, screenshot, inspect
-  layout, evaluate, get_route (with go_router path enrichment), navigate,
-  get_semantics, and tap all working
+- inspector MCP server: functional — launch, reload, close, take_screenshot,
+  inspect layout, evaluate, get_route (with go_router path enrichment),
+  navigate, get_semantics, and tap all working
 - Flutter.Error events are pushed to agents with widget IDs for use with
   `inspect_layout`
 

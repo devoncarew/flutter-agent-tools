@@ -68,7 +68,7 @@ the same checks.
 
 ## Tool 2: Package API Retrieval and Summarization
 
-MCP server name: `packages` | Entry point: `bin/shorthand_mcp.dart`
+MCP server name: `packages` | Entry point: `bin/packages_mcp.dart`
 
 ### Motivation
 
@@ -245,8 +245,8 @@ Most token-efficient for "what can I interact with?" questions — the Flutter
 framework filters out invisible and internal nodes. Each node includes its role,
 ID, state flags, supported actions, label, and size.
 
-Node IDs from this output can be passed directly to `perform_tap`,
-`perform_set_text`, and `perform_scroll_to`.
+Node IDs from this output can be passed directly to `tap`, `set_text`, and
+`perform_scroll_to`.
 
 ### `flutter_widget_tree` _(planned)_
 
@@ -378,7 +378,7 @@ api(package, kind, library?, class?, version?) → String
 ✓ close_app(session_id) → void
 
 // inspector server (Tool 3) — inspection (high value)
-✓ screenshot(session_id, pixel_ratio?) → PNG
+✓ take_screenshot(session_id, pixel_ratio?) → PNG
 ✓ flutter.error log events  // push; includes widget IDs for inspect_layout
 ✓ inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
 ✓ evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
@@ -388,8 +388,8 @@ api(package, kind, library?, class?, version?) → String
 
 // inspector server (Tool 3) — app interaction (useful but lower priority for coding agents)
 ✓ navigate(session_id, path) → void          // go_router: via InheritedGoRouter + evaluateOnObject
-✓ perform_tap(session_id, node_id?, label?) → void
-✓ perform_set_text(session_id, text, node_id?, label?) → void
+✓ tap(session_id, node_id?, label?) → void
+✓ set_text(session_id, text, node_id?, label?) → void
 [planned] perform_scroll_to(session_id, node_id?, label?) → void
 ```
 

@@ -18,8 +18,8 @@ class GetSemanticsTool extends FlutterTool {
         'Flutter app. Each node shows its role, ID, state flags, supported '
         'actions, label, and size. '
         'Use this to find what is on screen and what can be interacted with. '
-        'Node IDs from this output can be passed directly to perform_tap '
-        'and perform_set_text. '
+        "Node IDs from this output can be passed directly to 'tap' "
+        "and 'set_text'. "
         'Node IDs are stable until the next hot reload or hot restart.',
     inputSchema: Schema.object(
       properties: {

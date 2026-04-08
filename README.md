@@ -72,14 +72,14 @@ expressions, and observe runtime errors with widget IDs.
 |---------|-------------|
 | `run_app` | Builds and launches the Flutter app. |
 | `reload` | Applies source file changes to a running Flutter app. |
-| `screenshot` | Captures a PNG screenshot of the running Flutter app. |
+| `take_screenshot` | Captures a PNG screenshot of the running Flutter app. |
 | `inspect_layout` | Use when debugging layout issues, overflow errors, or unexpected widget sizing. |
 | `evaluate` | Evaluates a Dart expression on the running app's main isolate and returns the result as a string. |
 | `get_route` | Returns the current navigator route stack with screen widget names and source locations. |
 | `navigate` | Navigates the app to a go_router path. |
 | `get_semantics` | Returns a flat list of visible semantics nodes from the running Flutter app. |
-| `perform_tap` | Taps a widget by its semantics node ID or label. |
-| `perform_set_text` | Sets the text content of a text field by its semantics node ID or label. |
+| `tap` | Taps a widget by its semantics node ID or label. |
+| `set_text` | Sets the text content of a text field by its semantics node ID or label. |
 | `close_app` | Stops a running Flutter app and releases its session. |
 <!-- prettier-ignore-end -->
 <!-- inspector -->
