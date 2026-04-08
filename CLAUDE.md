@@ -26,9 +26,13 @@ observe a running Flutter app.
 
 ### packages server (`bin/packages_mcp.dart`)
 
-- `api` — returns API summaries for Dart/Flutter packages from the local pub
-  cache. `kind` parameter: `package_summary` (default), `library_stub`,
-  `class_stub`.
+- `package_summary` — version, entry-point import, README excerpt, public
+  library list, and exported name groups; start here to orient on an unfamiliar
+  package
+- `library_stub` — full public API for one library as a Dart stub file
+  (signatures only, no bodies); requires `library_uri`
+- `class_stub` — stub for a single named class, mixin, or extension; requires
+  `library_uri` and `class`
 
 ### inspector server (`bin/inspector_mcp.dart`)
 

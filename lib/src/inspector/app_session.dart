@@ -422,7 +422,7 @@ class AppSession {
 
     await vmService.streamListen(EventStreams.kExtension);
 
-    // Enable semantics so flutter_query_ui mode=semantics works. Best-effort.
+    // Enable semantics so get_semantics works. Best-effort.
     try {
       await _serviceExtensions!.enableSemantics();
     } catch (_) {}

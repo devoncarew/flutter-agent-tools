@@ -114,10 +114,10 @@ format is preferred over Markdown because:
 
 ### Interaction model: agent-directed, progressive detail
 
-Rather than returning a single large dump, the tool accepts a `kind` parameter
-so the agent requests only what it needs at each step:
+Rather than returning a single large dump, three separate tools let the agent
+request only what it needs at each step:
 
-| `kind`            | Returns                                                                                                                                                                                                                |
+| Tool              | Returns                                                                                                                                                                                                                |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `package_summary` | Version, entry-point import, one-paragraph README orientation, list of public libraries and top-level exported names. Enough to orient and decide what to look at next.                                                |
 | `library_stub`    | Full public API for one library as a Dart stub file: all exported classes, mixins, extensions, top-level functions and constants, with signatures but no bodies. Mixin-contributed methods are inlined and attributed. |
@@ -131,11 +131,11 @@ The typical call sequence for an unfamiliar package:
 
 Inputs:
 
-- `package`: package name (required).
-- `kind`: one of the values above; defaults to `package_summary`.
-- `project_directory`: path to the Dart/Flutter project (required).
-- `library`: target library URI for `library_stub` and `class_stub`.
-- `class`: target class/mixin/extension name for `class_stub`.
+- `package_summary`: `package` (required), `project_directory` (required).
+- `library_stub`: `package` (required), `project_directory` (required),
+  `library_uri` (required).
+- `class_stub`: `package` (required), `project_directory` (required),
+  `library_uri` (required), `class` (required).
 
 Source: `.pub-cache` only — already downloaded, always matches the resolved
 version, no network required.
@@ -246,7 +246,7 @@ framework filters out invisible and internal nodes. Each node includes its role,
 ID, state flags, supported actions, label, and size.
 
 Node IDs from this output can be passed directly to `tap`, `set_text`, and
-`perform_scroll_to`.
+`scroll_to` (planned).
 
 ### `flutter_widget_tree` _(planned)_
 
@@ -341,10 +341,9 @@ evaluateOnObject(vmId, 'widget.goRouter.namedLocation("podcast", pathParameters:
 ```
 
 `go()` returns void, so the handler needs to treat a null/void `InstanceRef`
-result as success rather than an error. A dedicated `navigate` tool (or a
-`navigate` mode on `flutter_query_ui`) would wrap this pattern: locate the
-router, call `go()`, wait for a `Flutter.Navigation` event or the next
-`Flutter.Frame`, then optionally re-fetch the route stack to confirm.
+result as success rather than an error. The `navigate` tool wraps this pattern:
+locate the router, call `go()`, wait for a `Flutter.Navigation` event or the
+next `Flutter.Frame`, then optionally re-fetch the route stack to confirm.
 
 The agent still needs to know valid route paths and their parameters, which
 means reading the app's route definition file first. This is an acceptable
@@ -370,7 +369,9 @@ Tool surface (✓ = implemented, [planned] = not yet):
 
 ```
 // packages server (Tool 2)
-api(package, kind, library?, class?, version?) → String
+✓ package_summary(package, project_directory) → String
+✓ library_stub(package, project_directory, library_uri) → String
+✓ class_stub(package, project_directory, library_uri, class) → String
 
 // inspector server (Tool 3) — session lifecycle
 ✓ run_app(working_directory, target?, device?) → session_id
@@ -390,7 +391,7 @@ api(package, kind, library?, class?, version?) → String
 ✓ navigate(session_id, path) → void          // go_router: via InheritedGoRouter + evaluateOnObject
 ✓ tap(session_id, node_id?, label?) → void
 ✓ set_text(session_id, text, node_id?, label?) → void
-[planned] perform_scroll_to(session_id, node_id?, label?) → void
+[planned] scroll_to(session_id, node_id?, label?) → void
 ```
 
 ## Deferred / Open Questions
