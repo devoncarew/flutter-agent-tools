@@ -13,6 +13,7 @@ import 'tools/launch_app.dart';
 import 'tools/query_ui.dart';
 import 'tools/reload.dart';
 import 'tools/take_screenshot.dart';
+import 'tools/tap.dart';
 
 /// The MCP server for the runtime inspector feature.
 ///
@@ -80,6 +81,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     register(FlutterInspectLayoutTool());
     register(FlutterEvaluateTool());
     register(FlutterQueryUiTool());
+    register(FlutterTapTool());
     register(FlutterCloseAppTool());
   }
 
