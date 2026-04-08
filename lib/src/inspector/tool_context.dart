@@ -8,8 +8,8 @@ import 'utils.dart';
 /// [CallToolRequest]s via [handle].
 ///
 /// Implementations live in `lib/src/tools/` one file per tool, named after
-/// the MCP command (e.g. `flutter_evaluate.dart`). The server registers each
-/// tool with:
+/// the MCP command (e.g. `evaluate_tool.dart`). The server registers each tool
+/// with:
 ///
 /// ```dart
 /// registerTool(tool.definition, (req) => tool.handle(req, _context));

@@ -6,16 +6,16 @@ import 'utils.dart';
 
 import 'app_session.dart';
 import 'tool_context.dart';
-import 'tools/close_app.dart';
-import 'tools/evaluate.dart';
-import 'tools/get_route.dart';
-import 'tools/get_semantics.dart';
-import 'tools/inspect_layout.dart';
-import 'tools/navigate.dart';
-import 'tools/launch_app.dart';
-import 'tools/reload.dart';
-import 'tools/take_screenshot.dart';
-import 'tools/tap.dart';
+import 'tools/close_app_tool.dart';
+import 'tools/evaluate_tool.dart';
+import 'tools/get_route_tool.dart';
+import 'tools/get_semantics_tool.dart';
+import 'tools/inspect_layout_tool.dart';
+import 'tools/navigate_tool.dart';
+import 'tools/launch_app_tool.dart';
+import 'tools/reload_tool.dart';
+import 'tools/take_screenshot_tool.dart';
+import 'tools/tap_tool.dart';
 
 /// The MCP server for the runtime inspector feature.
 ///
