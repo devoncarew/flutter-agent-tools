@@ -1,4 +1,4 @@
-# flutter-agent-tools
+# flutter-toolkit
 
 A Claude Code plugin that makes AI coding agents more effective when working on
 Dart and Flutter projects. It addresses two core failure modes: agents using
@@ -67,7 +67,7 @@ echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
   | dart run bin/deps_check.dart --mode=pub-add
 
 # Load the plugin locally:
-claude --plugin-dir /path/to/flutter-agent-tools
+claude --plugin-dir /path/to/flutter-toolkit
 ```
 
 ## Design Reference

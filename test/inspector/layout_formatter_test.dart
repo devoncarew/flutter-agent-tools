@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_agent_tools/src/inspector/diagnostics_node.dart';
-import 'package:flutter_agent_tools/src/inspector/layout_formatter.dart';
+import 'package:flutter_toolkit/src/inspector/diagnostics_node.dart';
+import 'package:flutter_toolkit/src/inspector/layout_formatter.dart';
 import 'package:test/test.dart';
 
 void main() {

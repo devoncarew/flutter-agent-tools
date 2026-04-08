@@ -180,5 +180,6 @@ plugin:flutter-agent-tools:packages - api (MCP) ( ... )
 
 - [x] rename dart api server to packages
 - [x] rename screenshot to take_screenshot
-- rename plugin to flutter-toolkit
+- [x] rename plugin to flutter-toolkit
 - split packages:api command into package_summary, library_stub, and class_stub
+- rename the repo to flutter-toolkit

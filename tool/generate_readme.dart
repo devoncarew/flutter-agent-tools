@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_mcp/client.dart';
-import 'package:flutter_agent_tools/src/inspector/inspector_mcp.dart';
-import 'package:flutter_agent_tools/src/shorthand/packages_mcp.dart';
+import 'package:flutter_toolkit/src/inspector/inspector_mcp.dart';
+import 'package:flutter_toolkit/src/shorthand/packages_mcp.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 void main() async {

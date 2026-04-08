@@ -209,8 +209,7 @@ Future<void> checkPackages(
   }
 
   if (warnings.isNotEmpty) {
-    // ignore: avoid_print
-    print('flutter-agent-tools: dependency warnings:');
+    print('flutter-toolkit: dependency warnings:');
     for (final w in warnings) {
       // ignore: avoid_print
       print(w);

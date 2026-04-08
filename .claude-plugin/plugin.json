@@ -1,5 +1,5 @@
 {
-  "name": "flutter-agent-tools",
+  "name": "flutter-toolkit",
   "version": "0.1.0",
   "description": "Flutter/Dart agent tooling: dependency health, package API summarization, and UI runtime introspection.",
   "author": {

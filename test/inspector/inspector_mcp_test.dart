@@ -1,5 +1,5 @@
 import 'package:dart_mcp/server.dart';
-import 'package:flutter_agent_tools/src/inspector/inspector_mcp.dart';
+import 'package:flutter_toolkit/src/inspector/inspector_mcp.dart';
 import 'package:test/test.dart';
 
 import 'test_utils.dart';
