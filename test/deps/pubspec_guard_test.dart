@@ -1,4 +1,4 @@
-import 'package:flutter_toolkit/src/deps/deps_check.dart';
+import 'package:flutter_slipstream/src/deps/deps_check.dart';
 import 'package:test/test.dart';
 
 /// Tests for [newlyAddedPackages] — the pure diff function extracted from

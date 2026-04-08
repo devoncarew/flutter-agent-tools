@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:flutter_toolkit/src/shorthand/context.dart';
-import 'package:flutter_toolkit/src/shorthand/resolver.dart';
+import 'package:flutter_slipstream/src/shorthand/context.dart';
+import 'package:flutter_slipstream/src/shorthand/resolver.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

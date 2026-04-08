@@ -3,7 +3,7 @@
 Notes collected from reading the Flutter DevTools source at
 `packages/devtools_app/lib/src/shared/diagnostics/inspector_service.dart` and
 related files. These cover patterns that are useful for implementing
-`flutter-toolkit` but are not documented in one place elsewhere.
+`flutter-slipstream` but are not documented in one place elsewhere.
 
 **Source files referenced:**
 
@@ -302,7 +302,7 @@ Once you have a raw VM object ID (`"objects/1234"`), you can use it as the
 vmService.evaluate(isolateId, 'objects/1234', 'runtimeType.toString()');
 ```
 
-**Practical recipe for flutter-toolkit:**
+**Practical recipe for flutter-slipstream:**
 
 1. Call `getRootWidgetTree` or `getDetailsSubtree` to get a node with a
    `valueId`.
@@ -333,7 +333,7 @@ When a `DiagnosticsNode` has `creationLocation.file` set, DevTools checks
 whether that path is under one of the registered pub roots. Nodes from outside
 the roots are considered framework/package widgets.
 
-**For flutter-toolkit**, the simpler approach (already implemented in
+**For flutter-slipstream**, the simpler approach (already implemented in
 `route_formatter.dart`) is to check whether the file path contains
 `/.pub-cache/` directly. This is more robust than relying on
 `addPubRootDirectories` because it doesn't require registration and works

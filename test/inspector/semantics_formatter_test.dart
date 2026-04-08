@@ -1,5 +1,5 @@
-import 'package:flutter_toolkit/src/inspector/semantic_node.dart';
-import 'package:flutter_toolkit/src/inspector/semantics_formatter.dart';
+import 'package:flutter_slipstream/src/inspector/semantic_node.dart';
+import 'package:flutter_slipstream/src/inspector/semantics_formatter.dart';
 import 'package:test/test.dart';
 
 // Tuple layout:
