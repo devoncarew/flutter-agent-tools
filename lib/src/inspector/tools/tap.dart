@@ -12,7 +12,7 @@ class FlutterTapTool extends FlutterTool {
   final Tool definition = Tool(
     name: 'flutter_tap',
     description:
-        '[Experimental] Taps a widget by its semantics node ID or label. '
+        'Taps a widget by its semantics node ID or label. '
         'Dispatches a tap action via SemanticsBinding.performSemanticsAction — '
         'no screen coordinates needed. '
         'One of "node_id" or "label" must be provided. '

@@ -231,28 +231,28 @@ everything else. We already use this internally for `getPhysicalWindowSize()`;
 exposing it as a tool gives agents direct access without requiring a dedicated
 method for every possible query.
 
-### `flutter_query_ui`
+### `flutter_get_route`
 
-An experimental tool for agents that want a high-level description of what is
-currently on screen — useful for navigating to a specific app state, confirming
-a change took effect, or understanding the current route before drilling into
-layout details.
+Returns the current navigator route stack with screen widget names and source
+locations. Low token cost; answers the most common orientation question ("what
+screen is the app on?"). Enriches the stack with the current go_router path
+when the app uses go_router.
 
-Rather than committing to a single output format, the tool is parameterized by a
-`mode` argument so individual modes can be added or removed independently as we
-learn what's actually useful:
+### `flutter_get_semantics`
 
-| `mode`        | Returns                                                                        | Source                                               |
-| ------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| `semantics`   | Flat list of visible, interactive nodes (labels, roles, bounding boxes)        | Semantics tree (via `evaluate` to enable + traverse) |
-| `widget_tree` | Summary widget tree filtered to user-written widgets (omits Flutter internals) | `getRootWidgetTree(isSummaryTree: true)`             |
-| `route`       | Navigator stack with screen widget names, source locations, current marker     | `getRootWidgetTree(isSummaryTree: true)`             |
+Returns a flat list of visible semantics nodes from the running Flutter app.
+Most token-efficient for "what can I interact with?" questions — the Flutter
+framework filters out invisible and internal nodes. Each node includes its
+role, ID, state flags, supported actions, label, and size.
 
-The semantics tree is most token-efficient for "what can I interact with?"
-questions — it's a flat list of user-visible nodes with labels and bounding
-boxes, filtered by the Flutter framework to exclude invisible/internal nodes.
-The widget tree adds structural context (nesting, widget types) at higher token
-cost. Route info is low-cost and answers the most common orientation question.
+Node IDs from this output can be passed directly to `flutter_tap`,
+`flutter_inject_text`, and `flutter_scroll_to`.
+
+### `flutter_widget_tree` _(planned)_
+
+Returns a summary widget tree filtered to user-written widgets (omits Flutter
+internals). Adds structural context (nesting, widget types) at higher token
+cost than `flutter_get_semantics`. Source: `getRootWidgetTree(isSummaryTree: true)`.
 
 A sample semantics node from a real app:
 
@@ -382,13 +382,15 @@ package_info(package, kind, library?, class?, version?) → String
 ✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
 ✓ flutter_inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
 ✓ flutter_evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
-✓ flutter_query_ui(session_id, mode) → String  // route: ✓ | semantics: ✓ | widget_tree: [planned]
+✓ flutter_get_route(session_id) → String             // navigator stack + go_router path enrichment
+✓ flutter_get_semantics(session_id) → String         // flat list of visible semantics nodes
+[planned] flutter_widget_tree(session_id) → String   // summary widget tree (user widgets only)
 
 // flutter-inspect server (Tool 3) — app interaction (useful but lower priority for coding agents)
 [planned] flutter_navigate(session_id, path) → void  // go_router: via InheritedGoRouter + evaluateOnObject
-✓ flutter_tap(session_id, semantics_label) → void
-[planned] flutter_inject_text(session_id, semantics_label, text) → void
-[planned] flutter_scroll_to(session_id, semantics_label) → void
+✓ flutter_tap(session_id, node_id?, label?) → void
+[planned] flutter_inject_text(session_id, node_id?, label?, text) → void
+[planned] flutter_scroll_to(session_id, node_id?, label?) → void
 ```
 
 ## Deferred / Open Questions

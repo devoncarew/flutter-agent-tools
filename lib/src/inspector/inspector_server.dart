@@ -8,9 +8,10 @@ import 'app_session.dart';
 import 'tool_context.dart';
 import 'tools/close_app.dart';
 import 'tools/evaluate.dart';
+import 'tools/get_route.dart';
+import 'tools/get_semantics.dart';
 import 'tools/inspect_layout.dart';
 import 'tools/launch_app.dart';
-import 'tools/query_ui.dart';
 import 'tools/reload.dart';
 import 'tools/take_screenshot.dart';
 import 'tools/tap.dart';
@@ -54,7 +55,8 @@ Debugging layout issues:
 - Increase subtree_depth to see deeper into the tree.
 
 Orientation:
-- flutter_query_ui mode=route shows the current navigator stack with screen widget names and source locations. Use this to confirm which screen is active before inspecting or editing.
+- flutter_get_route shows the current navigator stack with screen widget names and source locations. Use this to confirm which screen is active before inspecting or editing.
+- flutter_get_semantics lists visible, interactive nodes with their IDs. Pass node IDs directly to flutter_tap, flutter_inject_text, and flutter_scroll_to.
 
 Flutter.Error events are forwarded automatically as MCP log warnings — no polling needed. They include widget IDs for use with flutter_inspect_layout.''',
       ) {
@@ -80,7 +82,8 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     register(FlutterTakeScreenshotTool());
     register(FlutterInspectLayoutTool());
     register(FlutterEvaluateTool());
-    register(FlutterQueryUiTool());
+    register(FlutterGetRouteTool());
+    register(FlutterGetSemanticsTool());
     register(FlutterTapTool());
     register(FlutterCloseAppTool());
   }
@@ -119,7 +122,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
       final routeDesc = event.params['route'];
       log(
         LoggingLevel.info,
-        '[flutter.navigation] $routeDesc (use flutter_query_ui mode=route to see current stack)',
+        '[flutter.navigation] $routeDesc (use flutter_get_route to see current stack)',
         logger: _loggerId,
       );
       return;

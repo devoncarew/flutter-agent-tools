@@ -39,9 +39,11 @@ observe a running Flutter app.
 - `flutter_inspect_layout` — returns the layout tree for a widget (or root)
 - `flutter_evaluate` — evaluates an arbitrary Dart expression on the main
   isolate
-- `flutter_query_ui` — returns a high-level description of what is on screen;
-  supports `mode=route` (with go_router path enrichment)
-- `flutter_tap` — tap an element by semantics node id
+- `flutter_get_route` — returns the navigator stack with screen names and
+  source locations; enriches with go_router path when available
+- `flutter_get_semantics` — returns a flat list of visible semantics nodes
+  (role, ID, state, actions, label, size); node IDs usable with flutter_tap
+- `flutter_tap` — tap an element by semantics node ID or label
 - `flutter_close_app` — stops a running app and releases its session
 
 ## Current Status
@@ -52,8 +54,8 @@ observe a running Flutter app.
 - dart-api MCP server: functional — `package_summary`, `library_stub`, and
   `class_stub` all implemented
 - flutter-inspect MCP server: functional — launch, reload, close, screenshot,
-  inspect layout, evaluate, and query_ui (route mode with go_router path
-  enrichment) all working
+  inspect layout, evaluate, get_route (with go_router path enrichment),
+  get_semantics, and tap all working
 - Flutter.Error events are pushed to agents with widget IDs for use with
   `flutter_inspect_layout`
 
