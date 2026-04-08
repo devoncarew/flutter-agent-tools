@@ -209,7 +209,7 @@ Future<void> checkPackages(
   }
 
   if (warnings.isNotEmpty) {
-    print('flutter-toolkit: dependency warnings:');
+    print('flutter-slipstream: dependency warnings:');
     for (final w in warnings) {
       // ignore: avoid_print
       print(w);

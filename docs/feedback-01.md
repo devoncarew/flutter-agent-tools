@@ -172,12 +172,12 @@ plugin:flutter-agent-tools:packages - api (MCP) ( ... )
 - [x] bin/
 - [x] scripts/
 
-- plugin:flutter-toolkit:inspector (for runtime state and interaction)
-- plugin:flutter-toolkit:packages (for API summarization)
+- plugin:flutter-slipstream:inspector (for runtime state and interaction)
+- plugin:flutter-slipstream:packages (for API summarization)
 
 - [x] rename dart api server to packages
 - [x] rename screenshot to take_screenshot
-- [x] rename plugin to flutter-toolkit
+- [x] rename plugin to flutter-slipstream
 - [x] split packages:api command into package_summary, library_stub, and
       class_stub
-- rename the repo to flutter-toolkit
+- rename the repo to flutter-slipstream

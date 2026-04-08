@@ -1,4 +1,4 @@
-# flutter-toolkit
+# Flutter Slipstream
 
 A Claude Code plugin that makes AI coding agents more effective for Dart and
 Flutter projects.
@@ -20,7 +20,7 @@ for launching, inspecting, and interacting with a running Flutter app.
 
 ```sh
 # Test locally:
-claude --plugin-dir </path/to>/flutter-toolkit
+claude --plugin-dir </path/to>/flutter-slipstream
 ```
 
 ## Tools

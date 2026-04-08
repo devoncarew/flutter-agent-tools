@@ -1,4 +1,4 @@
-import 'package:flutter_toolkit/src/shorthand/stub_emitter.dart';
+import 'package:flutter_slipstream/src/shorthand/stub_emitter.dart';
 import 'package:test/test.dart';
 
 import 'test_utils.dart';

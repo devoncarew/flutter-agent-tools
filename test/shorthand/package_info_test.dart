@@ -1,4 +1,4 @@
-import 'package:flutter_toolkit/src/shorthand/context.dart';
+import 'package:flutter_slipstream/src/shorthand/context.dart';
 import 'package:test/test.dart';
 
 // The project root — where pubspec.yaml and pubspec.lock live.

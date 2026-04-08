@@ -14,7 +14,7 @@ echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
   | dart run bin/deps_check.dart --mode=pub-add
 
 # Load the plugin locally:
-claude --plugin-dir /path/to/flutter-toolkit
+claude --plugin-dir /path/to/flutter-slipstream
 
 # Regenerate the README command tables:
 dart run tool/generate_readme.dart
