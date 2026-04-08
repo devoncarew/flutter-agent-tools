@@ -389,7 +389,7 @@ package_info(package, kind, library?, class?, version?) → String
 // flutter-inspect server (Tool 3) — app interaction (useful but lower priority for coding agents)
 ✓ flutter_navigate(session_id, path) → void          // go_router: via InheritedGoRouter + evaluateOnObject
 ✓ flutter_tap(session_id, node_id?, label?) → void
-[planned] flutter_inject_text(session_id, node_id?, label?, text) → void
+✓ flutter_inject_text(session_id, text, node_id?, label?) → void
 [planned] flutter_scroll_to(session_id, node_id?, label?) → void
 ```
 

@@ -45,6 +45,7 @@ observe a running Flutter app.
 - `flutter_get_semantics` — returns a flat list of visible semantics nodes
   (role, ID, state, actions, label, size); node IDs usable with flutter_tap
 - `flutter_tap` — tap an element by semantics node ID or label
+- `flutter_inject_text` — set text field content by semantics node ID or label
 - `flutter_close_app` — stops a running app and releases its session
 
 ## Current Status
