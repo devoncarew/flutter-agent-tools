@@ -41,7 +41,7 @@ base class InspectorServer extends MCPServer with ToolsSupport, LoggingSupport {
           version: packageVersion,
         ),
         instructions: '''
-Tools for for launching, inspecting, and interacting with a running Flutter app.
+Tools for launching, inspecting, and interacting with a running Flutter app.
 
 Session lifecycle: call flutter_launch_app first to get a session_id; pass it to all other tools. Call flutter_close_app when done.
 
