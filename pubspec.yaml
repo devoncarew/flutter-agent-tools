@@ -1,8 +1,9 @@
-name: flutter_agent_tools
+name: flutter_toolkit
 description: >-
   A Claude Code plugin to make AI coding agents more effective for Dart and
-  Flutter projects
-version: 0.1.0
+  Flutter projects.
+
+# Versioning for the plugin is tracked at .claude-plugin/plugin.json.
 publish_to: none
 
 repository: https://github.com/devoncarew/flutter-agent-tools
@@ -17,7 +18,6 @@ dependencies:
   http: ^1.6.0
   path: ^1.9.1
   pub_semver: ^2.2.0
-  unique_names_generator: ^3.1.2
   vm_service: ^15.0.2
   yaml: ^3.1.3
 

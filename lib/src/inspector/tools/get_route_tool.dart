@@ -4,14 +4,14 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 import '../route_formatter.dart' show formatRouteInfo;
 import '../tool_context.dart';
 
-/// Implements the `flutter_get_route` MCP tool.
+/// Implements the `get_route` MCP tool.
 ///
 /// Returns the current navigator stack with screen widget names and source
 /// locations.
-class FlutterGetRouteTool extends FlutterTool {
+class GetRouteTool extends InspectorTool {
   @override
   final Tool definition = Tool(
-    name: 'flutter_get_route',
+    name: 'get_route',
     description:
         'Returns the current navigator route stack with screen widget names '
         'and source locations. Use this to confirm which screen is active '
@@ -21,7 +21,7 @@ class FlutterGetRouteTool extends FlutterTool {
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
-          description: 'The session ID returned by flutter_launch_app.',
+          description: 'The session ID returned by run_app.',
         ),
       },
       required: ['session_id'],

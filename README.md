@@ -1,4 +1,4 @@
-# flutter-agent-tools
+# flutter-toolkit
 
 A Claude Code plugin that makes AI coding agents more effective for Dart and
 Flutter projects.
@@ -20,7 +20,7 @@ for launching, inspecting, and interacting with a running Flutter app.
 
 ```sh
 # Test locally:
-claude --plugin-dir </path/to>/flutter-agent-tools
+claude --plugin-dir </path/to>/flutter-toolkit
 ```
 
 ## Tools
@@ -38,51 +38,47 @@ Checks:
   what pub.dev currently publishes (e.g. `http:^0.13.0` vs latest `1.x`).
 - **Not found:** warns if the package name doesn't exist on pub.dev.
 
-### Package API retrieval (`dart-api`)
+### Package API retrieval (`packages`)
 
 Retrieves a package's public API surface directly from the local pub cache and
 returns it as a compact Dart stub — signatures only, no bodies, no private
 members. Agents get accurate, version-matched API information without reading
 raw source files or relying on training-data summaries.
 
-<!-- dart-api -->
+<!-- packages -->
 <!-- prettier-ignore-start -->
 | Command | Description |
 |---------|-------------|
-| `package_info` | Returns API summaries for Dart or Flutter packages. |
+| `package_summary` | Returns API summaries for Dart or Flutter packages; start here to orient on an unfamiliar package. |
+| `library_stub` | Returns the full public API for one library as a Dart stub (signatures only, no bodies). |
+| `class_stub` | Returns the public API for a single named class, mixin, or extension as a Dart stub (signatures only, no bodies). |
 <!-- prettier-ignore-end -->
-<!-- dart-api -->
+<!-- packages -->
 
-`package_info` supports three levels of detail via its `kind` parameter:
-
-- `package_summary` (the default; orient on an unfamiliar package)
-- `library_stub` (full public API for one library)
-- `class_stub` (a single named class or mixin)
-
-### Flutter UI agent (`flutter-inspect`)
+### Flutter UI agent (`inspector`)
 
 MCP commands for launching, inspecting, and interacting with a running Flutter
 app. Gives agents a [Playwright](https://playwright.dev/)-style interface to the
 running app: take screenshots, inspect the widget tree, evaluate arbitrary Dart
 expressions, and observe runtime errors with widget IDs.
 
-<!-- flutter-inspect -->
+<!-- inspector -->
 <!-- prettier-ignore-start -->
 | Command | Description |
 |---------|-------------|
-| `flutter_launch_app` | Builds and launches the Flutter app. |
-| `flutter_reload` | Applies source file changes to a running Flutter app. |
-| `flutter_take_screenshot` | Captures a PNG screenshot of the running Flutter app. |
-| `flutter_inspect_layout` | Use when debugging layout issues, overflow errors, or unexpected widget sizing. |
-| `flutter_evaluate` | Evaluates a Dart expression on the running app's main isolate and returns the result as a string. |
-| `flutter_get_route` | Returns the current navigator route stack with screen widget names and source locations. |
-| `flutter_navigate` | Navigates the app to a go_router path. |
-| `flutter_get_semantics` | Returns a flat list of visible semantics nodes from the running Flutter app. |
-| `flutter_tap` | Taps a widget by its semantics node ID or label. |
-| `flutter_inject_text` | Sets the text content of a text field by its semantics node ID or label. |
-| `flutter_close_app` | Stops a running Flutter app and releases its session. |
+| `run_app` | Builds and launches the Flutter app. |
+| `reload` | Applies source file changes to a running Flutter app. |
+| `take_screenshot` | Captures a PNG screenshot of the running Flutter app. |
+| `inspect_layout` | Use when debugging layout issues, overflow errors, or unexpected widget sizing. |
+| `evaluate` | Evaluates a Dart expression on the running app's main isolate and returns the result as a string. |
+| `get_route` | Returns the current navigator route stack with screen widget names and source locations. |
+| `navigate` | Navigates the app to a go_router path. |
+| `get_semantics` | Returns a flat list of visible semantics nodes from the running Flutter app. |
+| `tap` | Taps a widget by its semantics node ID or label. |
+| `set_text` | Sets the text content of a text field by its semantics node ID or label. |
+| `close_app` | Stops a running Flutter app and releases its session. |
 <!-- prettier-ignore-end -->
-<!-- flutter-inspect -->
+<!-- inspector -->
 
 ## Contributing
 

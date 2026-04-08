@@ -13,4 +13,19 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Shell-level fast exit for pub-add mode: read stdin once, then skip the Dart
+# VM entirely unless the command looks like a pub add invocation. Starting a
+# fresh Dart VM for every Bash tool call is expensive; this keeps the hook
+# near-instant for the vast majority of calls.
+if [[ "$*" == *"--mode=pub-add"* ]]; then
+  INPUT=$(cat)
+  if ! printf '%s' "$INPUT" | grep -qF 'pub add'; then
+    exit 0
+  fi
+  if ! command -v dart &>/dev/null; then exit 0; fi
+  printf '%s' "$INPUT" | (cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check.dart" "$@")
+  exit 0
+fi
+
+if ! command -v dart &>/dev/null; then exit 0; fi
 (cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check.dart" "$@")

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_agent_tools/src/inspector/error_summarizers.dart';
-import 'package:flutter_agent_tools/src/inspector/app_session.dart';
+import 'package:flutter_toolkit/src/inspector/error_summarizers.dart';
+import 'package:flutter_toolkit/src/inspector/app_session.dart';
 import 'package:test/test.dart';
 
 FlutterError _loadError(String name) {

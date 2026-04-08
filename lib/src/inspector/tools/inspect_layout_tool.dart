@@ -4,14 +4,14 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 import '../layout_formatter.dart';
 import '../tool_context.dart';
 
-/// Implements the `flutter_inspect_layout` MCP tool.
+/// Implements the `inspect_layout` MCP tool.
 ///
 /// Returns layout details (constraints, size, flex parameters, children) for
 /// a widget in the running app.
-class FlutterInspectLayoutTool extends FlutterTool {
+class InspectLayoutTool extends InspectorTool {
   @override
   final Tool definition = Tool(
-    name: 'flutter_inspect_layout',
+    name: 'inspect_layout',
     description:
         'Use when debugging layout issues, overflow errors, or unexpected '
         'widget sizing. Returns constraints, size, flex parameters, and '
@@ -22,7 +22,7 @@ class FlutterInspectLayoutTool extends FlutterTool {
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
-          description: 'The session ID returned by flutter_launch_app.',
+          description: 'The session ID returned by run_app.',
         ),
         'widget_id': Schema.string(
           description:

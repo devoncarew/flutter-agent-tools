@@ -2,20 +2,20 @@ import 'package:dart_mcp/server.dart';
 
 import '../tool_context.dart';
 
-/// Implements the `flutter_close_app` MCP tool.
+/// Implements the `close_app` MCP tool.
 ///
 /// Stops a running Flutter app and releases its session.
-class FlutterCloseAppTool extends FlutterTool {
-  FlutterCloseAppTool();
+class CloseAppTool extends InspectorTool {
+  CloseAppTool();
 
   @override
   final Tool definition = Tool(
-    name: 'flutter_close_app',
+    name: 'close_app',
     description: 'Stops a running Flutter app and releases its session.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
-          description: 'The session ID returned by flutter_launch_app.',
+          description: 'The session ID returned by run_app.',
         ),
       },
       required: ['session_id'],

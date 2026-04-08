@@ -3,30 +3,30 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../tool_context.dart';
 
-/// Implements the `flutter_tap` MCP tool.
+/// Implements the `tap` MCP tool.
 ///
 /// Taps a widget identified by semantics node ID or label, using
 /// `SemanticsBinding.performSemanticsAction`. No screen coordinates needed.
-class FlutterTapTool extends FlutterTool {
+class TapTool extends InspectorTool {
   @override
   final Tool definition = Tool(
-    name: 'flutter_tap',
+    name: 'tap',
     description:
         'Taps a widget by its semantics node ID or label. '
         'Dispatches a tap action via SemanticsBinding.performSemanticsAction — '
         'no screen coordinates needed. '
         'One of "node_id" or "label" must be provided. '
         'Prefer "node_id" when available (faster — skips tree fetch). '
-        'Use flutter_get_semantics first to see available nodes and their IDs.',
+        'Use get_semantics first to see available nodes and their IDs.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
-          description: 'The session ID returned by flutter_launch_app.',
+          description: 'The session ID returned by run_app.',
         ),
         'node_id': Schema.int(
           description:
               'The semantics node ID to tap. Shown as "id=N" in '
-              'flutter_get_semantics output. Prefer this over '
+              'get_semantics output. Prefer this over '
               '"label" when you already know the ID.',
         ),
         'label': Schema.string(
@@ -59,7 +59,7 @@ class FlutterTapTool extends FlutterTool {
         isError: true,
         content: [
           TextContent(
-            text: 'flutter_tap: one of "node_id" or "label" must be provided.',
+            text: 'tap: one of "node_id" or "label" must be provided.',
           ),
         ],
       );

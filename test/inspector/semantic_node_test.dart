@@ -1,4 +1,4 @@
-import 'package:flutter_agent_tools/src/inspector/semantic_node.dart';
+import 'package:flutter_toolkit/src/inspector/semantic_node.dart';
 import 'package:test/test.dart';
 
 // Tuple layout:

@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:flutter_agent_tools/src/shorthand/package_info_tool.dart';
-import 'package:flutter_agent_tools/src/shorthand/resolver.dart';
+import 'package:flutter_toolkit/src/shorthand/context.dart';
+import 'package:flutter_toolkit/src/shorthand/resolver.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -11,7 +11,7 @@ final String projectDir = Directory.current.absolute.path;
 
 PackageResolver resolverFor(String packageName) {
   final version = resolveVersionFromLockfile(packageName, projectDir);
-  final packageDir = findPackageInPubCache(packageName, version);
+  final packageDir = locateInPubCache(packageName, version);
   if (packageDir == null) throw StateError('$packageName not in pub cache');
   final packageConfigFile = p.join(
     projectDir,

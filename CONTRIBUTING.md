@@ -1,5 +1,8 @@
 # Contributing
 
+Contributions welcome! For anything but a non-trivial change, please start a
+discussion with an issue first.
+
 ## Development
 
 ```sh
@@ -11,7 +14,7 @@ echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
   | dart run bin/deps_check.dart --mode=pub-add
 
 # Load the plugin locally:
-claude --plugin-dir /path/to/flutter-agent-tools
+claude --plugin-dir /path/to/flutter-toolkit
 
 # Regenerate the README command tables:
 dart run tool/generate_readme.dart

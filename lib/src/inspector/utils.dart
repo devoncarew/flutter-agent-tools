@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:unique_names_generator/unique_names_generator.dart';
-
 Object? jsonTryParse(String source) {
   try {
     return jsonDecode(source);
@@ -14,21 +12,73 @@ Object? jsonTryParse(String source) {
 typedef Logger = void Function(String);
 
 class IdGenerator {
+  static const List<String> _adjectives = [
+    'bright',
+    'calm',
+    'cozy',
+    'crisp',
+    'deft',
+    'fair',
+    'fond',
+    'free',
+    'glad',
+    'keen',
+    'kind',
+    'lush',
+    'mild',
+    'mint',
+    'neat',
+    'nimble',
+    'pure',
+    'rosy',
+    'sage',
+    'snug',
+    'soft',
+    'spry',
+    'sunny',
+    'swift',
+    'warm',
+    'wise',
+    'witty',
+    'zippy',
+  ];
+
+  static const List<String> _animals = [
+    'bee',
+    'cat',
+    'colt',
+    'deer',
+    'dove',
+    'duck',
+    'fawn',
+    'finch',
+    'fox',
+    'frog',
+    'gull',
+    'hare',
+    'hawk',
+    'jay',
+    'koi',
+    'lamb',
+    'lark',
+    'lynx',
+    'newt',
+    'owl',
+    'pony',
+    'quail',
+    'robin',
+    'seal',
+    'swan',
+    'teal',
+    'wren',
+  ];
+
   final Random _random = Random();
-  final UniqueNamesGenerator _nameGenerator = UniqueNamesGenerator(
-    config: Config(
-      length: 2,
-      dictionaries: [adjectives, animals],
-      separator: '_',
-    ),
-  );
 
   String createNextId() {
-    final String suffix =
-        List.generate(
-          2,
-          (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
-        ).join();
-    return [_nameGenerator.generate(), suffix].join('_');
+    final adjective = _adjectives[_random.nextInt(_adjectives.length)];
+    final animal = _animals[_random.nextInt(_animals.length)];
+    final number = _random.nextInt(100).toString().padLeft(2, '0');
+    return '${adjective}_${animal}_$number';
   }
 }

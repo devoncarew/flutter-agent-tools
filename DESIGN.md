@@ -68,7 +68,7 @@ the same checks.
 
 ## Tool 2: Package API Retrieval and Summarization
 
-MCP server name: `dart-api` | Entry point: `bin/shorthand_mcp.dart`
+MCP server name: `packages` | Entry point: `bin/packages_mcp.dart`
 
 ### Motivation
 
@@ -213,7 +213,7 @@ Design references:
 - [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17)
   — use cases and requirements.
 
-### `flutter_evaluate`
+### `evaluate`
 
 Runs an arbitrary Dart expression on the main isolate via the VM service
 `evaluate` RPC and returns the result as a string.
@@ -231,28 +231,28 @@ everything else. We already use this internally for `getPhysicalWindowSize()`;
 exposing it as a tool gives agents direct access without requiring a dedicated
 method for every possible query.
 
-### `flutter_get_route`
+### `get_route`
 
 Returns the current navigator route stack with screen widget names and source
 locations. Low token cost; answers the most common orientation question ("what
-screen is the app on?"). Enriches the stack with the current go_router path
-when the app uses go_router.
+screen is the app on?"). Enriches the stack with the current go_router path when
+the app uses go_router.
 
-### `flutter_get_semantics`
+### `get_semantics`
 
 Returns a flat list of visible semantics nodes from the running Flutter app.
 Most token-efficient for "what can I interact with?" questions — the Flutter
-framework filters out invisible and internal nodes. Each node includes its
-role, ID, state flags, supported actions, label, and size.
+framework filters out invisible and internal nodes. Each node includes its role,
+ID, state flags, supported actions, label, and size.
 
-Node IDs from this output can be passed directly to `flutter_tap`,
-`flutter_inject_text`, and `flutter_scroll_to`.
+Node IDs from this output can be passed directly to `tap`, `set_text`, and
+`perform_scroll_to`.
 
 ### `flutter_widget_tree` _(planned)_
 
 Returns a summary widget tree filtered to user-written widgets (omits Flutter
-internals). Adds structural context (nesting, widget types) at higher token
-cost than `flutter_get_semantics`. Source: `getRootWidgetTree(isSummaryTree: true)`.
+internals). Adds structural context (nesting, widget types) at higher token cost
+than `get_semantics`. Source: `getRootWidgetTree(isSummaryTree: true)`.
 
 A sample semantics node from a real app:
 
@@ -341,8 +341,8 @@ evaluateOnObject(vmId, 'widget.goRouter.namedLocation("podcast", pathParameters:
 ```
 
 `go()` returns void, so the handler needs to treat a null/void `InstanceRef`
-result as success rather than an error. A dedicated `flutter_navigate` tool (or
-a `navigate` mode on `flutter_query_ui`) would wrap this pattern: locate the
+result as success rather than an error. A dedicated `navigate` tool (or a
+`navigate` mode on `flutter_query_ui`) would wrap this pattern: locate the
 router, call `go()`, wait for a `Flutter.Navigation` event or the next
 `Flutter.Frame`, then optionally re-fetch the route stack to confirm.
 
@@ -360,8 +360,8 @@ prerequisite — the agent already has access to source files.
 
 ## MCP Server Architecture
 
-Tools 2 and 3 are separate Dart MCP servers (`dart-api` and `flutter-inspect`).
-Using Dart is the natural fit given the domain and avoids introducing a Node.js
+Tools 2 and 3 are separate Dart MCP servers (`packages` and `inspector`). Using
+Dart is the natural fit given the domain and avoids introducing a Node.js
 runtime dependency. Separate servers give independent lifecycles and failure
 modes — the API retrieval server is stateless; the runtime inspection server is
 stateful and subprocess-heavy.
@@ -369,28 +369,28 @@ stateful and subprocess-heavy.
 Tool surface (✓ = implemented, [planned] = not yet):
 
 ```
-// dart-api server (Tool 2)
-package_info(package, kind, library?, class?, version?) → String
+// packages server (Tool 2)
+api(package, kind, library?, class?, version?) → String
 
-// flutter-inspect server (Tool 3) — session lifecycle
-✓ flutter_launch_app(working_directory, target?, device?) → session_id
-✓ flutter_reload(session_id, full_restart?) → void
-✓ flutter_close_app(session_id) → void
+// inspector server (Tool 3) — session lifecycle
+✓ run_app(working_directory, target?, device?) → session_id
+✓ reload(session_id, full_restart?) → void
+✓ close_app(session_id) → void
 
-// flutter-inspect server (Tool 3) — inspection (high value)
-✓ flutter_take_screenshot(session_id, pixel_ratio?) → PNG
-✓ flutter.error log events  // push; includes widget IDs for flutter_inspect_layout
-✓ flutter_inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
-✓ flutter_evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
-✓ flutter_get_route(session_id) → String             // navigator stack + go_router path enrichment
-✓ flutter_get_semantics(session_id) → String         // flat list of visible semantics nodes
+// inspector server (Tool 3) — inspection (high value)
+✓ take_screenshot(session_id, pixel_ratio?) → PNG
+✓ flutter.error log events  // push; includes widget IDs for inspect_layout
+✓ inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
+✓ evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
+✓ get_route(session_id) → String             // navigator stack + go_router path enrichment
+✓ get_semantics(session_id) → String         // flat list of visible semantics nodes
 [planned] flutter_widget_tree(session_id) → String   // summary widget tree (user widgets only)
 
-// flutter-inspect server (Tool 3) — app interaction (useful but lower priority for coding agents)
-✓ flutter_navigate(session_id, path) → void          // go_router: via InheritedGoRouter + evaluateOnObject
-✓ flutter_tap(session_id, node_id?, label?) → void
-✓ flutter_inject_text(session_id, text, node_id?, label?) → void
-[planned] flutter_scroll_to(session_id, node_id?, label?) → void
+// inspector server (Tool 3) — app interaction (useful but lower priority for coding agents)
+✓ navigate(session_id, path) → void          // go_router: via InheritedGoRouter + evaluateOnObject
+✓ tap(session_id, node_id?, label?) → void
+✓ set_text(session_id, text, node_id?, label?) → void
+[planned] perform_scroll_to(session_id, node_id?, label?) → void
 ```
 
 ## Deferred / Open Questions

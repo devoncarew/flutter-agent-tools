@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_agent_tools/src/inspector/diagnostics_node.dart';
-import 'package:flutter_agent_tools/src/inspector/layout_formatter.dart';
+import 'package:flutter_toolkit/src/inspector/diagnostics_node.dart';
+import 'package:flutter_toolkit/src/inspector/layout_formatter.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -25,7 +25,7 @@ void main() {
           File(
             'test/inspector/fixtures/render_trees/overflow_details_formatted.txt',
           ).readAsStringSync().trimRight();
-      // maxDepth: 1 matches the default used by flutter_inspect_layout.
+      // maxDepth: 1 matches the default used by inspect_layout.
       expect(formatLayoutDetails(node, maxDepth: 1), equals(golden));
     });
 

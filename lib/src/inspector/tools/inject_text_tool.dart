@@ -3,27 +3,27 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../tool_context.dart';
 
-/// Implements the `flutter_inject_text` MCP tool.
+/// Implements the `set_text` MCP tool.
 ///
 /// Sets the text content of a text field identified by semantics node ID or
 /// label, using `SemanticsAction.setText`.
-class FlutterInjectTextTool extends FlutterTool {
+class SetTextTool extends InspectorTool {
   @override
   final Tool definition = Tool(
-    name: 'flutter_inject_text',
+    name: 'set_text',
     description:
         'Sets the text content of a text field by its semantics node ID or '
         'label. Dispatches SemanticsAction.setText — replaces the field\'s '
         'current content entirely. No keyboard simulation needed. '
         'One of "node_id" or "label" must be provided. '
         'Prefer "node_id" when available (faster — skips tree fetch). '
-        'Semantics node IDs and labels appear in flutter_get_semantics output. '
-        'Tip: tap the field first (flutter_tap) if the app requires focus '
+        'Semantics node IDs and labels appear in get_semantics output. '
+        "Tip: tap the field first ('tap') if the app requires focus "
         'before accepting text input.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
-          description: 'The session ID returned by flutter_launch_app.',
+          description: 'The session ID returned by run_app.',
         ),
         'text': Schema.string(
           description:
@@ -32,7 +32,7 @@ class FlutterInjectTextTool extends FlutterTool {
         'node_id': Schema.int(
           description:
               'The semantics node ID of the text field. Shown as "id=N" in '
-              'flutter_get_semantics output. Prefer this over "label" when '
+              'get_semantics output. Prefer this over "label" when '
               'you already know the ID.',
         ),
         'label': Schema.string(
@@ -66,9 +66,7 @@ class FlutterInjectTextTool extends FlutterTool {
         isError: true,
         content: [
           TextContent(
-            text:
-                'flutter_inject_text: one of "node_id" or "label" must be '
-                'provided.',
+            text: 'set_text: one of "node_id" or "label" must be provided.',
           ),
         ],
       );

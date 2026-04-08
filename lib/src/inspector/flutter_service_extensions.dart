@@ -121,7 +121,9 @@ class FlutterServiceExtensions {
       'viewId: (SemanticsBinding.instance as dynamic)'
       '.platformDispatcher.implicitView!.viewId'
       '$argsParam))',
-      libraryUri: 'package:flutter/src/semantics/semantics.dart',
+      // rendering/binding.dart imports package:flutter/semantics.dart, making
+      // both SemanticsAction and SemanticsActionEvent available without a prefix.
+      libraryUri: 'package:flutter/src/rendering/binding.dart',
     );
 
     return "performed '$actionType' on node id $resolvedId";
