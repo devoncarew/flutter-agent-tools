@@ -8,18 +8,18 @@ import 'package:yaml/yaml.dart';
 import 'resolver.dart';
 import 'stub_emitter.dart';
 
-/// Implements the `package_info` MCP tool.
+/// Implements the `api` MCP tool.
 ///
 /// Resolves a Dart package from the local pub cache and returns its public API
 /// surface. Version resolution order: `pubspec.lock` in `project_directory` →
 /// latest cached version.
-class PackageInfoTool {
+class ApiTool {
   // Single-entry cache: reused when consecutive calls target the same package.
   PackageResolver? _resolver;
   String? _resolverKey;
 
   Tool get definition => Tool(
-    name: 'package_info',
+    name: 'api',
     description:
         'Returns API summaries for Dart or Flutter packages. '
         'Use this to get accurate, version-matched API signatures instead of '

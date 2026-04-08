@@ -25,7 +25,7 @@ void main() {
           File(
             'test/inspector/fixtures/render_trees/overflow_details_formatted.txt',
           ).readAsStringSync().trimRight();
-      // maxDepth: 1 matches the default used by flutter_inspect_layout.
+      // maxDepth: 1 matches the default used by inspect_layout.
       expect(formatLayoutDetails(node, maxDepth: 1), equals(golden));
     });
 

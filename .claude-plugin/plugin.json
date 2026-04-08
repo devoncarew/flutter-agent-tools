@@ -10,11 +10,11 @@
   "license": "BSD-3-Clause license",
   "keywords": ["dart", "flutter"],
   "mcpServers": {
-    "flutter-inspect": {
-      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/start_inspector.sh"
+    "inspector": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/inspector_mcp.sh"
     },
-    "dart-api": {
-      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/start_shorthand.sh"
+    "packages": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/packages_mcp.sh"
     }
   },
   "hooks": {

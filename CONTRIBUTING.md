@@ -1,5 +1,8 @@
 # Contributing
 
+Contributions welcome! For anything but a non-trivial change, please start a
+discussion with an issue first.
+
 ## Development
 
 ```sh

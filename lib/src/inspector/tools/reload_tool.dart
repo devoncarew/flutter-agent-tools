@@ -3,13 +3,13 @@ import 'package:dart_mcp/server.dart';
 import '../app_session.dart';
 import '../tool_context.dart';
 
-/// Implements the `flutter_reload` MCP tool.
+/// Implements the `reload` MCP tool.
 ///
 /// Hot reloads or hot restarts a running Flutter app.
-class FlutterReloadTool extends FlutterTool {
+class ReloadTool extends FlutterTool {
   @override
   final Tool definition = Tool(
-    name: 'flutter_reload',
+    name: 'reload',
     description:
         'Applies source file changes to a running Flutter app. Call this '
         'after editing Dart files, before taking a screenshot or inspecting '
@@ -18,7 +18,7 @@ class FlutterReloadTool extends FlutterTool {
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
-          description: 'The session ID returned by flutter_launch_app.',
+          description: 'The session ID returned by run_app.',
         ),
         'full_restart': Schema.bool(
           description:
@@ -59,7 +59,7 @@ class FlutterReloadTool extends FlutterTool {
           text:
               '$action complete. '
               'Note: semantics node IDs are reassigned after each reload — '
-              're-fetch with flutter_get_semantics before using any '
+              're-fetch with get_semantics before using any '
               'previously observed node IDs.',
         ),
       ],

@@ -6,18 +6,18 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_mcp/client.dart';
-import 'package:flutter_agent_tools/inspector_mcp.dart';
-import 'package:flutter_agent_tools/shorthand_mcp.dart';
+import 'package:flutter_agent_tools/src/inspector/inspector_mcp.dart';
+import 'package:flutter_agent_tools/src/shorthand/packages_mcp.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 void main() async {
   await _updateSection(
-    marker: '<!-- dart-api -->',
-    tools: await _listTools(ShorthandServer.new),
+    marker: '<!-- packages -->',
+    tools: await _listTools(PackagesMCPServer.new),
   );
   await _updateSection(
-    marker: '<!-- flutter-inspect -->',
-    tools: await _listTools(InspectorServer.new),
+    marker: '<!-- inspector -->',
+    tools: await _listTools(InspectorMCPServer.new),
   );
   print('README.md updated.');
 }

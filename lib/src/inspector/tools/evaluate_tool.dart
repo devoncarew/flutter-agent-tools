@@ -3,14 +3,14 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../tool_context.dart';
 
-/// Implements the `flutter_evaluate` MCP tool.
+/// Implements the `evaluate` MCP tool.
 ///
 /// Evaluates a Dart expression on the running app's main isolate and returns
 /// the result as a string.
-class FlutterEvaluateTool extends FlutterTool {
+class EvaluateTool extends FlutterTool {
   @override
   final Tool definition = Tool(
-    name: 'flutter_evaluate',
+    name: 'evaluate',
     description:
         'Evaluates a Dart expression on the running app\'s main isolate and '
         'returns the result as a string. Use for binding-layer and '
@@ -24,7 +24,7 @@ class FlutterEvaluateTool extends FlutterTool {
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
-          description: 'The session ID returned by flutter_launch_app.',
+          description: 'The session ID returned by run_app.',
         ),
         'expression': Schema.string(
           description:

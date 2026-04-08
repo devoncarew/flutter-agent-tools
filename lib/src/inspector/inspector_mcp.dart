@@ -13,7 +13,7 @@ import 'tools/get_semantics_tool.dart';
 import 'tools/inject_text_tool.dart';
 import 'tools/inspect_layout_tool.dart';
 import 'tools/navigate_tool.dart';
-import 'tools/launch_app_tool.dart';
+import 'tools/run_app_tool.dart';
 import 'tools/reload_tool.dart';
 import 'tools/take_screenshot_tool.dart';
 import 'tools/tap_tool.dart';
@@ -22,7 +22,8 @@ import 'tools/tap_tool.dart';
 ///
 /// Owns the session map and event-to-log translation. Tool implementations
 /// live in lib/src/tools/ and are decoupled from this class via [ToolContext].
-base class InspectorServer extends MCPServer with ToolsSupport, LoggingSupport {
+base class InspectorMCPServer extends MCPServer
+    with ToolsSupport, LoggingSupport {
   static const String _loggerId = 'flutter_agent_tools';
 
   final Map<String, AppSession> _sessions = {};
@@ -34,33 +35,33 @@ base class InspectorServer extends MCPServer with ToolsSupport, LoggingSupport {
     log: (level, message) => log(level, message, logger: _loggerId),
   );
 
-  InspectorServer(super.channel)
+  InspectorMCPServer(super.channel)
     : super.fromStreamChannel(
         implementation: Implementation(
-          name: 'flutter-inspect',
+          name: 'inspector',
           version: packageVersion,
         ),
         instructions: '''
 Tools for launching, inspecting, and interacting with a running Flutter app.
 
-Session lifecycle: call flutter_launch_app first to get a session_id; pass it to all other tools. Call flutter_close_app when done.
+Session lifecycle: call run_app first to get a session_id; pass it to all other tools. Call close_app when done.
 
 Recommended workflow for UI changes:
 1. Edit Dart source files.
-2. flutter_reload — applies changes without losing app state. Use full_restart: true only when state must reset (e.g. initState changes).
-3. flutter_take_screenshot — visually confirm the change. Do this proactively; don't assume the edit was correct.
-4. If the screenshot reveals a problem, use flutter_inspect_layout (for sizing/overflow issues) or flutter_evaluate (for runtime state).
+2. reload — applies changes without losing app state. Use full_restart: true only when state must reset (e.g. initState changes).
+3. screenshot — visually confirm the change. Do this proactively; don't assume the edit was correct.
+4. If the screenshot reveals a problem, use inspect_layout (for sizing/overflow issues) or evaluate (for runtime state).
 
 Debugging layout issues:
-- flutter_inspect_layout with no widget_id starts from the root.
+- inspect_layout with no widget_id starts from the root.
 - Widget IDs appear in flutter.error log events — use them to jump directly to the failing widget.
 - Increase subtree_depth to see deeper into the tree.
 
 Orientation:
-- flutter_get_route shows the current navigator stack with screen widget names and source locations. Use this to confirm which screen is active before inspecting or editing.
-- flutter_get_semantics lists visible, interactive nodes with their IDs. Pass node IDs directly to flutter_tap, flutter_inject_text, and flutter_scroll_to.
+- get_route shows the current navigator stack with screen widget names and source locations. Use this to confirm which screen is active before inspecting or editing.
+- get_semantics lists visible, interactive nodes with their IDs. Pass node IDs directly to perform_tap, perform_set_text, and perform_scroll_to.
 
-Flutter.Error events are forwarded automatically as MCP log warnings — no polling needed. They include widget IDs for use with flutter_inspect_layout.''',
+Flutter.Error events are forwarded automatically as MCP log warnings — no polling needed. They include widget IDs for use with inspect_layout.''',
       ) {
     loggingLevel = LoggingLevel.info;
 
@@ -73,23 +74,23 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     }
 
     register(
-      FlutterLaunchAppTool(
+      RunAppTool(
         sessionIdGenerator: _idGenerator.createNextId,
         registerSession: (id, session) => _sessions[id] = session,
         eventListener: _handleEvent,
         debugLog: debugLog,
       ),
     );
-    register(FlutterReloadTool());
-    register(FlutterTakeScreenshotTool());
-    register(FlutterInspectLayoutTool());
-    register(FlutterEvaluateTool());
-    register(FlutterGetRouteTool());
-    register(FlutterNavigateTool());
-    register(FlutterGetSemanticsTool());
-    register(FlutterTapTool());
-    register(FlutterInjectTextTool());
-    register(FlutterCloseAppTool());
+    register(ReloadTool());
+    register(ScreenshotTool());
+    register(InspectLayoutTool());
+    register(EvaluateTool());
+    register(GetRouteTool());
+    register(NavigateTool());
+    register(GetSemanticsTool());
+    register(PerformTapTool());
+    register(PerformSetTextTool());
+    register(CloseAppTool());
   }
 
   @override
@@ -126,7 +127,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
       final routeDesc = event.params['route'];
       log(
         LoggingLevel.info,
-        '[flutter.navigation] $routeDesc (use flutter_get_route to see current stack)',
+        '[flutter.navigation] $routeDesc (use get_route to see current stack)',
         logger: _loggerId,
       );
       return;

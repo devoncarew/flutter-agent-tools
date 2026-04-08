@@ -1,4 +1,4 @@
-import 'package:flutter_agent_tools/src/shorthand/package_info_tool.dart';
+import 'package:flutter_agent_tools/src/shorthand/api_tool.dart';
 import 'package:test/test.dart';
 
 // The project root — where pubspec.yaml and pubspec.lock live.

@@ -66,8 +66,8 @@ fields on each property. Key types and what they carry:
 | `DiagnosticsStackTrace`  | Stack frames; first frame is the call site                                                 |
 
 The widget ID embedded in a `DiagnosticsBlock` child description or a
-`DiagnosticableTreeNode` can be passed directly to `flutter_inspect_layout` for
-a deeper drill-down.
+`DiagnosticableTreeNode` can be passed directly to `inspect_layout` for a deeper
+drill-down.
 
 ## 3. The Preferred Read Path: VM Service `evaluate`
 
@@ -85,8 +85,8 @@ WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.toString()
 
 ## 4. Driving UI Interactions
 
-To interact with the app (tapping, typing, scrolling) from an MCP server,
-the approach is:
+To interact with the app (tapping, typing, scrolling) from an MCP server, the
+approach is:
 
 1. **Enable semantics** (once, at session start) — see section 6.
 2. **Query the semantics tree** via VM `evaluate` to get node IDs and labels.
@@ -94,10 +94,10 @@ the approach is:
 
 ### Dispatching actions via `performSemanticsAction`
 
-`SemanticsBinding.performSemanticsAction` is how VoiceOver and TalkBack
-interact with Flutter. It accepts a `SemanticsActionEvent` with a node's
-integer `id` (from the semantics tree) and a `SemanticsAction`. No screen
-coordinates are needed.
+`SemanticsBinding.performSemanticsAction` is how VoiceOver and TalkBack interact
+with Flutter. It accepts a `SemanticsActionEvent` with a node's integer `id`
+(from the semantics tree) and a `SemanticsAction`. No screen coordinates are
+needed.
 
 ```dart
 // Tap a button:
@@ -123,8 +123,8 @@ SemanticsBinding.instance.performSemanticsAction(
 `viewId` is the integer ID of the Flutter view. For single-window apps (the
 common case) `implicitView!.viewId` is always `0`.
 
-The semantics node `id` (see section 6) is a framework-internal integer — not
-an inspector handle and not a VM service object ID — but it is exactly what
+The semantics node `id` (see section 6) is a framework-internal integer — not an
+inspector handle and not a VM service object ID — but it is exactly what
 `SemanticsActionEvent.nodeId` expects. No conversion is needed.
 
 ### Approaches that do NOT work for unmodified apps
@@ -132,10 +132,10 @@ an inspector handle and not a VM service object ID — but it is exactly what
 - **`ext.flutter.driver.*` extensions** — require the app to import
   `flutter_driver` and register service extensions. Unavailable here.
 - **`debugDumpSemanticsTree()`** — returns ASCII-art, not structured data.
-- **Injecting pointer events** (`GestureBinding.handlePointerEvent`) — works
-  but requires computing accurate screen coordinates by accumulating node
-  transforms from the root. The `performSemanticsAction` approach is simpler
-  and more robust.
+- **Injecting pointer events** (`GestureBinding.handlePointerEvent`) — works but
+  requires computing accurate screen coordinates by accumulating node transforms
+  from the root. The `performSemanticsAction` approach is simpler and more
+  robust.
 
 ## 5. Optimizing for LLM Context Windows
 
@@ -173,20 +173,20 @@ RendererBinding.instance.pipelineOwner.semanticsOwner?.rootSemanticsNode
 
 ### `SemanticsNode` fields
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `id` | `int` | Framework-internal integer; root is always 0. Not an inspector handle or VM service object ID, but directly usable as `SemanticsActionEvent.nodeId` |
-| `rect` | `Rect` | Bounding box in **local** coordinate space |
-| `transform` | `Matrix4?` | Local → parent transform; null means identity |
-| `label` | `String` | Primary accessibility label |
-| `value` | `String` | Current value (e.g. slider position, text field content) |
-| `hint` | `String` | Short description of what happens on action |
-| `tooltip` | `String` | Tooltip text |
-| `increasedValue` / `decreasedValue` | `String` | Value after increase/decrease action |
-| `textDirection` | `TextDirection?` | Reading direction for text fields |
-| `isInvisible` | `bool` | `rect.isEmpty \|\| transform.isZero()` — skip these |
-| `mergeAllDescendantsIntoThisNode` | `bool` | When true, children are rolled up into this node |
-| `isMergedIntoParent` | `bool` | This node's data is already in its parent |
+| Field                               | Type             | Notes                                                                                                                                               |
+| ----------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                                | `int`            | Framework-internal integer; root is always 0. Not an inspector handle or VM service object ID, but directly usable as `SemanticsActionEvent.nodeId` |
+| `rect`                              | `Rect`           | Bounding box in **local** coordinate space                                                                                                          |
+| `transform`                         | `Matrix4?`       | Local → parent transform; null means identity                                                                                                       |
+| `label`                             | `String`         | Primary accessibility label                                                                                                                         |
+| `value`                             | `String`         | Current value (e.g. slider position, text field content)                                                                                            |
+| `hint`                              | `String`         | Short description of what happens on action                                                                                                         |
+| `tooltip`                           | `String`         | Tooltip text                                                                                                                                        |
+| `increasedValue` / `decreasedValue` | `String`         | Value after increase/decrease action                                                                                                                |
+| `textDirection`                     | `TextDirection?` | Reading direction for text fields                                                                                                                   |
+| `isInvisible`                       | `bool`           | `rect.isEmpty \|\| transform.isZero()` — skip these                                                                                                 |
+| `mergeAllDescendantsIntoThisNode`   | `bool`           | When true, children are rolled up into this node                                                                                                    |
+| `isMergedIntoParent`                | `bool`           | This node's data is already in its parent                                                                                                           |
 
 **Tree walking:**
 
@@ -199,9 +199,9 @@ node.visitChildren((SemanticsNode child) {
 
 ### Coordinate system
 
-`rect` is in the node's **local** coordinate system, not screen coordinates.
-The root node's local system is screen coordinates (no parent transform). For
-child nodes, accumulate `transform` values from the root to convert to screen
+`rect` is in the node's **local** coordinate system, not screen coordinates. The
+root node's local system is screen coordinates (no parent transform). For child
+nodes, accumulate `transform` values from the root to convert to screen
 coordinates. Many top-level widgets (AppBar, body, FAB) are direct children of
 the root, so their `rect` values are already in screen coordinates.
 
@@ -216,56 +216,56 @@ To compute a node's screen rect in a VM evaluate expression, chain transforms:
 
 Flags are set in a bitmask (`int`). The most useful for agents:
 
-| Flag | Bit | Meaning |
-|------|-----|---------|
-| `hasCheckedState` | 1 | Node can be checked/unchecked (checkbox, radio) |
-| `isChecked` | 2 | Currently checked |
-| `isCheckStateMixed` | `1<<25` | Tristate checkbox — mixed state |
-| `hasSelectedState` | `1<<28` | Node can be selected (tab, list item) |
-| `isSelected` | 4 | Currently selected |
-| `isButton` | 8 | Button role |
-| `isTextField` | 16 | Text input field |
-| `isSlider` | `1<<23` | Slider control |
-| `isLink` | `1<<22` | Interactive hyperlink |
-| `isImage` | `1<<14` | Image |
-| `isHeader` | `1<<9` | Section header |
-| `isFocusable` | `1<<21` | Can receive input focus |
-| `isFocused` | `1<<5` | Currently has input focus |
-| `hasEnabledState` | `1<<6` | Node can be enabled/disabled |
-| `isEnabled` | `1<<7` | Currently enabled |
-| `isInMutuallyExclusiveGroup` | `1<<8` | Radio button (one of a group) |
-| `isObscured` | `1<<10` | Password field |
-| `isMultiline` | `1<<19` | Multi-line text field |
-| `isReadOnly` | `1<<20` | Read-only text field |
-| `hasToggledState` | `1<<16` | Node can be toggled on/off (Switch) |
-| `isToggled` | `1<<17` | Currently toggled on |
-| `hasExpandedState` | `1<<26` | Can expand/collapse (SubmenuButton) |
-| `isExpanded` | `1<<27` | Currently expanded |
-| `isHidden` | `1<<13` | Off-screen; skip for visible-element queries |
-| `isLiveRegion` | `1<<15` | Updates auto-announced (SnackBar) |
-| `hasImplicitScrolling` | `1<<18` | Container scrolls to reveal focus (ListView) |
-| `scopesRoute` | `1<<11` | Root of a route subtree (Dialog, Drawer) |
-| `namesRoute` | `1<<12` | Label names the current route |
-| `hasRequiredState` | `1<<29` | Form field that may be required |
-| `isRequired` | `1<<30` | Currently required |
+| Flag                         | Bit     | Meaning                                         |
+| ---------------------------- | ------- | ----------------------------------------------- |
+| `hasCheckedState`            | 1       | Node can be checked/unchecked (checkbox, radio) |
+| `isChecked`                  | 2       | Currently checked                               |
+| `isCheckStateMixed`          | `1<<25` | Tristate checkbox — mixed state                 |
+| `hasSelectedState`           | `1<<28` | Node can be selected (tab, list item)           |
+| `isSelected`                 | 4       | Currently selected                              |
+| `isButton`                   | 8       | Button role                                     |
+| `isTextField`                | 16      | Text input field                                |
+| `isSlider`                   | `1<<23` | Slider control                                  |
+| `isLink`                     | `1<<22` | Interactive hyperlink                           |
+| `isImage`                    | `1<<14` | Image                                           |
+| `isHeader`                   | `1<<9`  | Section header                                  |
+| `isFocusable`                | `1<<21` | Can receive input focus                         |
+| `isFocused`                  | `1<<5`  | Currently has input focus                       |
+| `hasEnabledState`            | `1<<6`  | Node can be enabled/disabled                    |
+| `isEnabled`                  | `1<<7`  | Currently enabled                               |
+| `isInMutuallyExclusiveGroup` | `1<<8`  | Radio button (one of a group)                   |
+| `isObscured`                 | `1<<10` | Password field                                  |
+| `isMultiline`                | `1<<19` | Multi-line text field                           |
+| `isReadOnly`                 | `1<<20` | Read-only text field                            |
+| `hasToggledState`            | `1<<16` | Node can be toggled on/off (Switch)             |
+| `isToggled`                  | `1<<17` | Currently toggled on                            |
+| `hasExpandedState`           | `1<<26` | Can expand/collapse (SubmenuButton)             |
+| `isExpanded`                 | `1<<27` | Currently expanded                              |
+| `isHidden`                   | `1<<13` | Off-screen; skip for visible-element queries    |
+| `isLiveRegion`               | `1<<15` | Updates auto-announced (SnackBar)               |
+| `hasImplicitScrolling`       | `1<<18` | Container scrolls to reveal focus (ListView)    |
+| `scopesRoute`                | `1<<11` | Root of a route subtree (Dialog, Drawer)        |
+| `namesRoute`                 | `1<<12` | Label names the current route                   |
+| `hasRequiredState`           | `1<<29` | Form field that may be required                 |
+| `isRequired`                 | `1<<30` | Currently required                              |
 
 ### `SemanticsAction` bitmask values (from `dart:ui`)
 
 Actions the node can receive. For interaction tools, the most relevant:
 
-| Action | Bit | Use |
-|--------|-----|-----|
-| `tap` | 1 | Tap the node |
-| `longPress` | 2 | Long press |
-| `scrollLeft` / `scrollRight` | 4 / 8 | Horizontal scroll |
-| `scrollUp` / `scrollDown` | 16 / 32 | Vertical scroll |
-| `increase` / `decrease` | 64 / 128 | Slider adjustment |
-| `setText` | `1<<21` | Replace text field content |
-| `setSelection` | `1<<11` | Move cursor / set selection range |
-| `focus` | `1<<22` | Request input focus |
-| `expand` / `collapse` | `1<<24` / `1<<25` | Expand or collapse |
-| `dismiss` | `1<<18` | Dismiss (dialog, snackbar) |
-| `showOnScreen` | `1<<8` | Scroll to make this node visible |
+| Action                       | Bit               | Use                               |
+| ---------------------------- | ----------------- | --------------------------------- |
+| `tap`                        | 1                 | Tap the node                      |
+| `longPress`                  | 2                 | Long press                        |
+| `scrollLeft` / `scrollRight` | 4 / 8             | Horizontal scroll                 |
+| `scrollUp` / `scrollDown`    | 16 / 32           | Vertical scroll                   |
+| `increase` / `decrease`      | 64 / 128          | Slider adjustment                 |
+| `setText`                    | `1<<21`           | Replace text field content        |
+| `setSelection`               | `1<<11`           | Move cursor / set selection range |
+| `focus`                      | `1<<22`           | Request input focus               |
+| `expand` / `collapse`        | `1<<24` / `1<<25` | Expand or collapse                |
+| `dismiss`                    | `1<<18`           | Dismiss (dialog, snackbar)        |
+| `showOnScreen`               | `1<<8`            | Scroll to make this node visible  |
 
 ### Filtering for visible interactive nodes
 
@@ -286,8 +286,8 @@ When walking the tree for `mode=semantics`:
 `ext.flutter.driver.*` service extensions. It is not usable from an MCP server
 that must work with unmodified apps.
 
-One useful pattern it documents: after calling `ensureSemantics()`, wait for
-the next frame before reading the tree:
+One useful pattern it documents: after calling `ensureSemantics()`, wait for the
+next frame before reading the tree:
 
 ```dart
 SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -295,10 +295,10 @@ SchedulerBinding.instance.addPostFrameCallback((_) {
 });
 ```
 
-The current implementation calls `enableSemantics()` in `_connectVmService`
-and fails open. If the tree is empty on the first `flutter_get_semantics`
-call, the agent should retry after a screenshot or hot reload
-(both of which synchronize on a rendered frame).
+The current implementation calls `enableSemantics()` in `_connectVmService` and
+fails open. If the tree is empty on the first `get_semantics` call, the agent
+should retry after a screenshot or hot reload (both of which synchronize on a
+rendered frame).
 
 ---
 

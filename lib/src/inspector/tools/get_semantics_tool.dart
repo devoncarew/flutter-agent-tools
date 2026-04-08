@@ -5,26 +5,26 @@ import '../semantic_node.dart';
 import '../semantics_formatter.dart';
 import '../tool_context.dart';
 
-/// Implements the `flutter_get_semantics` MCP tool.
+/// Implements the `get_semantics` MCP tool.
 ///
 /// Returns a flat list of visible, interactive semantics nodes from the
 /// running Flutter app.
-class FlutterGetSemanticsTool extends FlutterTool {
+class GetSemanticsTool extends FlutterTool {
   @override
   final Tool definition = Tool(
-    name: 'flutter_get_semantics',
+    name: 'get_semantics',
     description:
         'Returns a flat list of visible semantics nodes from the running '
         'Flutter app. Each node shows its role, ID, state flags, supported '
         'actions, label, and size. '
         'Use this to find what is on screen and what can be interacted with. '
-        'Node IDs from this output can be passed directly to flutter_tap '
-        'and flutter_inject_text. '
+        'Node IDs from this output can be passed directly to perform_tap '
+        'and perform_set_text. '
         'Node IDs are stable until the next hot reload or hot restart.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
-          description: 'The session ID returned by flutter_launch_app.',
+          description: 'The session ID returned by run_app.',
         ),
       },
       required: ['session_id'],

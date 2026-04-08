@@ -3,12 +3,12 @@ import 'package:dart_mcp/server.dart';
 import '../app_session.dart';
 import '../tool_context.dart';
 
-/// Implements the `flutter_launch_app` MCP tool.
+/// Implements the `run_app` MCP tool.
 ///
 /// Builds and launches a Flutter app, returning a session ID for use with
-/// all other flutter_* tools.
-class FlutterLaunchAppTool extends FlutterTool {
-  FlutterLaunchAppTool({
+/// all other inspector tools.
+class RunAppTool extends FlutterTool {
+  RunAppTool({
     required this.sessionIdGenerator,
     required this.registerSession,
     required this.eventListener,
@@ -29,10 +29,10 @@ class FlutterLaunchAppTool extends FlutterTool {
 
   @override
   final Tool definition = Tool(
-    name: 'flutter_launch_app',
+    name: 'run_app',
     description:
         'Builds and launches the Flutter app. Returns a session ID required '
-        'by all other flutter_* tools. Call this first before inspecting, '
+        'by all other tools. Call this first before inspecting, '
         'screenshotting, or evaluating. Flutter.Error events from the running '
         'app are automatically forwarded as MCP log warnings — no polling needed.',
     inputSchema: Schema.object(

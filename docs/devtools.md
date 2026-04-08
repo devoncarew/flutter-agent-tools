@@ -38,31 +38,31 @@ fallback but is rarely used.
 The canonical list of extension names comes from the Flutter framework's
 `WidgetInspectorServiceExtensions` enum. DevTools calls all of the following:
 
-| Extension name                  | Key params                                          | Returns              |
-|---------------------------------|-----------------------------------------------------|----------------------|
-| `getRootWidget`                 | `objectGroup`                                       | DiagnosticsNode JSON |
-| `getRootWidgetTree`             | `groupName`, `isSummaryTree`, `withPreviews`, `fullDetails` | DiagnosticsNode JSON |
-| `getDetailsSubtree`             | `objectGroup`, `arg` (valueId), `subtreeDepth`      | DiagnosticsNode JSON |
-| `getChildren`                   | `arg` (nodeRef.id), `objectGroup`                   | List of nodes        |
-| `getChildrenSummaryTree`        | `arg` (nodeRef.id), `objectGroup`                   | List of nodes        |
-| `getChildrenDetailsSubtree`     | `arg` (nodeRef.id), `objectGroup`                   | List of nodes        |
-| `getProperties`                 | `arg` (nodeRef.id), `objectGroup`                   | List of nodes        |
-| `getParentChain`                | `arg` (valueId), `objectGroup`                      | DiagnosticsNode JSON |
-| `getSelectedWidget`             | `objectGroup`                                       | DiagnosticsNode JSON |
-| `getSelectedSummaryWidget`      | `objectGroup`                                       | DiagnosticsNode JSON |
-| `setSelectionById`              | `arg` (widgetId), `objectGroup`                     | bool                 |
-| `getLayoutExplorerNode`         | `groupName`, `id` (valueId), `subtreeDepth`         | DiagnosticsNode JSON |
-| `setFlexProperties`             | `id`, `mainAxisAlignment`, `crossAxisAlignment`     | void                 |
-| `setFlexFactor`                 | `id`, `flexFactor`                                  | void                 |
-| `setFlexFit`                    | `id`, `flexFit`                                     | void                 |
-| `getPubRootDirectories`         | (none)                                              | List\<String\>       |
-| `addPubRootDirectories`         | `arg0`, `arg1`, … (indexed)                         | void                 |
-| `removePubRootDirectories`      | `arg0`, `arg1`, … (indexed)                         | void                 |
-| `isWidgetTreeReady`             | (none)                                              | bool                 |
-| `isWidgetCreationTracked`       | (none)                                              | bool                 |
-| `disposeGroup`                  | `objectGroup`                                       | void                 |
-| `screenshot`                    | `id`, `width`, `height`, `margin`, `maxPixelRatio`, `debugPaint` | base64 PNG string |
-| `widgetLocationIdMap`           | (none)                                              | Map\<id, location\>  |
+| Extension name              | Key params                                                       | Returns              |
+| --------------------------- | ---------------------------------------------------------------- | -------------------- |
+| `getRootWidget`             | `objectGroup`                                                    | DiagnosticsNode JSON |
+| `getRootWidgetTree`         | `groupName`, `isSummaryTree`, `withPreviews`, `fullDetails`      | DiagnosticsNode JSON |
+| `getDetailsSubtree`         | `objectGroup`, `arg` (valueId), `subtreeDepth`                   | DiagnosticsNode JSON |
+| `getChildren`               | `arg` (nodeRef.id), `objectGroup`                                | List of nodes        |
+| `getChildrenSummaryTree`    | `arg` (nodeRef.id), `objectGroup`                                | List of nodes        |
+| `getChildrenDetailsSubtree` | `arg` (nodeRef.id), `objectGroup`                                | List of nodes        |
+| `getProperties`             | `arg` (nodeRef.id), `objectGroup`                                | List of nodes        |
+| `getParentChain`            | `arg` (valueId), `objectGroup`                                   | DiagnosticsNode JSON |
+| `getSelectedWidget`         | `objectGroup`                                                    | DiagnosticsNode JSON |
+| `getSelectedSummaryWidget`  | `objectGroup`                                                    | DiagnosticsNode JSON |
+| `setSelectionById`          | `arg` (widgetId), `objectGroup`                                  | bool                 |
+| `getLayoutExplorerNode`     | `groupName`, `id` (valueId), `subtreeDepth`                      | DiagnosticsNode JSON |
+| `setFlexProperties`         | `id`, `mainAxisAlignment`, `crossAxisAlignment`                  | void                 |
+| `setFlexFactor`             | `id`, `flexFactor`                                               | void                 |
+| `setFlexFit`                | `id`, `flexFit`                                                  | void                 |
+| `getPubRootDirectories`     | (none)                                                           | List\<String\>       |
+| `addPubRootDirectories`     | `arg0`, `arg1`, … (indexed)                                      | void                 |
+| `removePubRootDirectories`  | `arg0`, `arg1`, … (indexed)                                      | void                 |
+| `isWidgetTreeReady`         | (none)                                                           | bool                 |
+| `isWidgetCreationTracked`   | (none)                                                           | bool                 |
+| `disposeGroup`              | `objectGroup`                                                    | void                 |
+| `screenshot`                | `id`, `width`, `height`, `margin`, `maxPixelRatio`, `debugPaint` | base64 PNG string    |
+| `widgetLocationIdMap`       | (none)                                                           | Map\<id, location\>  |
 
 ### Parameter name inconsistency: `groupName` vs `objectGroup`
 
@@ -71,10 +71,10 @@ consistent parameter name** for the object group:
 
 - `getRootWidgetTree` and `getLayoutExplorerNode` use **`groupName`**.
 - `getDetailsSubtree`, `getChildren*`, `getProperties`, `setSelectionById`,
-  `getRootWidget`, `getParentChain`, and `screenshot` use **`objectGroup`**
-  (or pass it as the second positional arg in the observatory eval path).
-- `addPubRootDirectories` / `removePubRootDirectories` use indexed args:
-  `arg0`, `arg1`, etc. (no group at all).
+  `getRootWidget`, `getParentChain`, and `screenshot` use **`objectGroup`** (or
+  pass it as the second positional arg in the observatory eval path).
+- `addPubRootDirectories` / `removePubRootDirectories` use indexed args: `arg0`,
+  `arg1`, etc. (no group at all).
 
 DevTools works around this by having two internal call helpers:
 `invokeServiceMethodDaemonParams` (arbitrary key→value map) and
@@ -128,8 +128,8 @@ invokeServiceMethodDaemonParams(
 );
 ```
 
-All boolean and numeric parameters are passed as **strings**, not native
-JSON booleans/numbers.
+All boolean and numeric parameters are passed as **strings**, not native JSON
+booleans/numbers.
 
 `isSummaryTree: true` (the summary tree) omits lower-level framework-internal
 widgets (e.g. `_InheritedProviderScope`, raw `Listener` wrappers). It is the
@@ -137,12 +137,12 @@ right default for most agent use cases. Use `false` only when you need the
 complete unfiltered widget tree.
 
 `fullDetails: true` includes the render object and its layout properties
-(constraints, size, parentData) inline in each node. Without this, you need
-a separate `getDetailsSubtree` call to get render data.
+(constraints, size, parentData) inline in each node. Without this, you need a
+separate `getDetailsSubtree` call to get render data.
 
 `withPreviews: true` includes small PNG thumbnails of each visible widget
-embedded in the JSON. Useful in the DevTools UI; expensive and noisy for
-agents — set to `false` unless you specifically need thumbnails.
+embedded in the JSON. Useful in the DevTools UI; expensive and noisy for agents
+— set to `false` unless you specifically need thumbnails.
 
 ---
 
@@ -186,8 +186,8 @@ invokeServiceMethodDaemonParams(
 
 ### Tree call responses (`getRootWidgetTree`, `getDetailsSubtree`, etc.)
 
-Inspector extensions return `{ 'result': <node>, 'errorMessage': null }`.
-Always extract via `response.json['result']`.
+Inspector extensions return `{ 'result': <node>, 'errorMessage': null }`. Always
+extract via `response.json['result']`.
 
 A `DiagnosticsNode` JSON object has these key fields:
 
@@ -217,17 +217,20 @@ A `DiagnosticsNode` JSON object has these key fields:
 
 ### Render object sub-map (in `getDetailsSubtree` responses)
 
-When `fullDetails: true` or via `getDetailsSubtree`, the `renderObject`
-property is an inlined DiagnosticsNode whose `properties` include:
+When `fullDetails: true` or via `getDetailsSubtree`, the `renderObject` property
+is an inlined DiagnosticsNode whose `properties` include:
 
 ```jsonc
 {
   "name": "renderObject",
   "properties": [
-    { "name": "constraints", "description": "BoxConstraints(w=390.0, h=844.0)" },
-    { "name": "size",        "description": "Size(390.0, 200.0)" },
-    { "name": "parentData",  "description": "offset=Offset(0.0, 0.0)" }
-  ]
+    {
+      "name": "constraints",
+      "description": "BoxConstraints(w=390.0, h=844.0)",
+    },
+    { "name": "size", "description": "Size(390.0, 200.0)" },
+    { "name": "parentData", "description": "offset=Offset(0.0, 0.0)" },
+  ],
 }
 ```
 
@@ -301,10 +304,11 @@ vmService.evaluate(isolateId, 'objects/1234', 'runtimeType.toString()');
 
 **Practical recipe for flutter-agent-tools:**
 
-1. Call `getRootWidgetTree` or `getDetailsSubtree` to get a node with a `valueId`.
-2. Evaluate `WidgetInspectorService.instance.toObject(valueId)` in the
-   inspector library scope (`package:flutter/src/widgets/widget_inspector.dart`).
-   The result `InstanceRef.id` is the raw VM object ID.
+1. Call `getRootWidgetTree` or `getDetailsSubtree` to get a node with a
+   `valueId`.
+2. Evaluate `WidgetInspectorService.instance.toObject(valueId)` in the inspector
+   library scope (`package:flutter/src/widgets/widget_inspector.dart`). The
+   result `InstanceRef.id` is the raw VM object ID.
 3. Call `vmService.evaluate` with that VM object ID as the target to run
    arbitrary expressions on that widget's instance members.
 
@@ -330,10 +334,10 @@ whether that path is under one of the registered pub roots. Nodes from outside
 the roots are considered framework/package widgets.
 
 **For flutter-agent-tools**, the simpler approach (already implemented in
-`route_formatter.dart`) is to check whether the file path contains `/.pub-cache/`
-directly. This is more robust than relying on `addPubRootDirectories` because
-it doesn't require registration and works correctly for local packages vendored
-via `path:` dependencies.
+`route_formatter.dart`) is to check whether the file path contains
+`/.pub-cache/` directly. This is more robust than relying on
+`addPubRootDirectories` because it doesn't require registration and works
+correctly for local packages vendored via `path:` dependencies.
 
 Note: `creationLocation` is only populated when widget creation tracking is
 enabled (debug mode with `isWidgetCreationTracked()` returning `true`).
@@ -377,9 +381,9 @@ fetching the widget tree.
 
 **The `Flutter.Navigation` event does not include the route path string** (e.g.
 `/podcast/123`). It only carries the route's `description`, which for go_router
-routes is typically the widget class name, not the path. To get a route path
-you would need to evaluate `GoRouter.of(context).location` — but that requires
-a valid `BuildContext`, which is not cheaply available from the VM service.
+routes is typically the widget class name, not the path. To get a route path you
+would need to evaluate `GoRouter.of(context).location` — but that requires a
+valid `BuildContext`, which is not cheaply available from the VM service.
 
 ---
 
@@ -388,17 +392,17 @@ a valid `BuildContext`, which is not cheaply available from the VM service.
 These are sent as `kind: kExtension` VM service events and consumed via
 `service.onExtensionEvent`:
 
-| Event kind                             | Description                                      |
-|----------------------------------------|--------------------------------------------------|
-| `Flutter.Error`                        | Unhandled Flutter framework error (structured)   |
-| `Flutter.Frame`                        | Each rendered frame (with timing data)           |
-| `Flutter.FirstFrame`                   | First frame after app start / hot restart        |
-| `Flutter.FrameworkInitialization`      | Framework init complete                          |
-| `Flutter.Navigation`                   | Navigator stack change                           |
-| `Flutter.Print`                        | `debugPrint()` output                            |
-| `Flutter.RebuiltWidgets`               | Widgets rebuilt in last frame (performance)      |
-| `Flutter.ImageSizesForFrame`           | Image decoding sizes for current frame           |
-| `Flutter.ServiceExtensionStateChanged` | A service extension was toggled                  |
+| Event kind                             | Description                                    |
+| -------------------------------------- | ---------------------------------------------- |
+| `Flutter.Error`                        | Unhandled Flutter framework error (structured) |
+| `Flutter.Frame`                        | Each rendered frame (with timing data)         |
+| `Flutter.FirstFrame`                   | First frame after app start / hot restart      |
+| `Flutter.FrameworkInitialization`      | Framework init complete                        |
+| `Flutter.Navigation`                   | Navigator stack change                         |
+| `Flutter.Print`                        | `debugPrint()` output                          |
+| `Flutter.RebuiltWidgets`               | Widgets rebuilt in last frame (performance)    |
+| `Flutter.ImageSizesForFrame`           | Image decoding sizes for current frame         |
+| `Flutter.ServiceExtensionStateChanged` | A service extension was toggled                |
 
 ---
 
@@ -421,9 +425,9 @@ bool tracked = await invokeServiceMethod('isWidgetCreationTracked');
 
 ## 12. `widgetLocationIdMap`
 
-An extension that returns a full map of widget creation IDs to source
-locations, without needing to traverse the tree. Useful for static analysis
-of the app's widget structure:
+An extension that returns a full map of widget creation IDs to source locations,
+without needing to traverse the tree. Useful for static analysis of the app's
+widget structure:
 
 ```dart
 // Returns: { 'widgetId': { 'file': '...', 'line': 42, 'column': 8 }, ... }
@@ -435,9 +439,9 @@ Map<String, Object?> locationMap = await invokeServiceMethod('widgetLocationIdMa
 ## 13. `getParentChain`
 
 Returns the ancestor chain from the root down to the widget identified by
-`valueId`. Each node in the chain has its children populated just enough to
-show the path. This is more efficient than fetching the full tree when you
-already have a widget's `valueId` and want to understand its context:
+`valueId`. Each node in the chain has its children populated just enough to show
+the path. This is more efficient than fetching the full tree when you already
+have a widget's `valueId` and want to understand its context:
 
 ```dart
 invokeServiceMethodDaemonParams(
@@ -452,15 +456,14 @@ invokeServiceMethodDaemonParams(
 
 The VM service `evaluate` RPC can target three different scopes:
 
-| Target         | Scope                                               | When to use                          |
-|----------------|-----------------------------------------------------|--------------------------------------|
-| Library ID     | Root library of the isolate (`isolate.rootLib.id`)  | Top-level globals, bindings, etc.    |
-| Class ID       | Static members of a class                           | Rarely needed from an MCP server     |
-| Object ID      | Instance members; `this` = the target object        | Evaluate on a specific widget/object |
+| Target     | Scope                                              | When to use                          |
+| ---------- | -------------------------------------------------- | ------------------------------------ |
+| Library ID | Root library of the isolate (`isolate.rootLib.id`) | Top-level globals, bindings, etc.    |
+| Class ID   | Static members of a class                          | Rarely needed from an MCP server     |
+| Object ID  | Instance members; `this` = the target object       | Evaluate on a specific widget/object |
 
-The root library scope gives access to everything imported in `main.dart`,
-which includes `WidgetsBinding.instance`, `GoRouter`, top-level variables,
-etc.
+The root library scope gives access to everything imported in `main.dart`, which
+includes `WidgetsBinding.instance`, `GoRouter`, top-level variables, etc.
 
 **Getting the root library ID:**
 
@@ -538,21 +541,21 @@ after the fact does not replay prior errors.
 
 ## 17. Reading the `Flutter.Error` Event
 
-When structured errors are enabled, each unhandled Flutter error arrives as a
-VM service extension event with `extensionKind == 'Flutter.Error'`. The
+When structured errors are enabled, each unhandled Flutter error arrives as a VM
+service extension event with `extensionKind == 'Flutter.Error'`. The
 `extensionData.data` field is a `DiagnosticsNode` JSON tree. Key node types:
 
-| `type` field            | Content                                                       |
-|-------------------------|---------------------------------------------------------------|
-| `ErrorSummary`          | The one-line error message (`level == 'summary'`)             |
-| `ErrorDescription`      | Prose context paragraph                                       |
-| `ErrorHint`             | Suggested fix                                                 |
-| `DiagnosticsBlock`      | Named group of sub-nodes (e.g. "The relevant error widget")   |
-| `DiagnosticableTreeNode`| The offending widget; sub-properties: constraints, size, etc. |
-| `DiagnosticsStackTrace` | Stack frames; first frame is the call site                    |
+| `type` field             | Content                                                       |
+| ------------------------ | ------------------------------------------------------------- |
+| `ErrorSummary`           | The one-line error message (`level == 'summary'`)             |
+| `ErrorDescription`       | Prose context paragraph                                       |
+| `ErrorHint`              | Suggested fix                                                 |
+| `DiagnosticsBlock`       | Named group of sub-nodes (e.g. "The relevant error widget")   |
+| `DiagnosticableTreeNode` | The offending widget; sub-properties: constraints, size, etc. |
+| `DiagnosticsStackTrace`  | Stack frames; first frame is the call site                    |
 
 A `DiagnosticableTreeNode` inside the error data may include a `valueId`; this
-can be passed to `getDetailsSubtree` or `flutter_inspect_layout` for a layout
+can be passed to `getDetailsSubtree` or `inspect_layout` for a layout
 drill-down.
 
 ---
@@ -570,8 +573,8 @@ drill-down.
   responses the widget class name is in `widgetRuntimeType`; in full detail
   responses it is in `type` (the Dart runtime type of the DiagnosticsNode
   wrapper, not the widget itself). Both may be present.
-- **`Flutter.Navigation` → wait for `Flutter.Frame`.** The tree is not
-  repainted at the moment of navigation; always wait for the next frame event
-  before fetching the widget tree after a navigation.
+- **`Flutter.Navigation` → wait for `Flutter.Frame`.** The tree is not repainted
+  at the moment of navigation; always wait for the next frame event before
+  fetching the widget tree after a navigation.
 - **`screenshot` uses `id`, not `arg`.** Other single-object extensions use
   `arg` for the `valueId`; screenshot is the exception.
