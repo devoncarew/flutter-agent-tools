@@ -2,6 +2,7 @@ import 'package:dart_mcp/server.dart';
 import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../route_formatter.dart';
+import '../semantic_node.dart';
 import '../semantics_formatter.dart';
 import '../tool_context.dart';
 
@@ -103,9 +104,9 @@ class FlutterQueryUiTool extends FlutterTool {
             ],
           );
         case 'semantics':
-          final json = await extensions.getSemanticsTree();
+          final List<SemanticNode> nodes = await extensions.getSemanticsTree();
           return CallToolResult(
-            content: [TextContent(text: formatSemanticsTree(json))],
+            content: [TextContent(text: formatSemanticsTree(nodes))],
           );
         default:
           return CallToolResult(

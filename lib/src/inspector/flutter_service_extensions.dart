@@ -1,7 +1,8 @@
 import 'package:vm_service/vm_service.dart';
 
-import 'diagnostics_node.dart';
 import 'app_session.dart';
+import 'diagnostics_node.dart';
+import 'semantic_node.dart';
 import 'utils.dart';
 
 /// Provides 1:1 access to Flutter VM service extensions.
@@ -62,44 +63,82 @@ class FlutterServiceExtensions {
     );
   }
 
-  /// Returns a JSON string representing the current semantics tree.
+  /// Dispatches [actionType] on a semantics node identified by [nodeId] or
+  /// [label].
   ///
-  /// Each node in the JSON tree has the shape:
-  /// ```json
-  /// {
-  ///   "id": 42,
-  ///   "role": "button",
-  ///   "label": "Sign in",
-  ///   "value": "",
-  ///   "hint": "Double tap to activate",
-  ///   "tooltip": "",
-  ///   "checked": null,
-  ///   "toggled": null,
-  ///   "selected": null,
-  ///   "enabled": true,
-  ///   "focused": false,
-  ///   "actions": 1,
-  ///   "rect": [100.0, 200.0, 200.0, 250.0],
-  ///   "children": []
-  /// }
-  /// ```
+  /// If [nodeId] is provided, the action is dispatched directly without
+  /// fetching the semantics tree. If only [label] is provided, the tree is
+  /// fetched and the first node whose label contains [label]
+  /// (case-insensitive) is used.
   ///
-  /// `role` is one of: `"button"`, `"textfield"`, `"slider"`, `"link"`,
-  /// `"image"`, `"header"`, `"checkbox"`, `"toggle"`, `"radio"`, or `""`
-  /// (generic/container). State fields (`checked`, `toggled`, `selected`,
-  /// `enabled`) are `null` when the concept does not apply to the node.
-  /// `rect` is `[left, top, right, bottom]` in the node's local coordinate
-  /// space (the root's local space is screen coordinates).
-  /// `actions` is a [SemanticsAction] bitmask.
+  /// [actionType] must be a valid `SemanticsAction` name from `dart:ui`
+  /// (e.g. `tap`, `longPress`, `scrollUp`, `scrollDown`, `increase`,
+  /// `decrease`, `setText`, `focus`).
   ///
-  /// Returns `{"error":"..."}` if semantics is not yet enabled or the tree
+  /// Returns a success message, or an `"error:..."` string if the node cannot
+  /// be found.
+  Future<String> performSemanticsAction({
+    required String actionType,
+    int? nodeId,
+    String? label,
+  }) async {
+    assert(
+      nodeId != null || label != null,
+      'performSemanticsAction: one of nodeId or label must be provided',
+    );
+
+    final int resolvedId;
+
+    if (nodeId != null) {
+      resolvedId = nodeId;
+    } else {
+      final List<SemanticNode> nodes = await getSemanticsTree();
+      final String labelLower = label!.toLowerCase();
+      final SemanticNode? match =
+          nodes
+              .where((n) => n.label.toLowerCase().contains(labelLower))
+              .firstOrNull;
+      if (match == null) {
+        return 'error: no visible semantics node with label containing "$label"';
+      }
+      resolvedId = match.id;
+    }
+
+    await evaluate(
+      'SemanticsBinding.instance.performSemanticsAction('
+      'SemanticsActionEvent('
+      'type: SemanticsAction.$actionType, '
+      'nodeId: $resolvedId, '
+      'viewId: (SemanticsBinding.instance as dynamic)'
+      '.platformDispatcher.implicitView!.viewId))',
+      libraryUri: 'package:flutter/src/semantics/semantics.dart',
+    );
+
+    return "performed '$actionType' on node id $resolvedId";
+  }
+
+  /// Returns the current Flutter semantics tree as a flat list of
+  /// [SemanticNode]s.
+  ///
+  /// Semantics must be enabled first (done automatically at session start via
+  /// [enableSemantics]). Hidden, invisible, and merged-into-parent nodes are
+  /// excluded. Ordering is depth-first (top-to-bottom on screen, roughly).
+  ///
+  /// Throws an [RPCError] on VM service failures. Returns an empty list if the
+  /// tree is not yet populated (retry after the next frame).
+  Future<List<SemanticNode>> getSemanticsTree() async {
+    final String json = await _getSemanticsTreeJson();
+    if (json.startsWith('error:')) return [];
+    return parseSemanticsTree(json);
+  }
+
+  /// Evaluates the semantics tree IIFE on the main isolate and returns the raw
+  /// JSON string. The JSON is a flat array of tuples — see [parseSemanticsTree]
+  /// for the format.
+  ///
+  /// Returns an `"error:..."` string if semantics is not enabled or the tree
   /// is empty. Throws an [RPCError] on VM service failures.
-  ///
-  /// The expression is evaluated in the `semantics.dart` library scope, where
-  /// `SemanticsNode`, `SemanticsBinding`, `CheckedState`, and `Tristate` are
-  /// all in scope. `RendererBinding` is accessed via
-  /// `(SemanticsBinding.instance as dynamic).pipelineOwner`.
-  Future<String> getSemanticsTree() async {
+  Future<String> _getSemanticsTreeJson() async {
     // Evaluate in semantics.dart scope: SemanticsNode, SemanticsBinding,
     // CheckedState, and Tristate are all in scope there. RendererBinding is
     // not in scope, but we access pipelineOwner via
@@ -121,8 +160,8 @@ class FlutterServiceExtensions {
 
       if (result is ErrorRef) {
         throw rpcError(
-          result.message ?? 'getSemanticsTree failed',
-          fromMethod: 'getSemanticsTree',
+          result.message ?? '_getSemanticsTreeJson failed',
+          fromMethod: '_getSemanticsTreeJson',
         );
       }
       if (result is InstanceRef) {
@@ -130,15 +169,15 @@ class FlutterServiceExtensions {
         if (result.valueAsStringIsTruncated == true) {
           final obj = await _vmService.getObject(ref.id!, result.id!);
           if (obj is Instance) {
-            return obj.valueAsString ?? '{"error":"null result"}';
+            return obj.valueAsString ?? 'error:null result';
           }
         }
-        return result.valueAsString ?? '{"error":"null result"}';
+        return result.valueAsString ?? 'error:null result';
       }
     }
     throw rpcError(
-      'No suitable isolate found for getSemanticsTree',
-      fromMethod: 'getSemanticsTree',
+      'No suitable isolate found for _getSemanticsTreeJson',
+      fromMethod: '_getSemanticsTreeJson',
     );
   }
 

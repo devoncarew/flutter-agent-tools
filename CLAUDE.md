@@ -8,9 +8,11 @@ observe a running Flutter app.
 ## Key Conventions
 
 - Inspector MCP server entry point: `bin/inspector_mcp.dart`; logic:
-  `lib/src/inspector/inspector_server.dart`. Declared in `.claude-plugin/plugin.json`.
+  `lib/src/inspector/inspector_server.dart`. Declared in
+  `.claude-plugin/plugin.json`.
 - Shorthand MCP server entry point: `bin/shorthand_mcp.dart`; logic:
-  `lib/src/shorthand/shorthand_server.dart`. Declared in `.claude-plugin/plugin.json`.
+  `lib/src/shorthand/shorthand_server.dart`. Declared in
+  `.claude-plugin/plugin.json`.
 - Package currency hook: `bin/deps_check.dart`, invoked via
   `scripts/deps_check.sh --mode=pub-add|pubspec-guard`. Configured in
   `hooks/hooks.json`.
@@ -25,18 +27,21 @@ observe a running Flutter app.
 ### dart-api server (`bin/shorthand_mcp.dart`)
 
 - `package_info` — returns API summaries for Dart/Flutter packages from the
-  local pub cache. `kind` parameter: `package_summary` (default), `library_stub`,
-  `class_stub`.
+  local pub cache. `kind` parameter: `package_summary` (default),
+  `library_stub`, `class_stub`.
 
 ### flutter-inspect server (`bin/inspector_mcp.dart`)
 
 - `flutter_launch_app` — builds and launches a Flutter app, returns a session ID
 - `flutter_reload` — hot reload or hot restart a running app
-- `flutter_take_screenshot` — captures a PNG screenshot via the inspector protocol
+- `flutter_take_screenshot` — captures a PNG screenshot via the inspector
+  protocol
 - `flutter_inspect_layout` — returns the layout tree for a widget (or root)
-- `flutter_evaluate` — evaluates an arbitrary Dart expression on the main isolate
+- `flutter_evaluate` — evaluates an arbitrary Dart expression on the main
+  isolate
 - `flutter_query_ui` — returns a high-level description of what is on screen;
   supports `mode=route` (with go_router path enrichment)
+- `flutter_tap` — tap an element by semantics node id
 - `flutter_close_app` — stops a running app and releases its session
 
 ## Current Status

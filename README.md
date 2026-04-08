@@ -76,6 +76,7 @@ expressions, and observe runtime errors with widget IDs.
 | `flutter_inspect_layout` | Use when debugging layout issues, overflow errors, or unexpected widget sizing. |
 | `flutter_evaluate` | Evaluates a Dart expression on the running app's main isolate and returns the result as a string. |
 | `flutter_query_ui` | Returns a high-level description of what is currently on screen in the running Flutter app. |
+| `flutter_tap` | [Experimental] Taps a widget by its semantics node ID or label. |
 | `flutter_close_app` | Stops a running Flutter app and releases its session. |
 <!-- prettier-ignore-end -->
 <!-- flutter-inspect -->
