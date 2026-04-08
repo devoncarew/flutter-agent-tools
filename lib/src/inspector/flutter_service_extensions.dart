@@ -2,6 +2,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'app_session.dart';
 import 'diagnostics_node.dart';
+import 'route_formatter.dart';
 import 'semantic_node.dart';
 import 'utils.dart';
 
@@ -411,6 +412,26 @@ class FlutterServiceExtensions {
       'No suitable isolate found for inspectorIdToVmObjectId',
       fromMethod: 'inspectorIdToVmObjectId',
     );
+  }
+
+  /// Resolves the VM service object ID of the app's [GoRouter] instance, or
+  /// returns null if the app does not use go_router or the router cannot be
+  /// found.
+  ///
+  /// Walks the widget tree to find `InheritedGoRouter`, converts its inspector
+  /// handle to a VM object ID, then returns that ID. The ID can be passed
+  /// directly to [evaluateOnObject] to call go_router methods such as
+  /// `widget.goRouter.go('/path')` or `widget.goRouter.state.uri.toString()`.
+  Future<String?> resolveGoRouterVmId() async {
+    final root = await getRootWidgetTree(
+      isSummaryTree: true,
+      fullDetails: true,
+    );
+    final goRouterNodes = findGoRouterNodes(root);
+    if (goRouterNodes.isEmpty) return null;
+    final valueId = goRouterNodes.first.valueId;
+    if (valueId == null) return null;
+    return inspectorIdToVmObjectId(valueId);
   }
 
   /// Returns the library ID for the library with [uri] in [isolate], or null
