@@ -20,9 +20,7 @@ class FlutterEvaluateTool extends FlutterTool {
         '(main.dart), so top-level declarations and globals are in scope. '
         'Pass library_uri to evaluate in a different library scope — for '
         'example, "package:flutter/src/widgets/widget_inspector.dart" makes '
-        'RendererBinding, SemanticsNode, CheckedState, and Tristate available. '
-        'Example: '
-        '"WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio.toString()"',
+        'RendererBinding, SemanticsNode, CheckedState, and Tristate available.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(

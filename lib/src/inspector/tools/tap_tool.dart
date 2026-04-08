@@ -17,10 +17,7 @@ class FlutterTapTool extends FlutterTool {
         'no screen coordinates needed. '
         'One of "node_id" or "label" must be provided. '
         'Prefer "node_id" when available (faster — skips tree fetch). '
-        'Semantics node IDs appear in flutter_query_ui mode=semantics output '
-        'as "id=N" on each node header line. '
-        'Use flutter_query_ui mode=semantics first to see available nodes '
-        'and their IDs.',
+        'Use flutter_get_semantics first to see available nodes and their IDs.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
@@ -29,7 +26,7 @@ class FlutterTapTool extends FlutterTool {
         'node_id': Schema.int(
           description:
               'The semantics node ID to tap. Shown as "id=N" in '
-              'flutter_query_ui mode=semantics output. Prefer this over '
+              'flutter_get_semantics output. Prefer this over '
               '"label" when you already know the ID.',
         ),
         'label': Schema.string(
