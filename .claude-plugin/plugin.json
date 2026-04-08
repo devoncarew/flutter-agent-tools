@@ -6,7 +6,7 @@
     "name": "Devon Carew",
     "url": "https://github.com/devoncarew"
   },
-  "repository": "https://github.com/devoncarew/flutter-agent-tools",
+  "repository": "https://github.com/devoncarew/flutter-slipstream",
   "license": "BSD-3-Clause license",
   "keywords": ["dart", "flutter"],
   "mcpServers": {
