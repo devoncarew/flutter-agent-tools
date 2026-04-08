@@ -7,7 +7,7 @@ import '../tool_context.dart';
 ///
 /// Evaluates a Dart expression on the running app's main isolate and returns
 /// the result as a string.
-class EvaluateTool extends FlutterTool {
+class EvaluateTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'evaluate',

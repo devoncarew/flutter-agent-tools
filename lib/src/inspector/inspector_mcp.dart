@@ -69,7 +69,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
   }
 
   void _registerTools() {
-    void register(FlutterTool tool) {
+    void register(InspectorTool tool) {
       registerTool(tool.definition, (req) => tool.handle(req, _context));
     }
 

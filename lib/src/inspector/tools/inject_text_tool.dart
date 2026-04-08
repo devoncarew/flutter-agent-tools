@@ -7,7 +7,7 @@ import '../tool_context.dart';
 ///
 /// Sets the text content of a text field identified by semantics node ID or
 /// label, using `SemanticsAction.setText`.
-class SetTextTool extends FlutterTool {
+class SetTextTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'set_text',

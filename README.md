@@ -49,15 +49,11 @@ raw source files or relying on training-data summaries.
 <!-- prettier-ignore-start -->
 | Command | Description |
 |---------|-------------|
-| `api` | Returns API summaries for Dart or Flutter packages. |
+| `package_summary` | Returns API summaries for Dart or Flutter packages; start here to orient on an unfamiliar package. |
+| `library_stub` | Returns the full public API for one library as a Dart stub (signatures only, no bodies). |
+| `class_stub` | Returns the public API for a single named class, mixin, or extension as a Dart stub (signatures only, no bodies). |
 <!-- prettier-ignore-end -->
 <!-- packages -->
-
-`api` supports three levels of detail via its `kind` parameter:
-
-- `package_summary` (the default; orient on an unfamiliar package)
-- `library_stub` (full public API for one library)
-- `class_stub` (a single named class or mixin)
 
 ### Flutter UI agent (`inspector`)
 

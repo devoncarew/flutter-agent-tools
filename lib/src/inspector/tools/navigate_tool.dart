@@ -7,7 +7,7 @@ import '../tool_context.dart';
 ///
 /// Navigates to a go_router path by calling `GoRouter.go()` on the app's
 /// router instance via VM service evaluate.
-class NavigateTool extends FlutterTool {
+class NavigateTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'navigate',

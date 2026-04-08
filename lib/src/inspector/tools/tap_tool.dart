@@ -7,7 +7,7 @@ import '../tool_context.dart';
 ///
 /// Taps a widget identified by semantics node ID or label, using
 /// `SemanticsBinding.performSemanticsAction`. No screen coordinates needed.
-class TapTool extends FlutterTool {
+class TapTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'tap',

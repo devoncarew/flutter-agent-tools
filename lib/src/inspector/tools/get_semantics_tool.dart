@@ -9,7 +9,7 @@ import '../tool_context.dart';
 ///
 /// Returns a flat list of visible, interactive semantics nodes from the
 /// running Flutter app.
-class GetSemanticsTool extends FlutterTool {
+class GetSemanticsTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'get_semantics',

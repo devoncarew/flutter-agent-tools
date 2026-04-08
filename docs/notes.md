@@ -10,6 +10,7 @@
 
 ## From feedback
 
+- [x] split the api mcp server into three tool commands
 - [ ] make session_id optional? There's generally only ever going to be one
       session
 - [ ] when starting a session, send back a short how-to guide?
@@ -18,6 +19,3 @@
   - modifying the source to improve getting and setting routes
 - [ ] ship a small 'agents tools' library? That could add vm service extension
       methods which we could then call
-
-- Is the 'packages' tool better as one tool with three modes or three separate
-  tools?

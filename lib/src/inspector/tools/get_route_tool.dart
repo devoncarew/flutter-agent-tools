@@ -8,7 +8,7 @@ import '../tool_context.dart';
 ///
 /// Returns the current navigator stack with screen widget names and source
 /// locations.
-class GetRouteTool extends FlutterTool {
+class GetRouteTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'get_route',

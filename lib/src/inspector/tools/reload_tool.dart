@@ -6,7 +6,7 @@ import '../tool_context.dart';
 /// Implements the `reload` MCP tool.
 ///
 /// Hot reloads or hot restarts a running Flutter app.
-class ReloadTool extends FlutterTool {
+class ReloadTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'reload',

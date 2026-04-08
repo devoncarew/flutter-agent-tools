@@ -14,7 +14,7 @@ import 'utils.dart';
 /// ```dart
 /// registerTool(tool.definition, (req) => tool.handle(req, _context));
 /// ```
-abstract class FlutterTool {
+abstract class InspectorTool {
   /// The MCP [Tool] definition (name, description, input schema).
   Tool get definition;
 

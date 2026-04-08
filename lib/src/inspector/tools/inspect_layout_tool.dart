@@ -8,7 +8,7 @@ import '../tool_context.dart';
 ///
 /// Returns layout details (constraints, size, flex parameters, children) for
 /// a widget in the running app.
-class InspectLayoutTool extends FlutterTool {
+class InspectLayoutTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'inspect_layout',

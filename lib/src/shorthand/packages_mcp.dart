@@ -1,7 +1,10 @@
 import 'package:dart_mcp/server.dart';
 
 import '../version.dart';
-import 'api_tool.dart';
+import 'context.dart';
+import 'tools/class_stub_tool.dart';
+import 'tools/library_stub_tool.dart';
+import 'tools/package_summary_tool.dart';
 
 /// The MCP server for the 'packages' package API summarization tool.
 ///
@@ -21,8 +24,8 @@ Tools for querying Dart and Flutter package APIs directly from the pub cache.
 Use these tools when you need accurate, up-to-date API signatures for a package
 rather than relying on training-data summaries, which are often subtly wrong.
 
-Call the 'api' tool with a package name to get its version, public library list,
-and the content of its main entry-point library.
+Call the 'library_stub' tool with a package name to get its version, public
+library list, and the content of its main entry-point library.
 
 Source is the local pub cache — already downloaded, always matches the resolved
 version in pubspec.lock, no network required.''',
@@ -30,8 +33,24 @@ version in pubspec.lock, no network required.''',
     _registerTools();
   }
 
+  final ToolContext context = ToolContext();
+
   void _registerTools() {
-    final tool = ApiTool();
-    registerTool(tool.definition, tool.handle);
+    void register(PackagesTool tool) {
+      registerTool(tool.definition, (req) {
+        try {
+          return tool.handle(req, context);
+        } on ToolException catch (e) {
+          return CallToolResult(
+            content: [TextContent(text: e.message)],
+            isError: true,
+          );
+        }
+      });
+    }
+
+    register(PackageSummaryTool());
+    register(LibraryStubTool());
+    register(ClassStubTool());
   }
 }

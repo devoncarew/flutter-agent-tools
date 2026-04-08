@@ -6,7 +6,7 @@ import '../tool_context.dart';
 /// Implements the `take_screenshot` MCP tool.
 ///
 /// Captures a PNG screenshot of the running Flutter app.
-class TakeScreenshotTool extends FlutterTool {
+class TakeScreenshotTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'take_screenshot',

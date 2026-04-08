@@ -7,7 +7,7 @@ import '../tool_context.dart';
 ///
 /// Builds and launches a Flutter app, returning a session ID for use with
 /// all other inspector tools.
-class RunAppTool extends FlutterTool {
+class RunAppTool extends InspectorTool {
   RunAppTool({
     required this.sessionIdGenerator,
     required this.registerSession,

@@ -5,7 +5,7 @@ import '../tool_context.dart';
 /// Implements the `close_app` MCP tool.
 ///
 /// Stops a running Flutter app and releases its session.
-class CloseAppTool extends FlutterTool {
+class CloseAppTool extends InspectorTool {
   CloseAppTool();
 
   @override

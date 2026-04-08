@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_agent_tools/src/deps/deps_check.dart';
+import 'package:flutter_toolkit/src/deps/deps_check.dart';
 
 /// PreToolUse hook: validates Dart/Flutter package additions against pub.dev.
 ///
