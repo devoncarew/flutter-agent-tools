@@ -75,7 +75,8 @@ expressions, and observe runtime errors with widget IDs.
 | `flutter_take_screenshot` | Captures a PNG screenshot of the running Flutter app. |
 | `flutter_inspect_layout` | Use when debugging layout issues, overflow errors, or unexpected widget sizing. |
 | `flutter_evaluate` | Evaluates a Dart expression on the running app's main isolate and returns the result as a string. |
-| `flutter_query_ui` | Returns a high-level description of what is currently on screen in the running Flutter app. |
+| `flutter_get_route` | Returns the current navigator route stack with screen widget names and source locations. |
+| `flutter_get_semantics` | Returns a flat list of visible semantics nodes (role, ID, state, actions, label, size). |
 | `flutter_tap` | [Experimental] Taps a widget by its semantics node ID or label. |
 | `flutter_close_app` | Stops a running Flutter app and releases its session. |
 <!-- prettier-ignore-end -->

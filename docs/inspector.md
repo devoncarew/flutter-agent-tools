@@ -296,8 +296,8 @@ SchedulerBinding.instance.addPostFrameCallback((_) {
 ```
 
 The current implementation calls `enableSemantics()` in `_connectVmService`
-and fails open. If the tree is empty on the first `flutter_query_ui
-mode=semantics` call, the agent should retry after a screenshot or hot reload
+and fails open. If the tree is empty on the first `flutter_get_semantics`
+call, the agent should retry after a screenshot or hot reload
 (both of which synchronize on a rendered frame).
 
 ---
