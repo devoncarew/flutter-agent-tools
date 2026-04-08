@@ -79,6 +79,7 @@ expressions, and observe runtime errors with widget IDs.
 | `flutter_navigate` | Navigates the app to a go_router path. |
 | `flutter_get_semantics` | Returns a flat list of visible semantics nodes from the running Flutter app. |
 | `flutter_tap` | Taps a widget by its semantics node ID or label. |
+| `flutter_inject_text` | Sets the text content of a text field by its semantics node ID or label. |
 | `flutter_close_app` | Stops a running Flutter app and releases its session. |
 <!-- prettier-ignore-end -->
 <!-- flutter-inspect -->

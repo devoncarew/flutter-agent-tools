@@ -82,6 +82,7 @@ class FlutterServiceExtensions {
     required String actionType,
     int? nodeId,
     String? label,
+    String? arguments,
   }) async {
     assert(
       nodeId != null || label != null,
@@ -105,13 +106,21 @@ class FlutterServiceExtensions {
       resolvedId = match.id;
     }
 
+    // Build the arguments part of the SemanticsActionEvent constructor.
+    // setText requires arguments: 'the text'; most other actions pass none.
+    final String argsParam =
+        arguments != null
+            ? ", arguments: '${arguments.replaceAll("'", "\\'")}'"
+            : '';
+
     await evaluate(
       'SemanticsBinding.instance.performSemanticsAction('
       'SemanticsActionEvent('
       'type: SemanticsAction.$actionType, '
       'nodeId: $resolvedId, '
       'viewId: (SemanticsBinding.instance as dynamic)'
-      '.platformDispatcher.implicitView!.viewId))',
+      '.platformDispatcher.implicitView!.viewId'
+      '$argsParam))',
       libraryUri: 'package:flutter/src/semantics/semantics.dart',
     );
 
