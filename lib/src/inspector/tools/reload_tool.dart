@@ -53,6 +53,16 @@ class FlutterReloadTool extends FlutterTool {
     }
 
     final String action = fullRestart ? 'Hot restart' : 'Hot reload';
-    return CallToolResult(content: [TextContent(text: '$action complete.')]);
+    return CallToolResult(
+      content: [
+        TextContent(
+          text:
+              '$action complete. '
+              'Note: semantics node IDs are reassigned after each reload — '
+              're-fetch with flutter_get_semantics before using any '
+              'previously observed node IDs.',
+        ),
+      ],
+    );
   }
 }

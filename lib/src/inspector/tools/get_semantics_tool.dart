@@ -19,7 +19,8 @@ class FlutterGetSemanticsTool extends FlutterTool {
         'actions, label, and size. '
         'Use this to find what is on screen and what can be interacted with. '
         'Node IDs from this output can be passed directly to flutter_tap '
-        'and flutter_inject_text.',
+        'and flutter_inject_text. '
+        'Node IDs are stable until the next hot reload or hot restart.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
