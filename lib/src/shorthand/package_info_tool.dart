@@ -184,6 +184,10 @@ class PackageInfoTool {
 
     buf.writeln();
     buf.writeln('## Libraries');
+    buf.writeln(
+      'Use kind=library_stub with any URI below to get full API signatures '
+      'for all exported names in one call.',
+    );
     if (publicLibraries.isEmpty) {
       buf.writeln('  (none)');
     } else {
@@ -206,6 +210,10 @@ class PackageInfoTool {
         if (summary.isNotEmpty) {
           buf.writeln();
           buf.writeln('## Exports ($mainLibUri)');
+          buf.writeln(
+            'Use kind=class_stub with library=... and class=... to get '
+            'signatures for a single type.',
+          );
           buf.writeln(summary);
         }
       }
