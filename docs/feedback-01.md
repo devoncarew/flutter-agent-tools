@@ -41,7 +41,7 @@ they evaluate against. The fix is to use
 Workaround used: call `flutter_evaluate` directly with the correct
 `library_uri`.
 
-**2. Generics mangled in `flutter_evaluate` expressions**
+**2. Generics mangled in `flutter_evaluate` expressions** [done]
 
 `<Type>` in expressions gets HTML-entity-encoded (`&lt;Type&gt;`) before the
 expression reaches the Dart compiler, breaking any generic method call (e.g.

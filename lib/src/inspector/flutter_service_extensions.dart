@@ -4,7 +4,6 @@ import 'app_session.dart';
 import 'diagnostics_node.dart';
 import 'route_formatter.dart';
 import 'semantic_node.dart';
-import 'utils.dart';
 
 /// Provides 1:1 access to Flutter VM service extensions.
 ///
@@ -18,11 +17,7 @@ class FlutterServiceExtensions {
 
   final VmService _vmService;
 
-  /// A debug-time only logger; this can send log statements back to the host
-  /// MCP client.
-  final Logger? debugLogger;
-
-  FlutterServiceExtensions(this._vmService, {this.debugLogger});
+  FlutterServiceExtensions(this._vmService);
 
   void dispose() {
     _vmService.dispose();
@@ -46,20 +41,27 @@ class FlutterServiceExtensions {
   // ---------------------------------------------------------------------------
   // Semantics
 
-  /// Enables the Flutter semantics tree.
+  /// Enables the Flutter semantics tree and schedules a frame so the tree
+  /// is populated immediately.
   ///
-  /// Evaluates `RendererBinding.instance.ensureSemantics()` on the main
-  /// isolate. The returned [SemanticsHandle] is intentionally not retained —
-  /// Dart's GC does not call [SemanticsHandle.dispose], so the reference
-  /// count stays incremented and the semantics tree remains active for the
-  /// lifetime of the app process.
+  /// Should be called once after the VM service connects and again after each
+  /// hot restart (which creates a new isolate and resets all Dart state).
+  /// Callers should wrap this in a try/catch — it is best-effort and may fail
+  /// if the Flutter framework has not yet initialized.
   ///
-  /// Safe to call multiple times.
-  Future<void> enableSemantics() async {
-    // RendererBinding is not in the app's root library scope, so we evaluate
-    // in widget_inspector.dart which imports package:flutter/rendering.dart.
+  /// The [SemanticsHandle] returned by [ensureSemantics] is intentionally not
+  /// retained — Dart's GC does not call [SemanticsHandle.dispose], so the
+  /// reference count stays incremented and the tree remains active for the
+  /// lifetime of the app process. Safe to call multiple times.
+  Future<void> bootstrapSemantics() async {
+    // RendererBinding is not in the root library scope, so we evaluate in
+    // widget_inspector.dart which imports package:flutter/rendering.dart.
     await evaluate(
       'RendererBinding.instance.ensureSemantics()',
+      libraryUri: 'package:flutter/src/widgets/widget_inspector.dart',
+    );
+    await evaluate(
+      'WidgetsBinding.instance.scheduleFrame()',
       libraryUri: 'package:flutter/src/widgets/widget_inspector.dart',
     );
   }
@@ -119,8 +121,7 @@ class FlutterServiceExtensions {
       'type: SemanticsAction.$actionType, '
       'nodeId: $resolvedId, '
       'viewId: (SemanticsBinding.instance as dynamic)'
-      '.platformDispatcher.implicitView!.viewId'
-      '$argsParam))',
+      '.platformDispatcher.implicitView!.viewId$argsParam))',
       // rendering/binding.dart imports package:flutter/semantics.dart, making
       // both SemanticsAction and SemanticsActionEvent available without a prefix.
       libraryUri: 'package:flutter/src/rendering/binding.dart',

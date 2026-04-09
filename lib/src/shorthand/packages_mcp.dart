@@ -1,6 +1,6 @@
 import 'package:dart_mcp/server.dart';
 
-import '../version.dart';
+import '../common.dart';
 import 'context.dart';
 import 'tools/class_stub_tool.dart';
 import 'tools/library_stub_tool.dart';

@@ -3,6 +3,7 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../layout_formatter.dart';
 import '../tool_context.dart';
+import '../../utils.dart';
 
 /// Implements the `inspect_layout` MCP tool.
 ///
@@ -48,7 +49,8 @@ class InspectLayoutTool extends InspectorTool {
     }
 
     final String? widgetId = request.arguments!['widget_id'] as String?;
-    final int subtreeDepth = (request.arguments!['subtree_depth'] as int?) ?? 1;
+    final int subtreeDepth =
+        coerceInt(request.arguments!['subtree_depth']) ?? 1;
 
     try {
       final extensions = session.serviceExtensions!;

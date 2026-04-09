@@ -12,7 +12,6 @@ class RunAppTool extends InspectorTool {
     required this.sessionIdGenerator,
     required this.registerSession,
     required this.eventListener,
-    required this.debugLog,
   });
 
   /// Called to generate a unique session ID for the new session.
@@ -23,9 +22,6 @@ class RunAppTool extends InspectorTool {
 
   /// Called to forward daemon events from the session to the server.
   final void Function(String sessionId, DaemonEvent event) eventListener;
-
-  /// Called to emit debug log messages.
-  final void Function(String message) debugLog;
 
   @override
   final Tool definition = Tool(
@@ -75,7 +71,6 @@ class RunAppTool extends InspectorTool {
         eventListener: (event) => eventListener(sessionId, event),
         deviceId: device,
         target: target,
-        debugLogger: debugLog,
       );
     } on DaemonException catch (e) {
       return CallToolResult(

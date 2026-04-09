@@ -2,6 +2,7 @@ import 'package:dart_mcp/server.dart';
 import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../tool_context.dart';
+import '../../utils.dart';
 
 /// Implements the `tap` MCP tool.
 ///
@@ -14,10 +15,12 @@ class TapTool extends InspectorTool {
     description:
         'Taps a widget by its semantics node ID or label. '
         'Dispatches a tap action via SemanticsBinding.performSemanticsAction — '
-        'no screen coordinates needed. '
-        'One of "node_id" or "label" must be provided. '
-        'Prefer "node_id" when available (faster — skips tree fetch). '
-        'Use get_semantics first to see available nodes and their IDs.',
+        'no screen coordinates needed.\n\n'
+        'One of "node_id" or "label" must be provided. Prefer "node_id" when '
+        'available (faster — skips tree fetch). Use get_semantics first to see '
+        'available nodes and their IDs.\n\n'
+        'Note that this call relies on `action:tap` being present in the '
+        'semantics node.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
@@ -51,7 +54,7 @@ class TapTool extends InspectorTool {
       return context.unknownSession(sessionId);
     }
 
-    final int? nodeId = request.arguments!['node_id'] as int?;
+    final int? nodeId = coerceInt(request.arguments!['node_id']);
     final String? label = request.arguments!['label'] as String?;
 
     if (nodeId == null && label == null) {

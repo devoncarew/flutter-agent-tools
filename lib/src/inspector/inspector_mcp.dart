@@ -1,20 +1,20 @@
 import 'dart:async';
+import 'dart:math' show Random;
 
 import 'package:dart_mcp/server.dart';
-import '../version.dart';
-import 'utils.dart';
 
+import '../common.dart';
 import 'app_session.dart';
 import 'tool_context.dart';
 import 'tools/close_app_tool.dart';
 import 'tools/evaluate_tool.dart';
 import 'tools/get_route_tool.dart';
 import 'tools/get_semantics_tool.dart';
-import 'tools/set_text_tool.dart';
 import 'tools/inspect_layout_tool.dart';
 import 'tools/navigate_tool.dart';
-import 'tools/run_app_tool.dart';
 import 'tools/reload_tool.dart';
+import 'tools/run_app_tool.dart';
+import 'tools/set_text_tool.dart';
 import 'tools/take_screenshot_tool.dart';
 import 'tools/tap_tool.dart';
 
@@ -70,7 +70,19 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
 
   void _registerTools() {
     void register(InspectorTool tool) {
-      registerTool(tool.definition, (req) => tool.handle(req, _context));
+      // Disable dart_mcp's auto-validation so our handlers can apply lenient
+      // coercions (e.g. accept "5" for an int param) and return more
+      // informative error messages than the generic schema error.
+      registerTool(tool.definition, (req) {
+        try {
+          return tool.handle(req, _context);
+        } on ToolException catch (e) {
+          return CallToolResult(
+            content: [TextContent(text: e.message)],
+            isError: true,
+          );
+        }
+      }, validateArguments: false);
     }
 
     register(
@@ -78,7 +90,6 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
         sessionIdGenerator: _idGenerator.createNextId,
         registerSession: (id, session) => _sessions[id] = session,
         eventListener: _handleEvent,
-        debugLog: debugLog,
       ),
     );
     register(ReloadTool());
@@ -149,10 +160,6 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     }
   }
 
-  void debugLog(String message) {
-    log(LoggingLevel.info, '[debug] $message', logger: _loggerId);
-  }
-
   (LoggingLevel, String)? _convertToLog(DaemonEvent event) {
     final Map<String, dynamic> params = event.params;
 
@@ -172,19 +179,108 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
         }
       case 'app.progress':
         {
+          const semanticsDisclaimer =
+              ' (note: semantic node IDs have been reset; '
+              'retrieve the latest using get_semantics)';
+          final finished = params['finished'] == true;
+
           switch (params['progressId']) {
             case 'devFS.update':
               return null;
             case 'hot.reload':
               // Filter both start and stop — the agent already sees a stdout
               // message: "[stdout] Reloaded 0 libraries in ..."
+              if (finished) {
+                return (
+                  LoggingLevel.info,
+                  'Hot reload finished. $semanticsDisclaimer',
+                );
+              }
               return null;
             case 'hot.restart':
+              if (finished) {
+                return (
+                  LoggingLevel.info,
+                  'Hot restart finished. $semanticsDisclaimer',
+                );
+              }
               return null;
           }
         }
     }
 
     return (LoggingLevel.info, message);
+  }
+}
+
+class IdGenerator {
+  static const List<String> _adjectives = [
+    'bright',
+    'calm',
+    'cozy',
+    'crisp',
+    'deft',
+    'fair',
+    'fond',
+    'free',
+    'glad',
+    'keen',
+    'kind',
+    'lush',
+    'mild',
+    'mint',
+    'neat',
+    'nimble',
+    'pure',
+    'rosy',
+    'sage',
+    'snug',
+    'soft',
+    'spry',
+    'sunny',
+    'swift',
+    'warm',
+    'wise',
+    'witty',
+    'zippy',
+  ];
+
+  static const List<String> _animals = [
+    'bee',
+    'cat',
+    'colt',
+    'deer',
+    'dove',
+    'duck',
+    'fawn',
+    'finch',
+    'fox',
+    'frog',
+    'gull',
+    'hare',
+    'hawk',
+    'jay',
+    'koi',
+    'lamb',
+    'lark',
+    'lynx',
+    'newt',
+    'owl',
+    'pony',
+    'quail',
+    'robin',
+    'seal',
+    'swan',
+    'teal',
+    'wren',
+  ];
+
+  final Random _random = Random();
+
+  String createNextId() {
+    final adjective = _adjectives[_random.nextInt(_adjectives.length)];
+    final animal = _animals[_random.nextInt(_animals.length)];
+    final number = _random.nextInt(100).toString().padLeft(2, '0');
+    return '${adjective}_${animal}_$number';
   }
 }

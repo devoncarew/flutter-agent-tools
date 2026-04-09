@@ -2,7 +2,7 @@ import 'package:dart_mcp/server.dart';
 import 'package:vm_service/vm_service.dart' show RPCError;
 
 import 'app_session.dart';
-import 'utils.dart';
+import '../utils.dart';
 
 /// A self-contained MCP tool: owns its [Tool] definition and handles
 /// [CallToolRequest]s via [handle].

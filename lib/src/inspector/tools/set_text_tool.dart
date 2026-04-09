@@ -2,6 +2,7 @@ import 'package:dart_mcp/server.dart';
 import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../tool_context.dart';
+import '../../utils.dart';
 
 /// Implements the `set_text` MCP tool.
 ///
@@ -19,7 +20,8 @@ class SetTextTool extends InspectorTool {
         'Prefer "node_id" when available (faster — skips tree fetch). '
         'Semantics node IDs and labels appear in get_semantics output. '
         "Tip: tap the field first ('tap') if the app requires focus "
-        'before accepting text input.',
+        'before accepting text input. Note that this call relies on '
+        '`action:setText` being present in the semantics node.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
@@ -58,7 +60,7 @@ class SetTextTool extends InspectorTool {
     }
 
     final String text = request.arguments!['text'] as String;
-    final int? nodeId = request.arguments!['node_id'] as int?;
+    final int? nodeId = coerceInt(request.arguments!['node_id']);
     final String? label = request.arguments!['label'] as String?;
 
     if (nodeId == null && label == null) {

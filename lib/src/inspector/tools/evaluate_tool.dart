@@ -57,7 +57,16 @@ class EvaluateTool extends InspectorTool {
       return context.unknownSession(sessionId);
     }
 
-    final String expression = request.arguments!['expression'] as String;
+    // Unescape HTML entities that models sometimes introduce when generating
+    // expressions containing generic type parameters (e.g. &lt;T&gt; → <T>).
+    // This happens because the Anthropic API encodes tool-call content in an
+    // XML-like structure, and models trained on that format occasionally
+    // HTML-escape angle brackets even inside opaque string arguments.
+    // &lt;/&gt; are never valid Dart, so unescaping is always correct here.
+    final String expression = (request.arguments!['expression'] as String)
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&amp;', '&');
     final String? libraryUri = request.arguments!['library_uri'] as String?;
     try {
       final String result = await session.serviceExtensions!.evaluate(
