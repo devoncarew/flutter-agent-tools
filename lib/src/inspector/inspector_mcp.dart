@@ -179,31 +179,14 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
         }
       case 'app.progress':
         {
-          const semanticsDisclaimer =
-              ' (note: semantic node IDs have been reset; '
-              'retrieve the latest using get_semantics)';
-          final finished = params['finished'] == true;
-
           switch (params['progressId']) {
             case 'devFS.update':
               return null;
             case 'hot.reload':
               // Filter both start and stop — the agent already sees a stdout
               // message: "[stdout] Reloaded 0 libraries in ..."
-              if (finished) {
-                return (
-                  LoggingLevel.info,
-                  'Hot reload finished. $semanticsDisclaimer',
-                );
-              }
               return null;
             case 'hot.restart':
-              if (finished) {
-                return (
-                  LoggingLevel.info,
-                  'Hot restart finished. $semanticsDisclaimer',
-                );
-              }
               return null;
           }
         }
