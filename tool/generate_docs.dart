@@ -1,29 +1,71 @@
 // Generates the MCP commands tables in README.md.
 //
-// Run with: dart run tool/generate_readme.dart
+// Run with: dart run tool/generate_docs.dart
 
 import 'dart:async';
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
 import 'package:dart_mcp/client.dart';
 import 'package:flutter_slipstream/src/inspector/inspector_mcp.dart';
 import 'package:flutter_slipstream/src/shorthand/packages_mcp.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 void main() async {
-  await _updateSection(
-    marker: '<!-- packages -->',
-    tools: await _listTools(PackagesMCPServer.new),
-  );
-  await _updateSection(
-    marker: '<!-- inspector -->',
-    tools: await _listTools(InspectorMCPServer.new),
-  );
-  print('README.md updated.');
+  final docFile = File(path.join('docs', 'slipstream_tools.md'));
+  final buf = StringBuffer();
+  buf.writeln('# Slipstream');
+  buf.writeln();
+  buf.writeln('MCP servers, instructions, and tools,');
+  buf.writeln();
+
+  // packages server
+  var (initializeResult, tools) = await _listTools(PackagesMCPServer.new);
+  var serverInfo = initializeResult.serverInfo;
+  await _updateSection(marker: '<!-- ${serverInfo.name} -->', tools: tools);
+  writeServerDocs(buf, initializeResult, tools);
+
+  // inspector server
+  (initializeResult, tools) = await _listTools(InspectorMCPServer.new);
+  serverInfo = initializeResult.serverInfo;
+  await _updateSection(marker: '<!-- ${serverInfo.name} -->', tools: tools);
+  writeServerDocs(buf, initializeResult, tools);
+
+  docFile.writeAsStringSync(buf.toString());
+
+  print('README.md, ${docFile.path} updated.');
+}
+
+void writeServerDocs(
+  StringBuffer buf,
+  InitializeResult initializeResult,
+  List<Tool> tools,
+) {
+  final server = initializeResult.serverInfo;
+  buf.writeln('## server `${server.name}`');
+  buf.writeln();
+  buf.writeln(initializeResult.instructions);
+
+  for (final tool in tools) {
+    buf.writeln();
+    buf.writeln('### tool `${tool.name}`');
+    buf.writeln();
+    buf.writeln(tool.description);
+
+    // inputSchema
+    buf.writeln();
+    final inputSchema = tool.inputSchema;
+    for (final param in inputSchema.properties!.keys) {
+      final schema = inputSchema.properties![param]!;
+      final required = inputSchema.required!.contains(param);
+      final requiredDesc = required ? ' (required) ' : '';
+      buf.writeln('- `$param`: $requiredDesc${schema.description}');
+    }
+  }
 }
 
 /// Starts [serverFactory] in-process, lists its tools, and returns them.
-Future<List<Tool>> _listTools(
+Future<(InitializeResult, List<Tool>)> _listTools(
   Function(StreamChannel<String>) serverFactory,
 ) async {
   final clientController = StreamController<String>();
@@ -42,7 +84,7 @@ Future<List<Tool>> _listTools(
   final client = _ScriptClient();
   final connection = client.connectServer(clientChannel);
 
-  await connection.initialize(
+  final initializeResult = await connection.initialize(
     InitializeRequest(
       protocolVersion: ProtocolVersion.latestSupported,
       capabilities: client.capabilities,
@@ -57,7 +99,7 @@ Future<List<Tool>> _listTools(
   await client.shutdown();
   await server.shutdown();
 
-  return toolsResult.tools;
+  return (initializeResult, toolsResult.tools);
 }
 
 /// Replaces the content between the two [marker] tags in README.md.

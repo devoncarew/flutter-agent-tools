@@ -41,3 +41,9 @@
 - ship a small 'agents tools' library?
   - it could add vm service extension methods which we could then call
   - improved semantic node traversal
+
+- [ ] explore what a guide to agents adding 'assists' to the code would look
+      like (semantic nodes; something to aide navigation?)
+- [ ] explore what an in-line package could provide; would it be a big enough
+      win to recommend it? better semantic tree retrieval, better routing
+      support, ...; package:slipstream_agent / package:slipstream_support
