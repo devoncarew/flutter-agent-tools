@@ -16,26 +16,27 @@ import 'semantic_node.dart';
 /// Node position is omitted — coordinates are in local space and unreliable
 /// without accumulating parent transforms.
 String formatSemanticsTree(List<SemanticNode> nodes) {
-  final visible = nodes.where(_hasContent).toList();
-  if (visible.isEmpty) {
-    return 'No visible text or interactive elements found.';
+  final buf = StringBuffer();
+  final filtered = nodes.where(_hasContent).toList();
+  if (filtered.isEmpty) {
+    buf.writeln('No visible text or interactive elements found.');
+  } else {
+    buf.write(filtered.map((node) => _formatNode(node)).join(''));
   }
-  return visible.map((node) => _formatNode(node)).join('');
+  if (filtered.length != nodes.length) {
+    final removed = nodes.length - filtered.length;
+    final label = removed == 1 ? 'node' : 'nodes';
+    buf.writeln('($removed trivial $label elided)');
+  }
+  return buf.toString();
 }
 
 String _formatNode(SemanticNode node) {
   final buf = StringBuffer();
 
-  // State flags on the header line.
-  final states = <String>[];
-  if (node.checked == true) states.add('checked');
-  if (node.checked == false) states.add('unchecked');
-  if (node.toggled == true) states.add('on');
-  if (node.toggled == false) states.add('off');
-  if (node.selected == true) states.add('selected');
-  if (node.enabled == false) states.add('disabled');
-  if (node.focused) states.add('focused');
-  final statesStr = states.isEmpty ? '' : ' ${states.join(' ')}';
+  // Node state on the header line.
+  final stateDesc = node.describeState;
+  final statesStr = stateDesc.isEmpty ? '' : ' $stateDesc';
 
   // Supported actions on the header line.
   final actionsStr = node.describeActions.map((a) => ' action:$a').join('');
@@ -63,8 +64,24 @@ String _fmt(double val) =>
 
 final RegExp _stripTrailingZeros = RegExp(r'\.?0+$');
 
-bool _hasContent(SemanticNode node) =>
-    node.label.isNotEmpty ||
-    node.value.isNotEmpty ||
-    node.hint.isNotEmpty ||
-    node.role.isNotEmpty;
+bool _hasContent(SemanticNode node) {
+  if (node.describeState.isNotEmpty) return true;
+  if (node.actions != 0) return true;
+  if (node.role.isNotEmpty) return true;
+
+  return node.label.isNotEmpty || node.value.isNotEmpty || node.hint.isNotEmpty;
+}
+
+extension on SemanticNode {
+  String get describeState {
+    final states = <String>[];
+    if (checked == true) states.add('checked');
+    if (checked == false) states.add('unchecked');
+    if (toggled == true) states.add('on');
+    if (toggled == false) states.add('off');
+    if (selected == true) states.add('selected');
+    if (enabled == false) states.add('disabled');
+    if (focused) states.add('focused');
+    return states.join(' ');
+  }
+}

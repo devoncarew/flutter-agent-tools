@@ -2,101 +2,240 @@
 
 ## Overview
 
-`slipstream` is designed to provide zero-configuration runtime inspection of
-Flutter applications via the Dart VM Service. By default, it relies on
-evaluating Dart strings to extract state and inject interactions.
+`slipstream_agent` is an optional, opt-in `dev_dependency` that developers (or
+their AI agents) can install into a Flutter app under development. It upgrades
+the connection between the Slipstream MCP server and the running app from
+external observation to internal cooperation — providing typed service
+extensions, direct element targeting, visual feedback, and richer framework
+hooks.
 
-While this baseline is powerful, agents occasionally hit the limits of
-"stringly-typed" evaluations or struggle to navigate complex, custom routing and
-UI structures.
+## Philosophical Context
 
-The **Slipstream Companion Package** (`slipstream_agent`) is an optional,
-strictly opt-in `dev_dependency` that developers (or their AI agents) can
-install into the host Flutter app. It upgrades the connection from external
-observation to internal cooperation, providing robust typed endpoints, visual
-feedback, and deeper framework hooks.
+The original premise of Slipstream was strict non-modification: the tool should
+work without touching the user's app. In practice, this premise breaks down.
+Agents using the current baseline tools regularly make source changes to improve
+interactability:
 
-## Core Philosophy
+- Adding `Semantics` widgets with explicit labels so `tap` and `set_text` can
+  find elements that lack them.
+- Adding `Key` annotations to aid layout debugging.
+- Wrapping entry points to inject state or bypass auth screens for testing.
 
-1.  **Zero-Config Baseline:** `slipstream` MUST remain fully functional without
-    this package. The package unlocks _enhanced_ capabilities and reliability,
-    but is never strictly required for basic inspection and interaction.
-2.  **Explicit Opt-In:** Agents are strictly forbidden from modifying
-    `pubspec.yaml` to install this package without explicit human consent. The
-    MCP server instructions will dictate that the agent must explain the
-    benefits and ask the developer before installation.
-3.  **Development Only:** The package relies on `dart:developer` and debugging
-    APIs. It must be designed to compile out or aggressively tree-shake in
-    release builds (e.g., heavily utilizing `kDebugMode`).
+These changes are necessary, ad-hoc, and scattered. The companion package
+formalizes this pattern: instead of agents adding boilerplate one widget at a
+time, the developer installs a single package that provides all the
+instrumentation hooks Slipstream needs. The scope of app modification is bounded
+and explicit.
 
-## Motivations & Features
+This does not relax the zero-configuration baseline. `slipstream` MUST remain
+fully functional without this package. The companion unlocks _enhanced_
+capabilities and reliability — it is never strictly required.
 
-### 1. Robust Service Extensions (No more `evaluate` strings)
+## Core Principles
 
-Relying on `vmService.evaluate` with raw strings is fragile and prone to
-breaking across Flutter versions or due to LLM formatting errors.
+1. **Zero-Config Baseline:** All existing tools (`tap`, `set_text`, `navigate`,
+   `get_semantics`, etc.) continue working without modification.
+2. **Explicit Opt-In:** The MCP server must never add this package to
+   `pubspec.yaml` without explicit developer consent. If an agent determines it
+   would help, it must explain the benefit and ask first.
+3. **Development Only:** The package uses `dart:developer` and debug APIs. All
+   registration must be guarded by `kDebugMode` and aggressively tree-shaken
+   from release builds.
+4. **Graceful Degradation:** The MCP server detects presence via
+   `ext.slipstream.ping`. If the ping fails, all tools fall back to the existing
+   VM service / evaluate approach silently.
 
-- **Feature:** The package registers strongly-typed JSON RPC endpoints via
-  `dart:developer`'s `registerExtension` (e.g., `ext.slipstream.tap`,
-  `ext.slipstream.get_layout`).
-- **Benefit:** The MCP server can send structured JSON requests. The package
-  executes the complex Dart logic internally, guaranteeing type safety and
-  returning clean JSON responses.
+## Motivations and Features
 
-### 2. The "Ghost Overlay" (Visual Intent)
+Features are ordered by expected agent impact, not implementation complexity.
 
-When an agent is silently querying the UI or injecting taps via the VM service,
-the human developer has no idea what the agent is targeting until a screenshot
-is taken or the app state changes.
+---
 
-- **Feature:** The package injects a `SlipstreamOverlay` widget at the root of
-  the app. When the MCP server calls `ext.slipstream.inspect(widget_id)`, the
-  package temporarily draws a highly visible bounding box (the "Ghost Overlay")
-  around that widget on the actual device screen.
-- **Benefit:** Real-time visual feedback. The developer can literally see what
-  the AI is "looking at" or interacting with.
+### Feature 1: Advanced UI Finders (No More Semantic Annotations)
 
-### 3. Unified Routing Adapter
+**The problem this solves:** The most common source change agents make today is
+adding `Semantics(label: ...)` wrappers so that `tap` and `set_text` can target
+elements. This is necessary because both tools depend on the Flutter semantics
+tree, which only knows about elements that have explicit semantic labels or
+accessibility roles. Widgets targeted by their visual appearance or code
+structure — an `ElevatedButton` with a `Key`, a `TextField` inside a specific
+`Card` — are invisible to the current tools unless annotated.
 
-The default `navigate` tool relies purely on `GoRouter`.
+**Feature:** The package exposes `flutter_test`-style finders at runtime via a
+service extension:
 
-- **Feature:** The package initialization accepts a router interface adapter:
-  `SlipstreamAgent.init(router: myRouter)`.
-- **Benefit:** Agents can reliably navigate apps using `auto_route`, `beamer`,
-  or vanilla `Navigator 2.0` without needing to guess the implementation details
-  or inject custom routing scripts.
+```
+ext.slipstream.interact({
+  "action": "tap",
+  "finder": "byKey",
+  "value": "login_button"
+})
+```
 
-### 4. Advanced UI Finders
+Supported finder types:
 
-While the agent's addition of Semantics nodes aids accessibility, sometimes an
-agent just needs to tap a specific widget without waiting for a developer to
-approve a Semantics PR.
+- `byKey` — matches by `ValueKey` string. Keys are already common in production
+  Flutter code for state management and testing.
+- `byType` — matches by widget type name (`"ElevatedButton"`).
+- `byText` — matches by visible text content (more reliable than the
+  semantics-label substring match in the current `tap`/`set_text`).
+- `bySemanticsLabel` — same as current semantics matching, as a fallback.
 
-- **Feature:** Exposing `flutter_test`-style Finders at runtime via the service
-  extension.
-- **Benefit:** Agents can issue commands like
-  `ext.slipstream.interact({ "action": "tap", "finder": "byKey", "value": "login_button" })`.
-  The package traverses the Element tree, resolves the `RenderBox` geometry, and
-  synthesizes the exact pointer events.
+**Mechanism:** The package traverses the `Element` tree, resolves the matching
+`RenderBox` geometry, and synthesizes pointer events at the correct screen
+coordinates. No semantics tree required.
 
-### 5. Structured Framework Telemetry
+**Impact:** Eliminates the primary reason agents add `Semantics` annotations to
+app code. Agents can target any widget the developer has already keyed — which
+is common in well-structured Flutter apps.
 
-Currently, the MCP server recieves structured `Flutter.Error` events and sends
-formatted summaries to the MCP client. However, when in-process we could hook
-into and send other useful framework events.
+---
 
-- **Feature:** The package hooks into
-  `PlatformDispatcher.instance.onWindowResolutionChanged` and other core
-  framework bindings.
-- **Benefit:** It directly broadcasts clean, structured JSON telemetry back over
-  the VM service connection, agent is notified of useful framework events and
-  state changes.
+### Feature 2: Scroll Support
 
-## Mechanics & Integration
+**The problem this solves:** Scroll is currently a planned but unimplemented gap
+in the baseline. Agents cannot bring off-screen content into view, which limits
+interaction to whatever is visible in the first rendered frame. They currently
+work around this by evaluating scroll controller expressions — fragile, requires
+knowledge of the widget tree structure, and breaks across app versions.
+
+**Feature:** The package exposes a typed scroll extension:
+
+```
+ext.slipstream.scroll({
+  "direction": "down",
+  "pixels": 300,
+  "finder": "byType",
+  "value": "ListView"
+})
+```
+
+Or scroll until a finder becomes visible:
+
+```
+ext.slipstream.scroll_until_visible({
+  "target": {"finder": "byKey", "value": "item_42"},
+  "scrollable": {"finder": "byType", "value": "ListView"}
+})
+```
+
+**Mechanism:** Resolves the target `Scrollable` via the element tree and drives
+it programmatically via `ScrollController` or pointer event simulation.
+
+---
+
+### Feature 3: Unified Routing Adapter
+
+**The problem this solves:** The current `navigate` tool is go_router-only. It
+detects the router by locating `InheritedGoRouter` in the widget tree and
+calling `widget.goRouter.go(path)` via `evaluate`. Apps using `auto_route`,
+`beamer`, vanilla `Navigator 2.0`, or custom routing solutions get no
+programmatic navigation support.
+
+**Feature:** The package initialization accepts a router adapter:
+
+```dart
+SlipstreamAgent.init(
+  router: GoRouterAdapter(appRouter),
+  // or: router: AutoRouterAdapter(appRouter),
+  // or: router: BeamerAdapter(routerDelegate),
+);
+```
+
+The adapter exposes a uniform interface that the MCP server calls via a service
+extension — `ext.slipstream.navigate({ "path": "/podcast/123" })` — without
+needing to know which router is in use.
+
+**Impact:** `navigate` and `get_route` work for any routing library. The
+go_router-specific VM evaluate path becomes a fallback for apps that haven't
+installed the companion package.
+
+---
+
+### Feature 4: Robust Service Extensions (Replace Fragile Evaluate Strings)
+
+**The problem this solves:** Several internal operations in the baseline tools
+rely on `vmService.evaluate` with raw Dart strings. Known failure modes observed
+in production:
+
+- **HTML encoding of generics.** Models generating expressions like
+  `Provider.of<SearchProvider>(context)` sometimes emit `&lt;SearchProvider&gt;`
+  instead of `<SearchProvider>`. The Dart compiler rejects this. We work around
+  it by unescaping HTML entities before evaluation, but this is fragile.
+- **Library scope confusion.** Expressions referencing types not in scope at the
+  evaluation target require passing the correct `library_uri` — easy to get
+  wrong and produces cryptic "undefined name" errors.
+- **String escaping.** Expressions containing quotes or special characters must
+  be carefully escaped before being embedded in JSON. One formatting mistake
+  silently evaluates the wrong thing.
+
+**Feature:** The package registers strongly-typed JSON RPC endpoints via
+`dart:developer`'s `registerExtension`:
+
+| Extension                            | Replaces                                                   |
+| ------------------------------------ | ---------------------------------------------------------- |
+| `ext.slipstream.tap`                 | semantics-based `performSemanticsAction` evaluate call     |
+| `ext.slipstream.set_text`            | semantics-based `setText` evaluate call                    |
+| `ext.slipstream.get_semantics`       | existing semantics extension (typed wrapper)               |
+| `ext.slipstream.get_layout`          | inspector `getDetailsSubtree` (typed wrapper)              |
+| `ext.slipstream.navigate`            | `GoRouter.go()` evaluate call                              |
+| `ext.slipstream.bootstrap_semantics` | `RendererBinding.instance.ensureSemantics()` evaluate call |
+
+The MCP server sends structured JSON; the package executes the Dart logic
+in-process and returns clean JSON. No string embedding, no library scope issues,
+no HTML encoding risk.
+
+---
+
+### Feature 5: Ghost Overlay (Visual Intent)
+
+**The problem this solves:** When an agent is inspecting UI or injecting taps
+via the VM service, the developer watching the screen sees nothing until a
+screenshot is taken or the app state visibly changes. This makes autonomous
+agent sessions opaque — the developer cannot tell what the agent is targeting or
+whether it's behaving sensibly.
+
+**Feature:** The package injects a `SlipstreamOverlay` at the root of the app.
+When the MCP server calls `ext.slipstream.inspect(element_id)` or before a
+`tap`, the overlay draws a highly visible bounding box around the target widget
+on the actual device screen, briefly then fading out.
+
+**Impact:** Real-time visual feedback. The developer can literally see what the
+agent is "looking at" before it acts. This is especially valuable during
+autonomous sessions — it builds developer trust that the agent is targeting the
+right element, and makes incorrect targeting immediately obvious without waiting
+for a screenshot.
+
+**Note:** This is the feature most unique to an in-process package — it cannot
+be approximated by any external VM service call.
+
+---
+
+### Feature 6: Structured Framework Telemetry
+
+**The problem this solves:** The baseline currently receives `Flutter.Error`
+events and `Flutter.Navigation` events. Other useful framework signals are
+inaccessible or require polling via `evaluate`.
+
+**Feature:** The package hooks into framework callbacks and broadcasts clean,
+structured JSON events via `postExtensionEvent`:
+
+- `ext.slipstream.frameTime` — wall-clock time per frame; lets agents detect
+  jank before screenshotting.
+- `ext.slipstream.routeChanged` — router-agnostic navigation event (complements
+  Feature 3).
+- `ext.slipstream.windowResized` — device/window size changes
+  (`PlatformDispatcher.instance.onMetricsChanged`).
+- `ext.slipstream.stateChanged` — opt-in: named state change events that the
+  developer's code posts explicitly, for test synchronization.
+
+---
+
+## Mechanics and Integration
 
 ### Installation
 
-The package is added as a development dependency.
+Added as a development dependency — not shipped in production builds.
 
 ```yaml
 dev_dependencies:
@@ -105,8 +244,7 @@ dev_dependencies:
 
 ### Initialization
 
-The developer (or agent) modifies `main.dart` to initialize the agent, safely
-wrapping it to prevent production leakage.
+Wrapped in `kDebugMode` to prevent any production leakage:
 
 ```dart
 import 'package:flutter/foundation.dart';
@@ -116,24 +254,38 @@ void main() {
   if (kDebugMode) {
     SlipstreamAgent.init(
       enableOverlay: true,
-      router: GoRouterAdapter(appRouter),
+      router: GoRouterAdapter(appRouter), // optional
     );
   }
   runApp(const MyApp());
 }
 ```
 
-### The Agent Workflow
+`SlipstreamAgent.init()` registers all service extensions and inserts the
+overlay widget. It is a no-op if called outside `kDebugMode`.
 
-1.  **Session Start:** When `run_app` is called, the `inspector` MCP server
-    connects to the VM Service and attempts to call `ext.slipstream.ping`.
-2.  **Fallback Mode:** If the ping fails (method not found), the MCP server
-    falls back to the default `evaluate` string approach.
-3.  **Enhanced Mode:** If the ping succeeds, the MCP server updates its internal
-    state to route all tools (like `inspect_layout`, `tap`, `navigate`) through
-    the `ext.slipstream.*` endpoints.
-4.  **The Ask:** If an agent encounters repeated failures using the default
-    tools (e.g., cannot find a semantic node, routing fails), its system prompt
-    instructs it to ask the user: _"I'm having trouble interacting with this UI.
-    Would you like me to install the `slipstream_agent` companion package to
-    enable direct element targeting and visual overlays?"_
+### Agent Workflow
+
+1. **Session Start:** When `run_app` launches the app, the MCP server connects
+   to the VM Service and calls `ext.slipstream.ping`.
+2. **Baseline Mode:** If the ping fails (method not found), all tools behave as
+   today — semantics tree, evaluate strings, go_router-specific navigation.
+3. **Enhanced Mode:** If the ping succeeds, the server routes tool calls through
+   the `ext.slipstream.*` endpoints: `tap` uses the finder-based extension,
+   `navigate` uses the routing adapter, `bootstrap_semantics` uses the typed
+   extension, etc. The agent uses the same tool names — the routing is
+   transparent.
+4. **Upgrade Prompt:** If an agent repeatedly hits baseline limitations — cannot
+   find a semantic node, navigation fails for a non-go*router app, scroll is
+   needed — its system prompt instructs it to ask the developer: *"I'm having
+   trouble targeting this element. Installing `slipstream_agent` as a dev
+   dependency would let me find it by Key instead of by semantic label. Would
+   you like me to add it?"\_
+
+### Suggested Phasing
+
+| Phase | Features                                                      | Value                                               |
+| ----- | ------------------------------------------------------------- | --------------------------------------------------- |
+| 1     | Finders (byKey, byType, byText), Scroll                       | Eliminates the main reason agents annotate app code |
+| 2     | Routing adapter, Service extensions for tap/set_text/navigate | Reliability + multi-router support                  |
+| 3     | Ghost Overlay, Telemetry                                      | Developer trust, debugging signals                  |

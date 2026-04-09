@@ -12,7 +12,7 @@ import 'package:flutter_slipstream/src/shorthand/packages_mcp.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 void main() async {
-  final docFile = File(path.join('docs', 'slipstream_tools.md'));
+  final docFile = File(path.join('docs', 'slipstream_doc.md'));
   final buf = StringBuffer();
   buf.writeln('# Slipstream');
   buf.writeln();
