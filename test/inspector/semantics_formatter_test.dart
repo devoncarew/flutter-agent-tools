@@ -256,7 +256,7 @@ void main() {
     test('returns no-content message for empty list', () {
       expect(
         formatSemanticsTree([]),
-        equals('No visible text or interactive elements found.'),
+        equals('No visible text or interactive elements found.\n'),
       );
     });
 

@@ -27,9 +27,8 @@ class ToolContext {
     final missing =
         requiredParams.where((param) => !args.containsKey(param)).toList();
     if (missing.isNotEmpty) {
-      throw ToolException(
-        'Missing required argument(s): ${missing.join(', ')}',
-      );
+      final label = missing.length == 1 ? 'argument' : 'arguments';
+      throw ToolException('Missing required $label: ${missing.join(', ')}');
     }
   }
 
