@@ -2,7 +2,7 @@
 
 MCP servers, instructions, and tools,
 
-## server `packages`
+## `packages` server
 
 Tools for querying Dart and Flutter package APIs directly from the pub cache.
 
@@ -19,7 +19,11 @@ Typical call sequence:
 Source is the local pub cache — already downloaded, always matches the resolved
 version in pubspec.lock, no network required.
 
-### tool `package_summary`
+### `packages:package_summary`
+
+```
+package_summary(project_directory, package)
+```
 
 Returns API summaries for Dart or Flutter packages; start here to orient on an
 unfamiliar package. Use this to get accurate, version-matched API signatures
@@ -33,7 +37,11 @@ excerpt, public library list, and exported name groups for the main library.
   version from pubspec.lock and to locate the package_config.json for analysis.
 - `package`: (required) The package name (e.g. "http", "provider").
 
-### tool `library_stub`
+### `packages:library_stub`
+
+```
+library_stub(project_directory, package, library_uri)
+```
 
 Returns the full public API for one library as a Dart stub (signatures only, no
 bodies).
@@ -45,7 +53,11 @@ bodies).
 - `library_uri`: (required) The library URI to target, e.g.
   "package:http/http.dart".
 
-### tool `class_stub`
+### `packages:class_stub`
+
+```
+class_stub(project_directory, package, library_uri, class)
+```
 
 Returns the public API for a single named class, mixin, or extension as a Dart
 stub (signatures only, no bodies).
@@ -59,7 +71,7 @@ stub (signatures only, no bodies).
 - `class`: (required) The class, mixin, or extension name to target (e.g.
   "Client").
 
-## server `inspector`
+## `inspector` server
 
 Tools for launching, inspecting, and interacting with a running Flutter app.
 
@@ -94,7 +106,11 @@ Orientation:
 Flutter.Error events are forwarded automatically as MCP log warnings — no
 polling needed. They include widget IDs for use with inspect_layout.
 
-### tool `run_app`
+### `inspector:run_app`
+
+```
+run_app(working_directory, [target, device])
+```
 
 Builds and launches the Flutter app. Returns a session ID required by all other
 tools. Call this first before inspecting, screenshotting, or evaluating.
@@ -108,7 +124,11 @@ warnings — no polling needed.
   available device (prefers desktop for fast builds). Only pass this if the user
   requests a specific device.
 
-### tool `reload`
+### `inspector:reload`
+
+```
+reload(session_id, [full_restart])
+```
 
 Applies source file changes to a running Flutter app. Call this after editing
 Dart files, before taking a screenshot or inspecting layout. Prefer hot reload
@@ -119,7 +139,11 @@ be fully reset.
 - `full_restart`: If true, performs a hot restart instead of a hot reload.
   Defaults to false.
 
-### tool `take_screenshot`
+### `inspector:take_screenshot`
+
+```
+take_screenshot(session_id, [pixel_ratio])
+```
 
 Captures a PNG screenshot of the running Flutter app. Use proactively after a
 reload to visually confirm UI changes are correct, and when diagnosing layout or
@@ -132,7 +156,11 @@ if visible on screen.
 - `pixel_ratio`: Device pixel ratio for the screenshot. Higher values produce
   sharper images. Defaults to 1.0.
 
-### tool `inspect_layout`
+### `inspector:inspect_layout`
+
+```
+inspect_layout(session_id, [widget_id, subtree_depth])
+```
 
 Use when debugging layout issues, overflow errors, or unexpected widget sizing.
 Returns constraints, size, flex parameters, and children for a widget. Omit
@@ -144,7 +172,11 @@ specific node. Increase subtree_depth to see deeper child layout.
 - `widget_id`: The widget ID to inspect. Omit to start from the root widget.
 - `subtree_depth`: How many levels of children to include. Defaults to 1.
 
-### tool `evaluate`
+### `inspector:evaluate`
+
+```
+evaluate(session_id, expression, [library_uri])
+```
 
 Evaluates a Dart expression on the running app's main isolate and returns the
 result as a string. Use for binding-layer and platform-layer state not visible
@@ -165,7 +197,11 @@ SemanticsNode, CheckedState, and Tristate available.
   rendering and semantics APIs such as RendererBinding, SemanticsNode,
   CheckedState, and Tristate.
 
-### tool `get_route`
+### `inspector:get_route`
+
+```
+get_route(session_id)
+```
 
 Returns the current navigator route stack with screen widget names and source
 locations. Use this to confirm which screen is active before inspecting or
@@ -174,7 +210,11 @@ with the current go_router path when the app uses go_router.
 
 - `session_id`: (required) The session ID returned by run_app.
 
-### tool `navigate`
+### `inspector:navigate`
+
+```
+navigate(session_id, path)
+```
 
 Navigates the app to a go_router path. Calls GoRouter.go(path) on the running
 app — no app modification required. Only works with apps that use go_router. Use
@@ -185,7 +225,11 @@ structure. Example path: "/podcast/123".
 - `path`: (required) The go_router path to navigate to. Must start with "/".
   Example: "/podcast/123".
 
-### tool `get_semantics`
+### `inspector:get_semantics`
+
+```
+get_semantics(session_id)
+```
 
 Returns a flat list of visible semantics nodes from the running Flutter app.
 Each node shows its role, ID, state flags, supported actions, label, and size.
@@ -195,7 +239,11 @@ stable until the next hot reload or hot restart.
 
 - `session_id`: (required) The session ID returned by run_app.
 
-### tool `tap`
+### `inspector:tap`
+
+```
+tap(session_id, [node_id, label])
+```
 
 Taps a widget by its semantics node ID or label. Dispatches a tap action via
 SemanticsBinding.performSemanticsAction — no screen coordinates needed.
@@ -213,7 +261,11 @@ Note that this call relies on `action:tap` being present in the semantics node.
   (case-insensitive substring match). Use when you do not have a node ID.
   Ignored if "node_id" is provided.
 
-### tool `set_text`
+### `inspector:set_text`
+
+```
+set_text(session_id, text, [node_id, label])
+```
 
 Sets the text content of a text field by its semantics node ID or label.
 Dispatches SemanticsAction.setText — replaces the field's current content
@@ -231,7 +283,11 @@ call relies on `action:setText` being present in the semantics node.
   (case-insensitive substring match). Use when you do not have a node ID.
   Ignored if "node_id" is provided.
 
-### tool `close_app`
+### `inspector:close_app`
+
+```
+close_app(session_id)
+```
 
 Stops a running Flutter app and releases its session.
 
