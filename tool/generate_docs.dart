@@ -42,13 +42,17 @@ void writeServerDocs(
   List<Tool> tools,
 ) {
   final server = initializeResult.serverInfo;
-  buf.writeln('## server `${server.name}`');
+  buf.writeln('## `${server.name}` server');
   buf.writeln();
   buf.writeln(initializeResult.instructions);
 
   for (final tool in tools) {
     buf.writeln();
-    buf.writeln('### tool `${tool.name}`');
+    buf.writeln('### `${server.name}:${tool.name}`');
+    buf.writeln();
+    buf.writeln('```');
+    buf.writeln(_toolSig(tool));
+    buf.writeln('```');
     buf.writeln();
     buf.writeln(tool.description);
 
@@ -62,6 +66,33 @@ void writeServerDocs(
       buf.writeln('- `$param`: $requiredDesc${schema.description}');
     }
   }
+}
+
+String _toolSig(Tool tool) {
+  final inputSchema = tool.inputSchema;
+
+  final buf = StringBuffer();
+
+  var hasOptional = false;
+  var isFirst = true;
+  buf.write('${tool.name}(');
+  for (final param in inputSchema.properties!.keys) {
+    final required = inputSchema.required!.contains(param);
+
+    if (!isFirst) buf.write(', ');
+    isFirst = false;
+
+    if (!required && !hasOptional) {
+      buf.write('[');
+      hasOptional = true;
+    }
+    buf.write(param);
+  }
+
+  if (hasOptional) buf.write(']');
+  buf.write(')');
+
+  return buf.toString();
 }
 
 /// Starts [serverFactory] in-process, lists its tools, and returns them.
