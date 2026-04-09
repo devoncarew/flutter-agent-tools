@@ -28,3 +28,5 @@ class ToolException {
   @override
   String toString() => 'ToolException: $message';
 }
+
+typedef DebugLogger = void Function(String message);

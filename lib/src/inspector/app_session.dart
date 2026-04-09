@@ -6,10 +6,11 @@ import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
+import '../common.dart';
+import '../utils.dart';
 import 'diagnostics_node.dart';
 import 'error_summarizers.dart';
 import 'flutter_service_extensions.dart';
-import '../utils.dart';
 
 /// Manages a `flutter run --machine` subprocess.
 ///
@@ -18,7 +19,12 @@ import '../utils.dart';
 /// [restart] for hot reload/restart, [stop] to terminate the app, and
 /// [serviceExtensions] for direct access to Flutter VM service extensions.
 class AppSession {
-  AppSession._(this._process, this._eventListener, {this.deviceId}) {
+  AppSession._(
+    this._process,
+    this._eventListener, {
+    this.deviceId,
+    required this.debugLog,
+  }) {
     _process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
@@ -34,6 +40,8 @@ class AppSession {
 
   /// The 'flutter run' device ID that we launched on.
   final String? deviceId;
+
+  final DebugLogger debugLog;
 
   final Completer<void> _startedCompleter = Completer<void>();
   int _nextId = 0;
@@ -80,6 +88,7 @@ class AppSession {
     required EventCallback eventListener,
     String? deviceId,
     String? target,
+    required DebugLogger debugLog,
   }) async {
     deviceId ??= await _autoSelectDevice(workingDirectory);
 
@@ -100,6 +109,7 @@ class AppSession {
       process,
       eventListener,
       deviceId: deviceId,
+      debugLog: debugLog,
     );
     await session._startedCompleter.future;
     return session;
@@ -388,15 +398,6 @@ class AppSession {
         _devToolsUri = params['uri'] as String?;
       } else if (event == 'app.dtd') {
         _dtdToolsUri = params['uri'] as String?;
-      } else if (event == 'app.progress' &&
-          params['progressId'] == 'hot.restart' &&
-          params['finished'] == true) {
-        // Re-bootstrap semantics after hot restart. The daemon sends this event
-        // once the new isolate is running and the app has started — the Flutter
-        // binding is initialized at this point, so the evaluate calls succeed.
-
-        // TODO: We still seem to be having issues re-enabling semantics.
-        _serviceExtensions?.bootstrapSemantics().ignore();
       }
 
       if (!_sessionEnded) {
@@ -445,6 +446,13 @@ class AppSession {
             if (description != null) 'route': description,
           }),
         );
+      } else if (event.extensionKind == 'Flutter.FrameworkInitialization') {
+        // This happens early after a full restart.
+      } else if (event.extensionKind == 'Flutter.FirstFrame') {
+        // This is the last event we receive after a full restart.
+
+        // Re-bootstrap semantics after hot restart.
+        _serviceExtensions?.bootstrapSemantics().ignore();
       }
     });
   }
