@@ -71,6 +71,7 @@ class RunAppTool extends InspectorTool {
         eventListener: (event) => eventListener(sessionId, event),
         deviceId: device,
         target: target,
+        debugLog: (message) => context.log(LoggingLevel.info, message),
       );
     } on DaemonException catch (e) {
       return CallToolResult(
