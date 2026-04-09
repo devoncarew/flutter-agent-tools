@@ -19,3 +19,12 @@ String _readVersion() {
 
   return '0.0.0';
 }
+
+class ToolException {
+  final String message;
+
+  ToolException(this.message);
+
+  @override
+  String toString() => 'ToolException: $message';
+}

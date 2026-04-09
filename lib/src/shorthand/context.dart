@@ -5,6 +5,7 @@ import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
+import '../common.dart';
 import 'resolver.dart';
 
 abstract class PackagesTool {
@@ -83,15 +84,6 @@ class ToolContext {
     }
     return _resolver!;
   }
-}
-
-class ToolException {
-  final String message;
-
-  ToolException(this.message);
-
-  @override
-  String toString() => 'ToolException: $message';
 }
 
 final StringSchema projectDirectorySchema = Schema.string(

@@ -2,6 +2,7 @@ import 'package:dart_mcp/server.dart';
 
 import '../app_session.dart';
 import '../tool_context.dart';
+import '../../utils.dart';
 
 /// Implements the `reload` MCP tool.
 ///
@@ -42,7 +43,7 @@ class ReloadTool extends InspectorTool {
     }
 
     final bool fullRestart =
-        request.arguments!['full_restart'] as bool? ?? false;
+        coerceBool(request.arguments!['full_restart']) ?? false;
     try {
       await session.restart(fullRestart: fullRestart);
     } on DaemonException catch (e) {

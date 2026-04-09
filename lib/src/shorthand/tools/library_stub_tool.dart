@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dart_mcp/server.dart';
 
+import '../../common.dart';
 import '../context.dart';
 import '../stub_emitter.dart';
 

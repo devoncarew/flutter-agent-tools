@@ -9,7 +9,7 @@ import 'package:vm_service/vm_service_io.dart';
 import 'diagnostics_node.dart';
 import 'error_summarizers.dart';
 import 'flutter_service_extensions.dart';
-import 'utils.dart';
+import '../utils.dart';
 
 /// Manages a `flutter run --machine` subprocess.
 ///
@@ -18,12 +18,7 @@ import 'utils.dart';
 /// [restart] for hot reload/restart, [stop] to terminate the app, and
 /// [serviceExtensions] for direct access to Flutter VM service extensions.
 class AppSession {
-  AppSession._(
-    this._process,
-    this._eventListener,
-    this.debugLogger, {
-    this.deviceId,
-  }) {
+  AppSession._(this._process, this._eventListener, {this.deviceId}) {
     _process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
@@ -61,10 +56,6 @@ class AppSession {
   // ignore: unused_field
   String? _dtdToolsUri;
 
-  /// A debug-time only logger; this can send log statements back to the host
-  /// MCP client.
-  final Logger? debugLogger;
-
   /// Framework errors received via the `Flutter.Error` VM service event since
   /// the session started or the last hot restart.
   List<FlutterError> get errors => List.unmodifiable(_errors);
@@ -89,9 +80,8 @@ class AppSession {
     required EventCallback eventListener,
     String? deviceId,
     String? target,
-    Logger? debugLogger,
   }) async {
-    deviceId ??= await _autoSelectDevice(workingDirectory, debugLogger);
+    deviceId ??= await _autoSelectDevice(workingDirectory);
 
     final List<String> args = [
       'run',
@@ -109,7 +99,6 @@ class AppSession {
     final AppSession session = AppSession._(
       process,
       eventListener,
-      debugLogger,
       deviceId: deviceId,
     );
     await session._startedCompleter.future;
@@ -122,13 +111,10 @@ class AppSession {
   /// Preference order: desktop (host OS) > iOS Simulator > Android emulator >
   /// physical device. Web and cross-compile desktop are skipped. Each candidate
   /// is checked for platform support (e.g. a `macos/` folder must exist).
-  static Future<String?> _autoSelectDevice(
-    String workingDirectory,
-    Logger? debugLogger,
-  ) async {
+  static Future<String?> _autoSelectDevice(String workingDirectory) async {
     final List<Map<String, dynamic>> devices;
     try {
-      devices = await _getDevices(debugLogger);
+      devices = await _getDevices();
     } on DaemonException {
       // Fail open — let `flutter run` pick a device itself.
       return null;
@@ -237,9 +223,7 @@ class AppSession {
   }
 
   /// Runs `flutter devices --machine` and returns the parsed JSON list.
-  static Future<List<Map<String, dynamic>>> _getDevices(
-    Logger? debugLogger,
-  ) async {
+  static Future<List<Map<String, dynamic>>> _getDevices() async {
     final ProcessResult result = await Process.run('flutter', [
       'devices',
       '--machine',
@@ -404,6 +388,15 @@ class AppSession {
         _devToolsUri = params['uri'] as String?;
       } else if (event == 'app.dtd') {
         _dtdToolsUri = params['uri'] as String?;
+      } else if (event == 'app.progress' &&
+          params['progressId'] == 'hot.restart' &&
+          params['finished'] == true) {
+        // Re-bootstrap semantics after hot restart. The daemon sends this event
+        // once the new isolate is running and the app has started — the Flutter
+        // binding is initialized at this point, so the evaluate calls succeed.
+
+        // TODO: We still seem to be having issues re-enabling semantics.
+        _serviceExtensions?.bootstrapSemantics().ignore();
       }
 
       if (!_sessionEnded) {
@@ -415,17 +408,15 @@ class AppSession {
   Future<void> _connectVmService(String wsUri) async {
     final vmService = await vmServiceConnectUri(wsUri);
 
-    _serviceExtensions = FlutterServiceExtensions(
-      vmService,
-      debugLogger: debugLogger,
-    );
+    _serviceExtensions = FlutterServiceExtensions(vmService);
+
+    // Bootstrap semantics on initial connect. Best-effort — app.started has
+    // fired by the time _connectVmService is called, so the Flutter binding
+    // is initialized. The app.progress/hot.restart handler below re-bootstraps
+    // after every full restart.
+    _serviceExtensions!.bootstrapSemantics().ignore();
 
     await vmService.streamListen(EventStreams.kExtension);
-
-    // Enable semantics so get_semantics works. Best-effort.
-    try {
-      await _serviceExtensions!.enableSemantics();
-    } catch (_) {}
 
     _vmServiceSubscription = vmService.onExtensionEvent.listen((Event event) {
       if (event.extensionKind == 'Flutter.Error') {
