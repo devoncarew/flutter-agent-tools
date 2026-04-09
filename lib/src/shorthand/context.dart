@@ -22,13 +22,14 @@ class ToolContext {
   ///
   /// Throws a [ToolException] is a param is missing.
   void validateParams(CallToolRequest request, List<String> requiredParams) {
-    // todo: throw one error for all missing params
+    final args = request.arguments ?? {};
 
-    for (final param in requiredParams) {
-      final String? value = request.arguments?[param] as String?;
-      if (value == null || value.isEmpty) {
-        throw ToolException('Missing required argument: $param');
-      }
+    final missing =
+        requiredParams.where((param) => !args.containsKey(param)).toList();
+    if (missing.isNotEmpty) {
+      throw ToolException(
+        'Missing required argument(s): ${missing.join(', ')}',
+      );
     }
   }
 

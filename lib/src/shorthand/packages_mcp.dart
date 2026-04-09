@@ -38,21 +38,21 @@ version in pubspec.lock, no network required.''',
   final ToolContext context = ToolContext();
 
   void _registerTools() {
-    void register(PackagesTool tool) {
-      registerTool(tool.definition, (req) {
-        try {
-          return tool.handle(req, context);
-        } on ToolException catch (e) {
-          return CallToolResult(
-            content: [TextContent(text: e.message)],
-            isError: true,
-          );
-        }
-      });
-    }
+    _register(PackageSummaryTool());
+    _register(LibraryStubTool());
+    _register(ClassStubTool());
+  }
 
-    register(PackageSummaryTool());
-    register(LibraryStubTool());
-    register(ClassStubTool());
+  void _register(PackagesTool tool) {
+    registerTool(tool.definition, (req) async {
+      try {
+        return await tool.handle(req, context);
+      } on ToolException catch (e) {
+        return CallToolResult(
+          content: [TextContent(text: e.message)],
+          isError: true,
+        );
+      }
+    }, validateArguments: false);
   }
 }
