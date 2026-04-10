@@ -16,7 +16,10 @@ void main() async {
   final buf = StringBuffer();
   buf.writeln('# Slipstream');
   buf.writeln();
-  buf.writeln('MCP servers, instructions, and tools,');
+  buf.writeln(
+    "Generated documentation on Slipstream's MCP servers, and their "
+    'instructions and tools.',
+  );
   buf.writeln();
 
   // packages server

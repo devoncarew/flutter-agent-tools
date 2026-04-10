@@ -2,7 +2,7 @@ import 'package:dart_mcp/server.dart';
 import 'package:flutter_slipstream/src/inspector/inspector_mcp.dart';
 import 'package:test/test.dart';
 
-import 'test_utils.dart';
+import '../test_utils.dart';
 
 void main() {
   group('close_app tool', () {

@@ -57,6 +57,8 @@ class RunAppTool extends InspectorTool {
     CallToolRequest request,
     ToolContext context,
   ) async {
+    context.validateParams(request, definition.inputSchema.required!);
+
     final Map<String, dynamic> args = request.arguments!;
     final String workingDirectory = args['working_directory'] as String;
     final String? device = args['device'] as String?;

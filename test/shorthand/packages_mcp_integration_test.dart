@@ -1,10 +1,4 @@
-// Integration tests for the packages MCP server.
-//
-// These tests start a real PackagesMCPServer and exercise all three tools
-// (package_summary, library_stub, class_stub) from the perspective of an MCP
-// client. A single server instance is shared across all tests in this file;
-// tests within a file are already serial in Dart's test runner, so no
-// additional configuration is needed.
+// Integration tests for the 'packages' MCP server.
 
 import 'dart:io';
 
@@ -12,7 +6,13 @@ import 'package:dart_mcp/server.dart';
 import 'package:flutter_slipstream/src/shorthand/packages_mcp.dart';
 import 'package:test/test.dart';
 
-import '../inspector/test_utils.dart';
+import '../test_utils.dart';
+
+// These tests start a real PackagesMCPServer and exercise all three tools
+// (package_summary, library_stub, class_stub) from the perspective of an MCP
+// client. A single server instance is shared across all tests in this file;
+// tests within a file are already serial in Dart's test runner, so no
+// additional configuration is needed.
 
 // The project root, used as project_directory for all tool calls. Must be
 // absolute — the analyzer rejects relative paths.

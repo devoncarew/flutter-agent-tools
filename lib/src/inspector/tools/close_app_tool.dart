@@ -27,14 +27,19 @@ class CloseAppTool extends InspectorTool {
     CallToolRequest request,
     ToolContext context,
   ) async {
-    final String? sessionId = request.arguments!['session_id'] as String?;
+    context.validateParams(request, definition.inputSchema.required!);
+
+    final String sessionId = request.arguments!['session_id'] as String;
     final session = context.removeSession(sessionId);
-    if (sessionId == null || session == null) {
+    if (session == null) {
       return context.unknownSession(sessionId);
     }
 
-    // We don't await this call.
-    session.stop();
+    // Don't wait more than 250ms for the call to complete.
+    await session.stop().timeout(
+      Duration(milliseconds: 250),
+      onTimeout: () => null,
+    );
 
     return CallToolResult(content: [TextContent(text: 'App stopped.')]);
   }
