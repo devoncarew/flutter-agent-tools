@@ -73,9 +73,9 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
       // Disable dart_mcp's auto-validation so our handlers can apply lenient
       // coercions (e.g. accept "5" for an int param) and return more
       // informative error messages than the generic schema error.
-      registerTool(tool.definition, (req) {
+      registerTool(tool.definition, (req) async {
         try {
-          return tool.handle(req, _context);
+          return await tool.handle(req, _context);
         } on ToolException catch (e) {
           return CallToolResult(
             content: [TextContent(text: e.message)],

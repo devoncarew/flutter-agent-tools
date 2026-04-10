@@ -1,6 +1,7 @@
 import 'package:dart_mcp/server.dart';
 import 'package:vm_service/vm_service.dart' show RPCError;
 
+import '../common.dart';
 import 'app_session.dart';
 import '../utils.dart';
 
@@ -65,6 +66,20 @@ class ToolContext {
         if (details != null) TextContent(text: details),
       ],
     );
+  }
+
+  /// Validate the required params are present.
+  ///
+  /// Throws a [ToolException] is a param is missing.
+  void validateParams(CallToolRequest request, List<String> requiredParams) {
+    final args = request.arguments ?? {};
+
+    final missing =
+        requiredParams.where((param) => !args.containsKey(param)).toList();
+    if (missing.isNotEmpty) {
+      final label = missing.length == 1 ? 'argument' : 'arguments';
+      throw ToolException('Missing required $label: ${missing.join(', ')}');
+    }
   }
 }
 

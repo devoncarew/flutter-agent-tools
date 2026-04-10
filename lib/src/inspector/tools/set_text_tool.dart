@@ -53,9 +53,11 @@ class SetTextTool extends InspectorTool {
     CallToolRequest request,
     ToolContext context,
   ) async {
-    final String? sessionId = request.arguments!['session_id'] as String?;
+    context.validateParams(request, definition.inputSchema.required!);
+
+    final String sessionId = request.arguments!['session_id'] as String;
     final session = context.session(sessionId);
-    if (sessionId == null || session == null) {
+    if (session == null) {
       return context.unknownSession(sessionId);
     }
 

@@ -1,6 +1,7 @@
 # Slipstream
 
-MCP servers, instructions, and tools,
+Generated documentation on Slipstream's MCP servers, and their instructions and
+tools.
 
 ## `packages` server
 
