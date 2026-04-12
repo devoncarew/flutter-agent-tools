@@ -1,4 +1,4 @@
-# Slipstream
+# Flutter Slipstream
 
 Generated documentation on Slipstream's MCP servers, and their instructions and
 tools.
@@ -102,7 +102,10 @@ Orientation:
   source locations. Use this to confirm which screen is active before inspecting
   or editing.
 - get_semantics lists visible, interactive nodes with their IDs. Pass node IDs
-  directly to 'tap' and 'set_text'.
+  directly to 'perform_semantic_action'.
+- If the app has slipstream_agent installed, use 'interact' instead of
+  'perform_semantic_action' — it supports byKey/byType/byText finders and does
+  not require semantics annotations.
 
 Flutter.Error events are forwarded automatically as MCP log warnings — no
 polling needed. They include widget IDs for use with inspect_layout.
@@ -211,21 +214,6 @@ with the current go_router path when the app uses go_router.
 
 - `session_id`: (required) The session ID returned by run_app.
 
-### `inspector:navigate`
-
-```
-navigate(session_id, path)
-```
-
-Navigates the app to a go_router path. Calls GoRouter.go(path) on the running
-app — no app modification required. Only works with apps that use go_router. Use
-get_route first to see the current path and understand the app's route
-structure. Example path: "/podcast/123".
-
-- `session_id`: (required) The session ID returned by run_app.
-- `path`: (required) The go_router path to navigate to. Must start with "/".
-  Example: "/podcast/123".
-
 ### `inspector:get_semantics`
 
 ```
@@ -240,49 +228,103 @@ stable until the next hot reload or hot restart.
 
 - `session_id`: (required) The session ID returned by run_app.
 
-### `inspector:tap`
+### `inspector:perform_semantic_action`
 
 ```
-tap(session_id, [node_id, label])
+perform_semantic_action(session_id, action, [node_id, label, value])
 ```
 
-Taps a widget by its semantics node ID or label. Dispatches a tap action via
-SemanticsBinding.performSemanticsAction — no screen coordinates needed.
+Dispatches a semantics action on a widget by its semantics node ID or label.
+Works without the slipstream_agent companion package, but requires the target
+widget to have a semantics node.
+
+Common actions:
+
+- tap — tap a button, list item, or any tappable widget
+- setText — set text field content; provide "value" with the text
+- longPress — long-press a widget
+- focus — move keyboard focus to an input field
+- scrollUp / scrollDown — scroll a scrollable widget
+- increase / decrease — adjust a slider or stepper
 
 One of "node_id" or "label" must be provided. Prefer "node_id" when available
 (faster — skips tree fetch). Use get_semantics first to see available nodes and
 their IDs.
 
-Note that this call relies on `action:tap` being present in the semantics node.
+For apps with the slipstream_agent companion installed, prefer the `interact`
+tool — it supports byKey/byType/byText finders and does not require semantics
+annotations.
 
 - `session_id`: (required) The session ID returned by run_app.
-- `node_id`: The semantics node ID to tap. Shown as "id=N" in get_semantics
-  output. Prefer this over "label" when you already know the ID.
-- `label`: Tap the first visible node whose label contains this text
-  (case-insensitive substring match). Use when you do not have a node ID.
-  Ignored if "node_id" is provided.
+- `action`: (required) The SemanticsAction to dispatch. Common values: tap,
+  setText, longPress, focus, scrollUp, scrollDown, increase, decrease.
+- `node_id`: The semantics node ID. Shown as "id=N" in get_semantics output.
+  Prefer this over "label" when you already know the ID.
+- `label`: Dispatch to the first visible node whose label contains this text
+  (case-insensitive substring match). Ignored if "node_id" is provided.
+- `value`: Required for the setText action. Replaces the field's current content
+  entirely. Ignored for other actions.
 
-### `inspector:set_text`
+### `inspector:interact`
 
 ```
-set_text(session_id, text, [node_id, label])
+interact(session_id, action, finder, finder_value, [text, direction, pixels, scroll_finder, scroll_finder_value])
 ```
 
-Sets the text content of a text field by its semantics node ID or label.
-Dispatches SemanticsAction.setText — replaces the field's current content
-entirely. No keyboard simulation needed. One of "node_id" or "label" must be
-provided. Prefer "node_id" when available (faster — skips tree fetch). Semantics
-node IDs and labels appear in get_semantics output. Tip: tap the field first
-('tap') if the app requires focus before accepting text input. Note that this
-call relies on `action:setText` being present in the semantics node.
+Performs a UI action on a widget located by an advanced finder. Requires the
+slipstream_agent companion package (`dev_dependency: slipstream_agent`).
+
+Actions:
+
+- tap — tap a widget at its center
+- set_text — replace a text field's content (provide "text")
+- scroll — scroll a scrollable widget (provide "direction" and "pixels")
+- scroll_until_visible — scroll until a widget is visible (provide
+  "scroll_finder" and "scroll_finder_value")
+
+Finders:
+
+- byKey — match a ValueKey string (e.g. "login_button")
+- byType — match the widget's type name (e.g. "ElevatedButton")
+- byText — match a Text widget's content exactly
+- bySemanticsLabel — match a Semantics widget's label
+
+If the companion is not installed, use `perform_semantic_action` instead
+(semantics-based, works without the companion).
 
 - `session_id`: (required) The session ID returned by run_app.
-- `text`: (required) The text to set. Replaces the field's current content.
-- `node_id`: The semantics node ID of the text field. Shown as "id=N" in
-  get_semantics output. Prefer this over "label" when you already know the ID.
-- `label`: Set text in the first visible node whose label contains this text
-  (case-insensitive substring match). Use when you do not have a node ID.
-  Ignored if "node_id" is provided.
+- `action`: (required) The action to perform: "tap" or "set_text".
+- `finder`: (required) How to find the widget: "byKey", "byType", "byText", or
+  "bySemanticsLabel".
+- `finder_value`: (required) The value to match against the chosen finder.
+- `text`: Required for the set_text action. The text to set — replaces the
+  field's current content entirely.
+- `direction`: Required for scroll. One of: "up", "down", "left", "right".
+- `pixels`: Required for scroll. Number of logical pixels to scroll.
+- `scroll_finder`: Required for scroll_until_visible. Finder type for the
+  Scrollable widget.
+- `scroll_finder_value`: Required for scroll_until_visible. Finder value for the
+  Scrollable widget.
+
+### `inspector:navigate`
+
+```
+navigate(session_id, path)
+```
+
+Navigates the app to a route path. Requires the slipstream_agent companion
+package with a router adapter registered via SlipstreamAgent.init(router:
+GoRouterAdapter(appRouter)).
+
+Supports any routing library for which an adapter exists: GoRouter, AutoRouter,
+Beamer, or a custom adapter. Use get_route first to see the current path and
+understand the app's route structure.
+
+Example path: "/podcast/123".
+
+- `session_id`: (required) The session ID returned by run_app.
+- `path`: (required) The route path to navigate to. Must start with "/".
+  Example: "/podcast/123".
 
 ### `inspector:close_app`
 

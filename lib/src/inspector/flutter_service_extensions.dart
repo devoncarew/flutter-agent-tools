@@ -39,6 +39,37 @@ class FlutterServiceExtensions {
   }
 
   // ---------------------------------------------------------------------------
+  // ext.slipstream.* — companion package detection
+
+  /// Calls a `ext.slipstream.*` extension and returns the response JSON.
+  ///
+  /// The caller is responsible for checking `response['ok']` and handling
+  /// `response['error']`. Throws an [RPCError] on VM service failures.
+  Future<Map<String, dynamic>> callSlipstreamExtension(
+    String method, {
+    Map<String, dynamic>? args,
+  }) async {
+    final response = await _callExtension(method, args: args);
+    return (response.json ?? {}).cast<String, dynamic>();
+  }
+
+  /// Calls `ext.slipstream.ping` to detect the slipstream_agent companion
+  /// package.
+  ///
+  /// Returns the companion version string (e.g. `"0.1.0"`) if the companion is
+  /// installed and registered, or `null` if it is not. Never throws — fails
+  /// open so the caller does not need to handle the no-companion case specially.
+  Future<String?> pingCompanion() async {
+    try {
+      final response = await _callExtension('ext.slipstream.ping');
+      return response.json?['version'] as String?;
+    } catch (_) {
+      // Extension not registered — companion not installed. Fail open.
+      return null;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Semantics
 
   /// Enables the Flutter semantics tree and schedules a frame so the tree
