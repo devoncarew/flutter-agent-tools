@@ -122,7 +122,7 @@ class PerformActionTool extends InspectorTool {
     final String? scrollFinderValue =
         request.arguments!['scroll_finder_value'] as String?;
 
-    // Build the args map for ext.slipstream.interact.
+    // Build the args map for ext.slipstream.perform_action.
     // MCP uses snake_case; the service extension uses camelCase.
     final Map<String, dynamic> args = {
       'action': action,
@@ -137,7 +137,7 @@ class PerformActionTool extends InspectorTool {
 
     try {
       final response = await session.serviceExtensions!.callSlipstreamExtension(
-        'ext.slipstream.interact',
+        'ext.slipstream.perform_action',
         args: args,
       );
       final bool ok = response['ok'] as bool? ?? false;
