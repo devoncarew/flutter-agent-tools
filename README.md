@@ -74,7 +74,7 @@ expressions, and observe runtime errors with widget IDs.
 | `get_route` | Returns the current navigator route stack with screen widget names and source locations. |
 | `get_semantics` | Returns a flat list of visible semantics nodes from the running Flutter app. |
 | `perform_semantic_action` | Dispatches a semantics action on a widget by its semantics node ID or label. |
-| `interact` | Performs a UI action on a widget located by an advanced finder. |
+| `perform_action` | Performs a UI action on a widget located by an advanced finder. |
 | `navigate` | Navigates the app to a route path. |
 | `close_app` | Stops a running Flutter app and releases its session. |
 <!-- prettier-ignore-end -->

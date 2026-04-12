@@ -11,7 +11,7 @@ import 'tools/evaluate_tool.dart';
 import 'tools/get_route_tool.dart';
 import 'tools/get_semantics_tool.dart';
 import 'tools/inspect_layout_tool.dart';
-import 'tools/interact_tool.dart';
+import 'tools/perform_action_tool.dart';
 import 'tools/navigate_tool.dart';
 import 'tools/perform_semantic_action_tool.dart';
 import 'tools/reload_tool.dart';
@@ -60,7 +60,7 @@ Debugging layout issues:
 Orientation:
 - get_route shows the current navigator stack with screen widget names and source locations. Use this to confirm which screen is active before inspecting or editing.
 - get_semantics lists visible, interactive nodes with their IDs. Pass node IDs directly to 'perform_semantic_action'.
-- If the app has slipstream_agent installed, use 'interact' instead of 'perform_semantic_action' — it supports byKey/byType/byText finders and does not require semantics annotations.
+- If the app has slipstream_agent installed, use 'perform_action' instead of 'perform_semantic_action' — it supports byKey/byType/byText finders and does not require semantics annotations.
 
 Flutter.Error events are forwarded automatically as MCP log warnings — no polling needed. They include widget IDs for use with inspect_layout.''',
       ) {
@@ -100,7 +100,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     register(GetRouteTool());
     register(GetSemanticsTool());
     register(PerformSemanticActionTool());
-    register(InteractTool());
+    register(PerformActionTool());
     register(NavigateTool());
     register(CloseAppTool());
   }

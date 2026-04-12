@@ -3,7 +3,7 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../tool_context.dart';
 
-/// Implements the `interact` MCP tool.
+/// Implements the `perform_action` MCP tool.
 ///
 /// Performs UI actions (tap, set_text, scroll, scroll_until_visible) on a
 /// widget located by an advanced finder (byKey, byType, byText,
@@ -12,10 +12,10 @@ import '../tool_context.dart';
 /// When the companion is not installed, returns an actionable error explaining
 /// how to add it. Use `perform_semantic_action` for semantics-based interaction
 /// without the companion.
-class InteractTool extends InspectorTool {
+class PerformActionTool extends InspectorTool {
   @override
   final Tool definition = Tool(
-    name: 'interact',
+    name: 'perform_action',
     description:
         'Performs a UI action on a widget located by an advanced finder. '
         'Requires the slipstream_agent companion package '
@@ -98,7 +98,7 @@ class InteractTool extends InspectorTool {
         content: [
           TextContent(
             text:
-                'interact: the slipstream_agent companion package is not '
+                'perform_action: the slipstream_agent companion package is not '
                 'installed in this app.\n\n'
                 'Add it as a dev dependency:\n\n'
                 '  dev_dependencies:\n'
@@ -142,7 +142,8 @@ class InteractTool extends InspectorTool {
       );
       final bool ok = response['ok'] as bool? ?? false;
       if (!ok) {
-        final String error = response['error'] as String? ?? 'interact failed';
+        final String error =
+            response['error'] as String? ?? 'perform_action failed';
         return CallToolResult(
           isError: true,
           content: [TextContent(text: error)],
