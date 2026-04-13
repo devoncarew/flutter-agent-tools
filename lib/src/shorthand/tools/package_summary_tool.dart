@@ -43,10 +43,7 @@ class PackageSummaryTool extends PackagesTool {
         request.arguments?['project_directory'] as String;
     final String packageName = request.arguments?['package'] as String;
 
-    final packageDir = context.findPackageInPubCache(
-      projectDirectory,
-      packageName,
-    );
+    final packageDir = context.resolvePackage(projectDirectory, packageName);
 
     final version = readPackageVersion(packageDir) ?? 'unknown';
 

@@ -10,9 +10,9 @@ import 'package:test/test.dart';
 final String projectDir = Directory.current.absolute.path;
 
 PackageResolver resolverFor(String packageName) {
-  final version = resolveVersionFromLockfile(packageName, projectDir);
-  final packageDir = locateInPubCache(packageName, version);
-  if (packageDir == null) throw StateError('$packageName not in pub cache');
+  final packageDir = resolvePackageFromConfig(projectDir, packageName);
+  if (packageDir == null)
+    throw StateError('$packageName not in package config');
   final packageConfigFile = p.join(
     projectDir,
     '.dart_tool',
