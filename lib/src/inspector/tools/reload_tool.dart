@@ -18,16 +18,13 @@ class ReloadTool extends InspectorTool {
         '(full_restart: true) when state needs to be fully reset.',
     inputSchema: Schema.object(
       properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by run_app.',
-        ),
         'full_restart': Schema.bool(
           description:
               'If true, performs a hot restart instead of a hot reload. '
               'Defaults to false.',
         ),
       },
-      required: ['session_id'],
+      required: [],
     ),
   );
 
@@ -36,11 +33,8 @@ class ReloadTool extends InspectorTool {
     CallToolRequest request,
     ToolContext context,
   ) async {
-    final String? sessionId = request.arguments!['session_id'] as String?;
-    final session = context.session(sessionId);
-    if (sessionId == null || session == null) {
-      return context.unknownSession(sessionId);
-    }
+    final session = context.activeSession;
+    if (session == null) return context.noActiveSession();
 
     final bool fullRestart =
         coerceBool(request.arguments!['full_restart']) ?? false;

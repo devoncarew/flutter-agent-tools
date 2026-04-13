@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' show Random;
 
 import 'package:dart_mcp/server.dart';
 
@@ -23,18 +22,13 @@ import 'tools/take_screenshot_tool.dart';
 
 /// The MCP server for the runtime inspector feature.
 ///
-/// Owns the session map and event-to-log translation. Tool implementations
+/// Owns the session and event-to-log translation. Tool implementations
 /// live in lib/src/tools/ and are decoupled from this class via [ToolContext].
 base class InspectorMCPServer extends MCPServer
     with ToolsSupport, LoggingSupport {
   static const String _loggerId = 'flutter_agent_tools';
 
-  final Map<String, AppSession> _sessions = {};
-
-  final IdGenerator _idGenerator = IdGenerator();
-
   late final ToolContext _context = ToolContext(
-    sessions: _sessions,
     log: (level, message) => log(level, message, logger: _loggerId),
   );
 
@@ -47,7 +41,7 @@ base class InspectorMCPServer extends MCPServer
         instructions: '''
 Tools for launching, inspecting, and interacting with a running Flutter app.
 
-Session lifecycle: call run_app first to get a session_id; pass it to all other tools. Call close_app when done.
+Session lifecycle: call run_app first to launch the app; call close_app when done. Only one app session can be active at a time — calling run_app while an app is already running will stop the previous app first.
 
 Recommended workflow for UI changes:
 1. Edit Dart source files.
@@ -91,8 +85,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
 
     register(
       RunAppTool(
-        sessionIdGenerator: _idGenerator.createNextId,
-        registerSession: (id, session) => _sessions[id] = session,
+        registerSession: _registerSession,
         eventListener: _handleEvent,
       ),
     );
@@ -111,21 +104,33 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     register(CloseAppTool());
   }
 
+  /// Registers [session] as the active session, stopping any existing one.
+  Future<void> _registerSession(AppSession session) async {
+    final existing = _context.removeSession();
+    if (existing != null) {
+      await existing.stop().timeout(
+        Duration(milliseconds: 250),
+        onTimeout: () => null,
+      );
+    }
+    _context.setSession(session);
+  }
+
   @override
   Future<void> shutdown() async {
-    await Future.wait(_sessions.values.map((session) => session.stop()));
-    _sessions.clear();
+    final session = _context.removeSession();
+    if (session != null) await session.stop();
 
     await super.shutdown();
   }
 
-  void _handleEvent(String sessionId, DaemonEvent event) {
+  void _handleEvent(DaemonEvent event) {
     if (event.event == 'app.stop') {
-      _sessions.remove(sessionId);
+      _context.removeSession();
 
       log(
         LoggingLevel.info,
-        '[$sessionId] App stopped; session released.',
+        'App stopped; session released.',
         logger: _loggerId,
       );
       return;
@@ -200,29 +205,5 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     }
 
     return (LoggingLevel.info, message);
-  }
-}
-
-class IdGenerator {
-  static const List<String> _adjectives = [
-    'bright', 'calm', 'cozy', 'crisp', 'deft', 'fair', 'fond', 'free', 'glad',
-    'keen', 'kind', 'lush', 'mild', 'mint', 'neat', 'nimble', 'pure', 'rosy',
-    'sage', 'snug', 'soft', 'spry', 'sunny', 'swift', 'warm', 'wise', 'witty',
-    'zippy', //
-  ];
-
-  static const List<String> _animals = [
-    'bee', 'cat', 'colt', 'deer', 'dove', 'duck', 'fawn', 'finch', 'fox',
-    'frog', 'gull', 'hare', 'hawk', 'jay', 'koi', 'lamb', 'lark', 'lynx',
-    'newt', 'owl', 'pony', 'quail', 'robin', 'seal', 'swan', 'teal', 'wren', //
-  ];
-
-  final Random _random = Random();
-
-  String createNextId() {
-    final adjective = _adjectives[_random.nextInt(_adjectives.length)];
-    final animal = _animals[_random.nextInt(_animals.length)];
-    final number = _random.nextInt(100).toString().padLeft(2, '0');
-    return '${adjective}_${animal}_$number';
   }
 }

@@ -20,16 +20,13 @@ class TakeScreenshotTool extends InspectorTool {
         'not appear in the screenshot even if visible on screen.',
     inputSchema: Schema.object(
       properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by run_app.',
-        ),
         'pixel_ratio': Schema.num(
           description:
               'Device pixel ratio for the screenshot. Higher values produce '
               'sharper images. Defaults to 1.0.',
         ),
       },
-      required: ['session_id'],
+      required: [],
     ),
   );
 
@@ -38,13 +35,8 @@ class TakeScreenshotTool extends InspectorTool {
     CallToolRequest request,
     ToolContext context,
   ) async {
-    context.validateParams(request, definition.inputSchema.required!);
-
-    final String sessionId = request.arguments!['session_id'] as String;
-    final session = context.session(sessionId);
-    if (session == null) {
-      return context.unknownSession(sessionId);
-    }
+    final session = context.activeSession;
+    if (session == null) return context.noActiveSession();
 
     final num? pixelRatioArg = request.arguments!['pixel_ratio'] as num?;
     final double? pixelRatio = pixelRatioArg?.toDouble();

@@ -27,16 +27,13 @@ class NavigateTool extends InspectorTool {
         'Example path: "/podcast/123".',
     inputSchema: Schema.object(
       properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by run_app.',
-        ),
         'path': Schema.string(
           description:
               'The route path to navigate to. Must start with "/". '
               'Example: "/podcast/123".',
         ),
       },
-      required: ['session_id', 'path'],
+      required: ['path'],
     ),
   );
 
@@ -47,11 +44,8 @@ class NavigateTool extends InspectorTool {
   ) async {
     context.validateParams(request, definition.inputSchema.required!);
 
-    final String sessionId = request.arguments!['session_id'] as String;
-    final session = context.session(sessionId);
-    if (session == null) {
-      return context.unknownSession(sessionId);
-    }
+    final session = context.activeSession;
+    if (session == null) return context.noActiveSession();
 
     if (!session.hasCompanion) {
       return CallToolResult(

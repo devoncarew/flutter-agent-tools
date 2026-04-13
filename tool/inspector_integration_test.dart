@@ -103,14 +103,12 @@ void main(List<String> args) {
     });
   });
 
-  // todo: get_semantics
+  // todo: perform_tap
 
-  // todo: tap
-
-  group('set_text', () {
+  group('perform_set_text', () {
     test('returns error when required argument is missing', () async {
       final result = await env.serverConnection.callTool(
-        CallToolRequest(name: 'set_text', arguments: {}),
+        CallToolRequest(name: 'perform_set_text', arguments: {}),
       );
 
       expect(result.isError, isTrue);
@@ -119,6 +117,8 @@ void main(List<String> args) {
       expect(text, contains('text'));
     });
   });
+
+  // todo: get_semantics
 
   group('close_app', () {
     test('returns error when required argument is missing', () async {

@@ -28,9 +28,6 @@ class PerformScrollTool extends InspectorTool {
         'Requires the slipstream_agent companion package.',
     inputSchema: Schema.object(
       properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by run_app.',
-        ),
         'finder': Schema.string(description: _finderDescription),
         'finder_value': Schema.string(description: _finderValueDescription),
         'direction': Schema.string(
@@ -40,7 +37,7 @@ class PerformScrollTool extends InspectorTool {
           description: 'Number of logical pixels to scroll.',
         ),
       },
-      required: ['session_id', 'finder', 'finder_value', 'direction', 'pixels'],
+      required: ['finder', 'finder_value', 'direction', 'pixels'],
     ),
   );
 
@@ -51,9 +48,8 @@ class PerformScrollTool extends InspectorTool {
   ) async {
     context.validateParams(request, definition.inputSchema.required!);
 
-    final String sessionId = request.arguments!['session_id'] as String;
-    final session = context.session(sessionId);
-    if (session == null) return context.unknownSession(sessionId);
+    final session = context.activeSession;
+    if (session == null) return context.noActiveSession();
     if (!session.hasCompanion) {
       return context.companionNotInstalled('perform_scroll');
     }

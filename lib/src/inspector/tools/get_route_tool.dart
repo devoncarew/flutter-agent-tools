@@ -19,14 +19,7 @@ class GetRouteTool extends InspectorTool {
         'before inspecting or editing, or to answer "what screen is the app '
         'on?" questions. Enriches the stack with the current router path when '
         'the slipstream_agent companion is installed with a router adapter.',
-    inputSchema: Schema.object(
-      properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by run_app.',
-        ),
-      },
-      required: ['session_id'],
-    ),
+    inputSchema: Schema.object(properties: {}, required: []),
   );
 
   @override
@@ -34,11 +27,8 @@ class GetRouteTool extends InspectorTool {
     CallToolRequest request,
     ToolContext context,
   ) async {
-    final String? sessionId = request.arguments!['session_id'] as String?;
-    final session = context.session(sessionId);
-    if (sessionId == null || session == null) {
-      return context.unknownSession(sessionId);
-    }
+    final session = context.activeSession;
+    if (session == null) return context.noActiveSession();
 
     try {
       final extensions = session.serviceExtensions!;

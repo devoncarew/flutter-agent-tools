@@ -79,7 +79,7 @@ expressions, and observe runtime errors with widget IDs.
 | `perform_scroll_until_visible` | Scrolls a Scrollable widget until a target widget is visible in the viewport. |
 | `get_semantics` | Returns a flat list of visible semantics nodes from the running Flutter app. |
 | `perform_semantic_action` | Dispatches a semantics action on a widget by its semantics node ID or label. |
-| `close_app` | Stops a running Flutter app and releases its session. |
+| `close_app` | Stops the running Flutter app and releases its session. |
 <!-- prettier-ignore-end -->
 <!-- inspector -->
 
