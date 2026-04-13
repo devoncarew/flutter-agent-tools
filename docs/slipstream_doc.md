@@ -34,8 +34,9 @@ The returned package summary contains version, entry-point import, README
 excerpt, public library list, and exported name groups for the main library.
 
 - `project_directory`: (required) Absolute path to the Dart/Flutter project
-  directory (the folder containing pubspec.yaml). Used to resolve the package
-  version from pubspec.lock and to locate the package_config.json for analysis.
+  directory (the folder containing pubspec.yaml). Used to locate
+  .dart_tool/package_config.json for package resolution and analysis. Run
+  `dart pub get` first if the config is missing.
 - `package`: (required) The package name (e.g. "http", "provider").
 
 ### `packages:library_stub`
@@ -48,8 +49,9 @@ Returns the full public API for one library as a Dart stub (signatures only, no
 bodies).
 
 - `project_directory`: (required) Absolute path to the Dart/Flutter project
-  directory (the folder containing pubspec.yaml). Used to resolve the package
-  version from pubspec.lock and to locate the package_config.json for analysis.
+  directory (the folder containing pubspec.yaml). Used to locate
+  .dart_tool/package_config.json for package resolution and analysis. Run
+  `dart pub get` first if the config is missing.
 - `package`: (required) The package name (e.g. "http", "provider").
 - `library_uri`: (required) The library URI to target, e.g.
   "package:http/http.dart".
@@ -64,8 +66,9 @@ Returns the public API for a single named class, mixin, or extension as a Dart
 stub (signatures only, no bodies).
 
 - `project_directory`: (required) Absolute path to the Dart/Flutter project
-  directory (the folder containing pubspec.yaml). Used to resolve the package
-  version from pubspec.lock and to locate the package_config.json for analysis.
+  directory (the folder containing pubspec.yaml). Used to locate
+  .dart_tool/package_config.json for package resolution and analysis. Run
+  `dart pub get` first if the config is missing.
 - `package`: (required) The package name (e.g. "http", "provider").
 - `library_uri`: (required) The library URI to target, e.g.
   "package:http/http.dart".

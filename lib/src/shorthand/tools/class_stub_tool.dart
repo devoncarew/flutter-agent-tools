@@ -42,10 +42,7 @@ class ClassStubTool extends PackagesTool {
     final String libraryUri = request.arguments?['library_uri'] as String;
     final String className = request.arguments?['class'] as String;
 
-    final packageDir = context.findPackageInPubCache(
-      projectDirectory,
-      packageName,
-    );
+    final packageDir = context.resolvePackage(projectDirectory, packageName);
 
     return _handleClassStub(
       context,

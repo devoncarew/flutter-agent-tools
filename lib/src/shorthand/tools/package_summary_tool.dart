@@ -43,12 +43,9 @@ class PackageSummaryTool extends PackagesTool {
         request.arguments?['project_directory'] as String;
     final String packageName = request.arguments?['package'] as String;
 
-    final packageDir = context.findPackageInPubCache(
-      projectDirectory,
-      packageName,
-    );
+    final packageDir = context.resolvePackage(projectDirectory, packageName);
 
-    final version = readPackageVersion(packageDir) ?? 'unknown';
+    final version = readPackageVersion(packageDir);
 
     return _handlePackageSummary(
       context,
@@ -63,13 +60,14 @@ class PackageSummaryTool extends PackagesTool {
     ToolContext context, {
     required String packageName,
     required Directory packageDir,
-    required String resolvedVersion,
+    required String? resolvedVersion,
     required String projectDirectory,
   }) async {
     final buf = StringBuffer();
 
     // Header.
-    buf.writeln('Package: $packageName $resolvedVersion');
+    final versionDesc = resolvedVersion == null ? '' : ' ($resolvedVersion)';
+    buf.writeln('Package: $packageName$versionDesc');
     buf.writeln('Source: ${packageDir.path}');
 
     // Entry-point import — only if the conventional lib/name.dart exists.
