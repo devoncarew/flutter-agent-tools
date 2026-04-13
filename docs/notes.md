@@ -11,7 +11,7 @@
 ## Feedback-01
 
 - [x] split the api mcp server into three tool commands
-- [ ] consider making the session_id optional; if one session just use it
+- [x] consider making the session_id optional; if one session just use it
 - [ ] when starting a session, send back a short how-to guide?
 - [x] investigate why genertics in expr eval are getting HTML-entity-encoded
       (`&lt;Type&gt;`)
@@ -44,6 +44,6 @@
 
 - [ ] explore what a guide to agents adding 'assists' to the code would look
       like (semantic nodes; something to aide navigation?)
-- [ ] explore what an in-line package could provide; would it be a big enough
+- [x] explore what an in-line package could provide; would it be a big enough
       win to recommend it? better semantic tree retrieval, better routing
       support, ...; package:slipstream_agent / package:slipstream_support

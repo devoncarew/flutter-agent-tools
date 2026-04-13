@@ -37,6 +37,20 @@ void main() async {
   docFile.writeAsStringSync(buf.toString());
 
   print('README.md, ${docFile.path} updated.');
+
+  // After generation, as a best effort, run the prettier npm tool.
+  // 'npx prettier --write docs/slipstream_doc.md README.md'
+  final result = Process.runSync('npx', [
+    'prettier',
+    '--write',
+    'docs/slipstream_doc.md',
+    'README.md',
+  ]);
+  print('npx prettier: ${result.exitCode}');
+  if (result.exitCode != 0) {
+    print(result.stdout);
+    print(result.stderr);
+  }
 }
 
 void writeServerDocs(
