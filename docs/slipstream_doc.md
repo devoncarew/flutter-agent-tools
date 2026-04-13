@@ -146,6 +146,53 @@ Returns the current navigator route stack with screen widget names and source lo
 
 - `session_id`:  (required) The session ID returned by run_app.
 
+### `inspector:navigate`
+
+```
+navigate(session_id, path)
+```
+
+Navigates the app to a route path. Requires the slipstream_agent companion package with a router adapter registered via SlipstreamAgent.init(router: GoRouterAdapter(appRouter)).
+
+Supports any routing library for which an adapter exists: GoRouter, AutoRouter, Beamer, or a custom adapter. Use get_route first to see the current path and understand the app's route structure.
+
+Example path: "/podcast/123".
+
+- `session_id`:  (required) The session ID returned by run_app.
+- `path`:  (required) The route path to navigate to. Must start with "/". Example: "/podcast/123".
+
+### `inspector:perform_action`
+
+```
+perform_action(session_id, action, finder, finder_value, [text, direction, pixels, scroll_finder, scroll_finder_value])
+```
+
+Performs a UI action on a widget located by an advanced finder. Requires the slipstream_agent companion package (`dev_dependency: slipstream_agent`).
+
+Actions:
+  - tap — tap a widget at its center
+  - set_text — replace a text field's content (provide "text")
+  - scroll — scroll a scrollable widget (provide "direction" and "pixels")
+  - scroll_until_visible — scroll until a widget is visible (provide "scroll_finder" and "scroll_finder_value")
+
+Finders:
+  - byKey — match a ValueKey string (e.g. "login_button")
+  - byType — match the widget's type name (e.g. "ElevatedButton")
+  - byText — match a Text widget's content exactly
+  - bySemanticsLabel — match a Semantics widget's label
+
+If the companion is not installed, use `perform_semantic_action` instead (semantics-based, works without the companion).
+
+- `session_id`:  (required) The session ID returned by run_app.
+- `action`:  (required) The action to perform: "tap" or "set_text".
+- `finder`:  (required) How to find the widget: "byKey", "byType", "byText", or "bySemanticsLabel".
+- `finder_value`:  (required) The value to match against the chosen finder.
+- `text`: Required for the set_text action. The text to set — replaces the field's current content entirely.
+- `direction`: Required for scroll. One of: "up", "down", "left", "right".
+- `pixels`: Required for scroll. Number of logical pixels to scroll.
+- `scroll_finder`: Required for scroll_until_visible. Finder type for the Scrollable widget.
+- `scroll_finder_value`: Required for scroll_until_visible. Finder value for the Scrollable widget.
+
 ### `inspector:get_semantics`
 
 ```
@@ -181,53 +228,6 @@ For apps with the slipstream_agent companion installed, prefer the `interact` to
 - `node_id`: The semantics node ID. Shown as "id=N" in get_semantics output. Prefer this over "label" when you already know the ID.
 - `label`: Dispatch to the first visible node whose label contains this text (case-insensitive substring match). Ignored if "node_id" is provided.
 - `value`: Required for the setText action. Replaces the field's current content entirely. Ignored for other actions.
-
-### `inspector:perform_action`
-
-```
-perform_action(session_id, action, finder, finder_value, [text, direction, pixels, scroll_finder, scroll_finder_value])
-```
-
-Performs a UI action on a widget located by an advanced finder. Requires the slipstream_agent companion package (`dev_dependency: slipstream_agent`).
-
-Actions:
-  - tap — tap a widget at its center
-  - set_text — replace a text field's content (provide "text")
-  - scroll — scroll a scrollable widget (provide "direction" and "pixels")
-  - scroll_until_visible — scroll until a widget is visible (provide "scroll_finder" and "scroll_finder_value")
-
-Finders:
-  - byKey — match a ValueKey string (e.g. "login_button")
-  - byType — match the widget's type name (e.g. "ElevatedButton")
-  - byText — match a Text widget's content exactly
-  - bySemanticsLabel — match a Semantics widget's label
-
-If the companion is not installed, use `perform_semantic_action` instead (semantics-based, works without the companion).
-
-- `session_id`:  (required) The session ID returned by run_app.
-- `action`:  (required) The action to perform: "tap" or "set_text".
-- `finder`:  (required) How to find the widget: "byKey", "byType", "byText", or "bySemanticsLabel".
-- `finder_value`:  (required) The value to match against the chosen finder.
-- `text`: Required for the set_text action. The text to set — replaces the field's current content entirely.
-- `direction`: Required for scroll. One of: "up", "down", "left", "right".
-- `pixels`: Required for scroll. Number of logical pixels to scroll.
-- `scroll_finder`: Required for scroll_until_visible. Finder type for the Scrollable widget.
-- `scroll_finder_value`: Required for scroll_until_visible. Finder value for the Scrollable widget.
-
-### `inspector:navigate`
-
-```
-navigate(session_id, path)
-```
-
-Navigates the app to a route path. Requires the slipstream_agent companion package with a router adapter registered via SlipstreamAgent.init(router: GoRouterAdapter(appRouter)).
-
-Supports any routing library for which an adapter exists: GoRouter, AutoRouter, Beamer, or a custom adapter. Use get_route first to see the current path and understand the app's route structure.
-
-Example path: "/podcast/123".
-
-- `session_id`:  (required) The session ID returned by run_app.
-- `path`:  (required) The route path to navigate to. Must start with "/". Example: "/podcast/123".
 
 ### `inspector:close_app`
 

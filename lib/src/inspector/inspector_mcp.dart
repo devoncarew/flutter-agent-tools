@@ -98,10 +98,10 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     register(InspectLayoutTool());
     register(EvaluateTool());
     register(GetRouteTool());
+    register(NavigateTool());
+    register(PerformActionTool());
     register(GetSemanticsTool());
     register(PerformSemanticActionTool());
-    register(PerformActionTool());
-    register(NavigateTool());
     register(CloseAppTool());
   }
 
