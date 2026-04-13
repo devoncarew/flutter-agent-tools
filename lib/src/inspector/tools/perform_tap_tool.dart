@@ -48,8 +48,9 @@ class PerformTapTool extends InspectorTool {
     final String sessionId = request.arguments!['session_id'] as String;
     final session = context.session(sessionId);
     if (session == null) return context.unknownSession(sessionId);
-    if (!session.hasCompanion)
+    if (!session.hasCompanion) {
       return context.companionNotInstalled('perform_tap');
+    }
 
     final String finder = request.arguments!['finder'] as String;
     final String finderValue = request.arguments!['finder_value'] as String;

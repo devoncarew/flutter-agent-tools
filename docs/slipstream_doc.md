@@ -211,7 +211,8 @@ get_route(session_id)
 Returns the current navigator route stack with screen widget names and source
 locations. Use this to confirm which screen is active before inspecting or
 editing, or to answer "what screen is the app on?" questions. Enriches the stack
-with the current go_router path when the app uses go_router.
+with the current router path when the slipstream_agent companion is installed
+with a router adapter.
 
 - `session_id`: (required) The session ID returned by run_app.
 

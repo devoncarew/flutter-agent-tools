@@ -7,7 +7,8 @@ import '../tool_context.dart';
 /// Implements the `get_route` MCP tool.
 ///
 /// Returns the current navigator stack with screen widget names and source
-/// locations.
+/// locations. If the slipstream_agent companion is installed and a router
+/// adapter is registered, enriches the output with the current route path.
 class GetRouteTool extends InspectorTool {
   @override
   final Tool definition = Tool(
@@ -16,8 +17,8 @@ class GetRouteTool extends InspectorTool {
         'Returns the current navigator route stack with screen widget names '
         'and source locations. Use this to confirm which screen is active '
         'before inspecting or editing, or to answer "what screen is the app '
-        'on?" questions. Enriches the stack with the current go_router path '
-        'when the app uses go_router.',
+        'on?" questions. Enriches the stack with the current router path when '
+        'the slipstream_agent companion is installed with a router adapter.',
     inputSchema: Schema.object(
       properties: {
         'session_id': Schema.string(
@@ -46,18 +47,19 @@ class GetRouteTool extends InspectorTool {
         fullDetails: true,
       );
 
-      // Best-effort: resolve the current go_router path via VM evaluate.
+      // If the companion is installed, ask it for the current route path.
       String? currentPath;
-      try {
-        final vmId = await extensions.resolveGoRouterVmId();
-        if (vmId != null) {
-          currentPath = await extensions.evaluateOnObject(
-            vmId,
-            'widget.goRouter.state.uri.toString()',
+      if (session.hasCompanion) {
+        try {
+          final response = await extensions.callSlipstreamExtension(
+            'ext.slipstream.get_route',
           );
+          if (response['ok'] == true) {
+            currentPath = response['path'] as String?;
+          }
+        } catch (_) {
+          // Path enrichment is best-effort — proceed without it.
         }
-      } catch (_) {
-        // go_router enrichment is best-effort — proceed without path info.
       }
 
       return CallToolResult(
