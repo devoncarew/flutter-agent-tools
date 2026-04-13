@@ -19,8 +19,9 @@ class PerformSetTextTool extends InspectorTool {
     name: 'perform_set_text',
     description:
         'Sets the text content of a text field located by a finder. Replaces '
-        'the field\'s current content entirely via the EditableText controller '
-        '— no keyboard simulation needed.\n\n'
+        'the field\'s current content and fires the field\'s onChanged '
+        'callback. Note: TextInputFormatters are not applied since text is set '
+        'directly without going through the input pipeline.\n\n'
         'Finders: byKey (ValueKey string), byType (widget type name, e.g. '
         '"TextField"), byText (Text widget content), bySemanticsLabel '
         '(Semantics widget label).\n\n'
@@ -30,9 +31,6 @@ class PerformSetTextTool extends InspectorTool {
         'perform_semantic_action with action "setText" instead.',
     inputSchema: Schema.object(
       properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by run_app.',
-        ),
         'finder': Schema.string(description: _finderDescription),
         'finder_value': Schema.string(description: _finderValueDescription),
         'text': Schema.string(
@@ -40,7 +38,7 @@ class PerformSetTextTool extends InspectorTool {
               'The text to set. Replaces the field\'s current content.',
         ),
       },
-      required: ['session_id', 'finder', 'finder_value', 'text'],
+      required: ['finder', 'finder_value', 'text'],
     ),
   );
 
@@ -51,9 +49,8 @@ class PerformSetTextTool extends InspectorTool {
   ) async {
     context.validateParams(request, definition.inputSchema.required!);
 
-    final String sessionId = request.arguments!['session_id'] as String;
-    final session = context.session(sessionId);
-    if (session == null) return context.unknownSession(sessionId);
+    final session = context.activeSession;
+    if (session == null) return context.noActiveSession();
     if (!session.hasCompanion) {
       return context.companionNotInstalled('perform_set_text');
     }

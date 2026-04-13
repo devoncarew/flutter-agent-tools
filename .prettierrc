@@ -1,4 +1,12 @@
 {
   "proseWrap": "always",
-  "printWidth": 80
+  "printWidth": 80,
+  "overrides": [
+    {
+      "files": "*.yaml",
+      "options": {
+        "singleQuote": true
+      }
+    }
+  ]
 }

@@ -18,17 +18,10 @@ class GetSemanticsTool extends InspectorTool {
         'Flutter app. Each node shows its role, ID, state flags, supported '
         'actions, label, and size. '
         'Use this to find what is on screen and what can be interacted with. '
-        "Node IDs from this output can be passed directly to 'tap' "
-        "and 'set_text'. "
+        "Node IDs from this output can be passed directly to "
+        "'perform_semantic_action'. "
         'Node IDs are stable until the next hot reload or hot restart.',
-    inputSchema: Schema.object(
-      properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by run_app.',
-        ),
-      },
-      required: ['session_id'],
-    ),
+    inputSchema: Schema.object(properties: {}, required: []),
   );
 
   @override
@@ -36,11 +29,8 @@ class GetSemanticsTool extends InspectorTool {
     CallToolRequest request,
     ToolContext context,
   ) async {
-    final String? sessionId = request.arguments!['session_id'] as String?;
-    final session = context.session(sessionId);
-    if (sessionId == null || session == null) {
-      return context.unknownSession(sessionId);
-    }
+    final session = context.activeSession;
+    if (session == null) return context.noActiveSession();
 
     try {
       final List<SemanticNode> nodes =

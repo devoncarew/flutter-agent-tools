@@ -22,9 +22,6 @@ class InspectLayoutTool extends InspectorTool {
         'node. Increase subtree_depth to see deeper child layout.',
     inputSchema: Schema.object(
       properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by run_app.',
-        ),
         'widget_id': Schema.string(
           description:
               'The widget ID to inspect. Omit to start from the root widget.',
@@ -33,7 +30,7 @@ class InspectLayoutTool extends InspectorTool {
           description: 'How many levels of children to include. Defaults to 1.',
         ),
       },
-      required: ['session_id'],
+      required: [],
     ),
   );
 
@@ -42,11 +39,8 @@ class InspectLayoutTool extends InspectorTool {
     CallToolRequest request,
     ToolContext context,
   ) async {
-    final String? sessionId = request.arguments!['session_id'] as String?;
-    final session = context.session(sessionId);
-    if (sessionId == null || session == null) {
-      return context.unknownSession(sessionId);
-    }
+    final session = context.activeSession;
+    if (session == null) return context.noActiveSession();
 
     final String? widgetId = request.arguments!['widget_id'] as String?;
     final int subtreeDepth =
@@ -58,14 +52,28 @@ class InspectLayoutTool extends InspectorTool {
       if (widgetId != null) {
         resolvedId = widgetId;
       } else {
-        final root = await extensions.getRootWidget();
-        if (root.valueId == null) {
-          return CallToolResult(
-            isError: true,
-            content: [TextContent(text: 'Root widget has no valueId.')],
-          );
+        // Use the summary tree to start from the first user-created widget,
+        // skipping internal Flutter framework wrappers (View, RawView, etc.)
+        // which are 10+ levels above app code and make inspect_layout useless
+        // at default subtree depths.
+        final summaryRoot = await extensions.getRootWidgetTree(
+          isSummaryTree: true,
+        );
+        final appRoot =
+            summaryRoot.children.isNotEmpty ? summaryRoot.children.first : null;
+        if (appRoot?.valueId != null) {
+          resolvedId = appRoot!.valueId!;
+        } else {
+          // Fall back to the raw root widget.
+          final root = await extensions.getRootWidget();
+          if (root.valueId == null) {
+            return CallToolResult(
+              isError: true,
+              content: [TextContent(text: 'Root widget has no valueId.')],
+            );
+          }
+          resolvedId = root.valueId!;
         }
-        resolvedId = root.valueId!;
       }
       final node = await extensions.getDetailsSubtree(
         resolvedId,

@@ -76,8 +76,9 @@ stub (signatures only, no bodies).
 
 Tools for launching, inspecting, and interacting with a running Flutter app.
 
-Session lifecycle: call run_app first to get a session_id; pass it to all other
-tools. Call close_app when done.
+Session lifecycle: call run_app first to launch the app; call close_app when
+done. Only one app session can be active at a time — calling run_app while an
+app is already running will stop the previous app first.
 
 Recommended workflow for UI changes:
 
@@ -117,10 +118,10 @@ polling needed. They include widget IDs for use with inspect_layout.
 run_app(working_directory, [target, device])
 ```
 
-Builds and launches the Flutter app. Returns a session ID required by all other
-tools. Call this first before inspecting, screenshotting, or evaluating.
-Flutter.Error events from the running app are automatically forwarded as MCP log
-warnings — no polling needed.
+Builds and launches the Flutter app. Call this first before inspecting,
+screenshotting, or evaluating. If an app is already running it is stopped and
+replaced. Flutter.Error events from the running app are automatically forwarded
+as MCP log warnings — no polling needed.
 
 - `working_directory`: (required) The Flutter project directory to launch.
 - `target`: The main entry point to launch (e.g. lib/main.dart). Defaults to the
@@ -132,7 +133,7 @@ warnings — no polling needed.
 ### `inspector:reload`
 
 ```
-reload(session_id, [full_restart])
+reload([full_restart])
 ```
 
 Applies source file changes to a running Flutter app. Call this after editing
@@ -140,14 +141,13 @@ Dart files, before taking a screenshot or inspecting layout. Prefer hot reload
 for iterative changes; use hot restart (full_restart: true) when state needs to
 be fully reset.
 
-- `session_id`: (required) The session ID returned by run_app.
 - `full_restart`: If true, performs a hot restart instead of a hot reload.
   Defaults to false.
 
 ### `inspector:take_screenshot`
 
 ```
-take_screenshot(session_id, [pixel_ratio])
+take_screenshot([pixel_ratio])
 ```
 
 Captures a PNG screenshot of the running Flutter app. Use proactively after a
@@ -157,14 +157,13 @@ Flutter view is captured — native system UI such as platform share sheets,
 permission dialogs, or OS-level overlays will not appear in the screenshot even
 if visible on screen.
 
-- `session_id`: (required) The session ID returned by run_app.
 - `pixel_ratio`: Device pixel ratio for the screenshot. Higher values produce
   sharper images. Defaults to 1.0.
 
 ### `inspector:inspect_layout`
 
 ```
-inspect_layout(session_id, [widget_id, subtree_depth])
+inspect_layout([widget_id, subtree_depth])
 ```
 
 Use when debugging layout issues, overflow errors, or unexpected widget sizing.
@@ -173,14 +172,13 @@ widget_id to start from the root. Widget IDs are included in flutter.error log
 events and in the output of prior inspect calls — use them to drill into a
 specific node. Increase subtree_depth to see deeper child layout.
 
-- `session_id`: (required) The session ID returned by run_app.
 - `widget_id`: The widget ID to inspect. Omit to start from the root widget.
 - `subtree_depth`: How many levels of children to include. Defaults to 1.
 
 ### `inspector:evaluate`
 
 ```
-evaluate(session_id, expression, [library_uri])
+evaluate(expression, [library_uri])
 ```
 
 Evaluates a Dart expression on the running app's main isolate and returns the
@@ -192,7 +190,6 @@ library_uri to evaluate in a different library scope — for example,
 "package:flutter/src/widgets/widget_inspector.dart" makes RendererBinding,
 SemanticsNode, CheckedState, and Tristate available.
 
-- `session_id`: (required) The session ID returned by run_app.
 - `expression`: (required) The Dart expression to evaluate. Must produce a value
   with a useful toString(). Example:
   "WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio.toString()"
@@ -205,7 +202,7 @@ SemanticsNode, CheckedState, and Tristate available.
 ### `inspector:get_route`
 
 ```
-get_route(session_id)
+get_route()
 ```
 
 Returns the current navigator route stack with screen widget names and source
@@ -214,12 +211,10 @@ editing, or to answer "what screen is the app on?" questions. Enriches the stack
 with the current router path when the slipstream_agent companion is installed
 with a router adapter.
 
-- `session_id`: (required) The session ID returned by run_app.
-
 ### `inspector:navigate`
 
 ```
-navigate(session_id, path)
+navigate(path)
 ```
 
 Navigates the app to a route path. Requires the slipstream_agent companion
@@ -232,14 +227,13 @@ understand the app's route structure.
 
 Example path: "/podcast/123".
 
-- `session_id`: (required) The session ID returned by run_app.
 - `path`: (required) The route path to navigate to. Must start with "/".
   Example: "/podcast/123".
 
 ### `inspector:perform_tap`
 
 ```
-perform_tap(session_id, finder, finder_value)
+perform_tap(finder, finder_value)
 ```
 
 Taps a widget located by a finder. Synthesizes a pointer down/up event at the
@@ -253,7 +247,6 @@ widget label).
 Requires the slipstream_agent companion package. Without it, use
 perform_semantic_action with action "tap" instead.
 
-- `session_id`: (required) The session ID returned by run_app.
 - `finder`: (required) How to find the widget: "byKey", "byType", "byText", or
   "bySemanticsLabel".
 - `finder_value`: (required) The value to match against the chosen finder.
@@ -261,12 +254,13 @@ perform_semantic_action with action "tap" instead.
 ### `inspector:perform_set_text`
 
 ```
-perform_set_text(session_id, finder, finder_value, text)
+perform_set_text(finder, finder_value, text)
 ```
 
 Sets the text content of a text field located by a finder. Replaces the field's
-current content entirely via the EditableText controller — no keyboard
-simulation needed.
+current content and fires the field's onChanged callback. Note:
+TextInputFormatters are not applied since text is set directly without going
+through the input pipeline.
 
 Finders: byKey (ValueKey string), byType (widget type name, e.g. "TextField"),
 byText (Text widget content), bySemanticsLabel (Semantics widget label).
@@ -277,7 +271,6 @@ accepting text input.
 Requires the slipstream_agent companion package. Without it, use
 perform_semantic_action with action "setText" instead.
 
-- `session_id`: (required) The session ID returned by run_app.
 - `finder`: (required) How to find the widget: "byKey", "byType", "byText", or
   "bySemanticsLabel".
 - `finder_value`: (required) The value to match against the chosen finder.
@@ -286,7 +279,7 @@ perform_semantic_action with action "setText" instead.
 ### `inspector:perform_scroll`
 
 ```
-perform_scroll(session_id, finder, finder_value, direction, pixels)
+perform_scroll(finder, finder_value, direction, pixels)
 ```
 
 Scrolls a Scrollable widget by a fixed number of logical pixels. The finder
@@ -300,7 +293,6 @@ To bring a specific widget into view, use perform_scroll_until_visible instead.
 
 Requires the slipstream_agent companion package.
 
-- `session_id`: (required) The session ID returned by run_app.
 - `finder`: (required) How to find the Scrollable widget: "byKey", "byType",
   "byText", or "bySemanticsLabel".
 - `finder_value`: (required) The value to match against the chosen finder.
@@ -310,7 +302,7 @@ Requires the slipstream_agent companion package.
 ### `inspector:perform_scroll_until_visible`
 
 ```
-perform_scroll_until_visible(session_id, finder, finder_value, scroll_finder, scroll_finder_value)
+perform_scroll_until_visible(finder, finder_value, scroll_finder, scroll_finder_value)
 ```
 
 Scrolls a Scrollable widget until a target widget is visible in the viewport.
@@ -326,7 +318,6 @@ finder_value="item_42").
 
 Requires the slipstream_agent companion package.
 
-- `session_id`: (required) The session ID returned by run_app.
 - `finder`: (required) How to find the target widget: "byKey", "byType",
   "byText", or "bySemanticsLabel".
 - `finder_value`: (required) The value to match against the target finder.
@@ -338,21 +329,19 @@ Requires the slipstream_agent companion package.
 ### `inspector:get_semantics`
 
 ```
-get_semantics(session_id)
+get_semantics()
 ```
 
 Returns a flat list of visible semantics nodes from the running Flutter app.
 Each node shows its role, ID, state flags, supported actions, label, and size.
 Use this to find what is on screen and what can be interacted with. Node IDs
-from this output can be passed directly to 'tap' and 'set_text'. Node IDs are
-stable until the next hot reload or hot restart.
-
-- `session_id`: (required) The session ID returned by run_app.
+from this output can be passed directly to 'perform_semantic_action'. Node IDs
+are stable until the next hot reload or hot restart.
 
 ### `inspector:perform_semantic_action`
 
 ```
-perform_semantic_action(session_id, action, [node_id, label, value])
+perform_semantic_action(action, [node_id, label, value])
 ```
 
 Dispatches a semantics action on a widget by its semantics node ID or label.
@@ -372,11 +361,10 @@ One of "node_id" or "label" must be provided. Prefer "node_id" when available
 (faster — skips tree fetch). Use get_semantics first to see available nodes and
 their IDs.
 
-For apps with the slipstream_agent companion installed, prefer the `interact`
-tool — it supports byKey/byType/byText finders and does not require semantics
-annotations.
+For apps with the slipstream_agent companion installed, prefer perform_tap,
+perform_set_text, perform_scroll, or perform_scroll_until_visible — they support
+byKey/byType/byText finders and do not require semantics annotations.
 
-- `session_id`: (required) The session ID returned by run_app.
 - `action`: (required) The SemanticsAction to dispatch. Common values: tap,
   setText, longPress, focus, scrollUp, scrollDown, increase, decrease.
 - `node_id`: The semantics node ID. Shown as "id=N" in get_semantics output.
@@ -389,9 +377,7 @@ annotations.
 ### `inspector:close_app`
 
 ```
-close_app(session_id)
+close_app()
 ```
 
-Stops a running Flutter app and releases its session.
-
-- `session_id`: (required) The session ID returned by run_app.
+Stops the running Flutter app and releases its session.

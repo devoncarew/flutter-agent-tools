@@ -28,13 +28,10 @@ class PerformTapTool extends InspectorTool {
         'perform_semantic_action with action "tap" instead.',
     inputSchema: Schema.object(
       properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by run_app.',
-        ),
         'finder': Schema.string(description: _finderDescription),
         'finder_value': Schema.string(description: _finderValueDescription),
       },
-      required: ['session_id', 'finder', 'finder_value'],
+      required: ['finder', 'finder_value'],
     ),
   );
 
@@ -45,9 +42,8 @@ class PerformTapTool extends InspectorTool {
   ) async {
     context.validateParams(request, definition.inputSchema.required!);
 
-    final String sessionId = request.arguments!['session_id'] as String;
-    final session = context.session(sessionId);
-    if (session == null) return context.unknownSession(sessionId);
+    final session = context.activeSession;
+    if (session == null) return context.noActiveSession();
     if (!session.hasCompanion) {
       return context.companionNotInstalled('perform_tap');
     }

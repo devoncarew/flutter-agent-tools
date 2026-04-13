@@ -30,25 +30,39 @@ abstract class InspectorTool {
 /// [FlutterAgentServer], keeping them decoupled from the MCP server
 /// infrastructure and easier to test independently.
 class ToolContext {
-  ToolContext({required Map<String, AppSession> sessions, required this.log})
-    : _sessions = sessions;
+  ToolContext({required this.log});
 
-  final Map<String, AppSession> _sessions;
+  AppSession? _session;
 
   /// Logs a message at the given level to the MCP client.
   final void Function(LoggingLevel level, String message) log;
 
-  /// Returns the session for [sessionId], or null if not found.
-  AppSession? session(String? sessionId) => _sessions[sessionId];
+  /// The currently active app session, or null if no app is running.
+  AppSession? get activeSession => _session;
 
-  /// Removes and returns the session for [sessionId], or null if not found.
-  AppSession? removeSession(String? sessionId) => _sessions.remove(sessionId);
+  /// Registers [session] as the active session.
+  void setSession(AppSession session) {
+    _session = session;
+  }
 
-  /// Returns an error result indicating no session was found for [sessionId].
-  CallToolResult unknownSession(String? sessionId) {
+  /// Removes and returns the active session, or null if none is running.
+  AppSession? removeSession() {
+    final s = _session;
+    _session = null;
+    return s;
+  }
+
+  /// Returns an error result indicating no app session is active.
+  CallToolResult noActiveSession() {
     return CallToolResult(
       isError: true,
-      content: [TextContent(text: 'No session found for ID: $sessionId')],
+      content: [
+        TextContent(
+          text:
+              'No app is currently running. Call run_app first to launch the '
+              'Flutter app.',
+        ),
+      ],
     );
   }
 

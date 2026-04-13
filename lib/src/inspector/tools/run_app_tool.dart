@@ -5,32 +5,27 @@ import '../tool_context.dart';
 
 /// Implements the `run_app` MCP tool.
 ///
-/// Builds and launches a Flutter app, returning a session ID for use with
-/// all other inspector tools.
+/// Builds and launches a Flutter app. If an app is already running it is
+/// stopped first — only one session is active at a time.
 class RunAppTool extends InspectorTool {
-  RunAppTool({
-    required this.sessionIdGenerator,
-    required this.registerSession,
-    required this.eventListener,
-  });
+  RunAppTool({required this.registerSession, required this.eventListener});
 
-  /// Called to generate a unique session ID for the new session.
-  final String Function() sessionIdGenerator;
-
-  /// Called to register a new [AppSession] under [sessionId].
-  final void Function(String sessionId, AppSession session) registerSession;
+  /// Called to register the new [AppSession] as the active session. Any
+  /// previously active session is stopped by the caller before this returns.
+  final Future<void> Function(AppSession session) registerSession;
 
   /// Called to forward daemon events from the session to the server.
-  final void Function(String sessionId, DaemonEvent event) eventListener;
+  final void Function(DaemonEvent event) eventListener;
 
   @override
   final Tool definition = Tool(
     name: 'run_app',
     description:
-        'Builds and launches the Flutter app. Returns a session ID required '
-        'by all other tools. Call this first before inspecting, '
-        'screenshotting, or evaluating. Flutter.Error events from the running '
-        'app are automatically forwarded as MCP log warnings — no polling needed.',
+        'Builds and launches the Flutter app. Call this first before '
+        'inspecting, screenshotting, or evaluating. If an app is already '
+        'running it is stopped and replaced. Flutter.Error events from the '
+        'running app are automatically forwarded as MCP log warnings — no '
+        'polling needed.',
     inputSchema: Schema.object(
       properties: {
         'working_directory': Schema.string(
@@ -64,13 +59,13 @@ class RunAppTool extends InspectorTool {
     final String? device = args['device'] as String?;
     final String? target = args['target'] as String?;
 
-    final String sessionId = sessionIdGenerator();
+    final bool hadExisting = context.activeSession != null;
 
     final AppSession session;
     try {
       session = await AppSession.start(
         workingDirectory: workingDirectory,
-        eventListener: (event) => eventListener(sessionId, event),
+        eventListener: eventListener,
         deviceId: device,
         target: target,
         debugLog: (message) => context.log(LoggingLevel.info, message),
@@ -82,14 +77,13 @@ class RunAppTool extends InspectorTool {
       );
     }
 
-    registerSession(sessionId, session);
+    await registerSession(session);
 
     final String deviceInfo =
-        session.deviceId != null ? 'Device ID: ${session.deviceId}, ' : '';
+        session.deviceId != null ? ' Device: ${session.deviceId}.' : '';
+    final String replaced = hadExisting ? ' Previous app was stopped.' : '';
     return CallToolResult(
-      content: [
-        TextContent(text: 'Launched. ${deviceInfo}Session ID: $sessionId'),
-      ],
+      content: [TextContent(text: 'Launched.$deviceInfo$replaced')],
     );
   }
 }

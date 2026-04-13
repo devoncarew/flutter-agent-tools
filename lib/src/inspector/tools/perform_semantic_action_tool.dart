@@ -11,7 +11,7 @@ import '../tool_context.dart';
 /// companion package but requires the target widget to have a semantics node.
 ///
 /// For richer targeting (byKey, byType, byText) without semantics annotations,
-/// install the slipstream_agent companion package and use the `interact` tool.
+/// install the slipstream_agent companion package and use the perform_* tools.
 class PerformSemanticActionTool extends InspectorTool {
   @override
   final Tool definition = Tool(
@@ -30,14 +30,12 @@ class PerformSemanticActionTool extends InspectorTool {
         'One of "node_id" or "label" must be provided. Prefer "node_id" when '
         'available (faster — skips tree fetch). Use get_semantics first to see '
         'available nodes and their IDs.\n\n'
-        'For apps with the slipstream_agent companion installed, prefer the '
-        '`interact` tool — it supports byKey/byType/byText finders and does '
-        'not require semantics annotations.',
+        'For apps with the slipstream_agent companion installed, prefer '
+        'perform_tap, perform_set_text, perform_scroll, or '
+        'perform_scroll_until_visible — they support byKey/byType/byText '
+        'finders and do not require semantics annotations.',
     inputSchema: Schema.object(
       properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by run_app.',
-        ),
         'action': Schema.string(
           description:
               'The SemanticsAction to dispatch. Common values: tap, setText, '
@@ -60,7 +58,7 @@ class PerformSemanticActionTool extends InspectorTool {
               'content entirely. Ignored for other actions.',
         ),
       },
-      required: ['session_id', 'action'],
+      required: ['action'],
     ),
   );
 
@@ -71,11 +69,8 @@ class PerformSemanticActionTool extends InspectorTool {
   ) async {
     context.validateParams(request, definition.inputSchema.required!);
 
-    final String sessionId = request.arguments!['session_id'] as String;
-    final session = context.session(sessionId);
-    if (session == null) {
-      return context.unknownSession(sessionId);
-    }
+    final session = context.activeSession;
+    if (session == null) return context.noActiveSession();
 
     final String action = request.arguments!['action'] as String;
     final int? nodeId = coerceInt(request.arguments!['node_id']);

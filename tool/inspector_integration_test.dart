@@ -27,20 +27,19 @@ void main(List<String> args) {
   }
 
   late TestEnvironment<TestMCPClient, InspectorMCPServer> env;
-  late String sessionId;
 
   setUpAll(() async {
     env = TestEnvironment(TestMCPClient(), InspectorMCPServer.new);
     await env.initializeServer();
 
     final String projectDir = Directory(args[0]).absolute.path;
-    sessionId = await _startApp(env, projectDir);
+    await _startApp(env, projectDir);
   });
 
   tearDownAll(() async {
     // TODO: Sombody else is closing the app for us...
     // await env.serverConnection.callTool(
-    //   CallToolRequest(name: 'close_app', arguments: {'session_id': sessionId}),
+    //   CallToolRequest(name: 'close_app'),
     // );
 
     await env.shutdown();
@@ -63,24 +62,11 @@ void main(List<String> args) {
   group('take_screenshot', () {
     test('returns a valid result', () async {
       final result = await env.serverConnection.callTool(
-        CallToolRequest(
-          name: 'take_screenshot',
-          arguments: {'session_id': sessionId},
-        ),
+        CallToolRequest(name: 'take_screenshot'),
       );
 
       expect(result.isError, isNull);
       expect(result.content.first, isA<ImageContent>());
-    });
-
-    test('returns error when required argument is missing', () async {
-      final result = await env.serverConnection.callTool(
-        CallToolRequest(name: 'take_screenshot', arguments: {}),
-      );
-
-      expect(result.isError, isTrue);
-      final text = (result.content.first as TextContent).text;
-      expect(text, contains('session_id'));
     });
   });
 
@@ -98,45 +84,30 @@ void main(List<String> args) {
 
       expect(result.isError, isTrue);
       final text = (result.content.first as TextContent).text;
-      expect(text, contains('session_id'));
       expect(text, contains('path'));
+    });
+  });
+
+  // todo: perform_tap
+
+  group('perform_set_text', () {
+    test('returns error when required argument is missing', () async {
+      final result = await env.serverConnection.callTool(
+        CallToolRequest(name: 'perform_set_text', arguments: {}),
+      );
+
+      expect(result.isError, isTrue);
+      final text = (result.content.first as TextContent).text;
+      expect(text, contains('text'));
     });
   });
 
   // todo: get_semantics
 
-  // todo: tap
-
-  group('set_text', () {
-    test('returns error when required argument is missing', () async {
-      final result = await env.serverConnection.callTool(
-        CallToolRequest(name: 'set_text', arguments: {}),
-      );
-
-      expect(result.isError, isTrue);
-      final text = (result.content.first as TextContent).text;
-      expect(text, contains('session_id'));
-      expect(text, contains('text'));
-    });
-  });
-
   group('close_app', () {
-    test('returns error when required argument is missing', () async {
-      final result = await env.serverConnection.callTool(
-        CallToolRequest(name: 'close_app', arguments: {}),
-      );
-
-      expect(result.isError, isTrue);
-      final text = (result.content.first as TextContent).text;
-      expect(text, contains('session_id'));
-    });
-
     test('closes the app', () async {
       final result = await env.serverConnection.callTool(
-        CallToolRequest(
-          name: 'close_app',
-          arguments: {'session_id': sessionId},
-        ),
+        CallToolRequest(name: 'close_app'),
       );
 
       expect(result.isError, isNull);
@@ -146,10 +117,11 @@ void main(List<String> args) {
   });
 }
 
-Future<String> _startApp(
+Future<void> _startApp(
   TestEnvironment<TestMCPClient, InspectorMCPServer> env,
   String projectDir,
 ) async {
+  // ignore: unused_local_variable
   final result = await env.serverConnection.callTool(
     CallToolRequest(
       name: 'run_app',
@@ -157,14 +129,8 @@ Future<String> _startApp(
     ),
   );
 
-  const token = 'Session ID:';
-
-  // "'Launched. Device ID: zzz, Session ID: yyy'"
-  final text = (result.content.first as TextContent).text;
-  final sessionId = text.substring(text.indexOf(token) + token.length).trim();
+  // "'Launched. (device ID: zzz)'"
 
   // No real reason for this (prevents flashing open and closed?).
   await Future.delayed(Duration(milliseconds: 500));
-
-  return sessionId;
 }

@@ -13,16 +13,13 @@ void main() {
       await env.initializeServer();
     });
 
-    test('returns an error for an unknown session ID', () async {
+    test('returns a message when no app is running', () async {
       final result = await env.serverConnection.callTool(
-        CallToolRequest(
-          name: 'close_app',
-          arguments: {'session_id': 'unknown'},
-        ),
+        CallToolRequest(name: 'close_app', arguments: {}),
       );
 
-      expect(result.isError, true);
-      expect((result.content.first as TextContent).text, contains('unknown'));
+      expect(result.isError, isNot(true));
+      expect((result.content.first as TextContent).text, 'No app was running.');
     });
   });
 }

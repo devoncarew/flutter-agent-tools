@@ -23,9 +23,6 @@ class EvaluateTool extends InspectorTool {
         'RendererBinding, SemanticsNode, CheckedState, and Tristate available.',
     inputSchema: Schema.object(
       properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by run_app.',
-        ),
         'expression': Schema.string(
           description:
               'The Dart expression to evaluate. Must produce a value with a '
@@ -42,7 +39,7 @@ class EvaluateTool extends InspectorTool {
               'RendererBinding, SemanticsNode, CheckedState, and Tristate.',
         ),
       },
-      required: ['session_id', 'expression'],
+      required: ['expression'],
     ),
   );
 
@@ -51,11 +48,10 @@ class EvaluateTool extends InspectorTool {
     CallToolRequest request,
     ToolContext context,
   ) async {
-    final String? sessionId = request.arguments!['session_id'] as String?;
-    final session = context.session(sessionId);
-    if (sessionId == null || session == null) {
-      return context.unknownSession(sessionId);
-    }
+    context.validateParams(request, definition.inputSchema.required!);
+
+    final session = context.activeSession;
+    if (session == null) return context.noActiveSession();
 
     // Unescape HTML entities that models sometimes introduce when generating
     // expressions containing generic type parameters (e.g. &lt;T&gt; → <T>).
@@ -73,7 +69,8 @@ class EvaluateTool extends InspectorTool {
         expression,
         libraryUri: libraryUri,
       );
-      return CallToolResult(content: [TextContent(text: result)]);
+      final String text = result.isEmpty ? "''" : result;
+      return CallToolResult(content: [TextContent(text: text)]);
     } on RPCError catch (e) {
       return context.rpcError(e);
     }

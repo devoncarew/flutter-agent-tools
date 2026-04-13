@@ -23,9 +23,6 @@ class PerformScrollUntilVisibleTool extends InspectorTool {
         'Requires the slipstream_agent companion package.',
     inputSchema: Schema.object(
       properties: {
-        'session_id': Schema.string(
-          description: 'The session ID returned by run_app.',
-        ),
         'finder': Schema.string(
           description:
               'How to find the target widget: "byKey", "byType", "byText", or '
@@ -44,7 +41,6 @@ class PerformScrollUntilVisibleTool extends InspectorTool {
         ),
       },
       required: [
-        'session_id',
         'finder',
         'finder_value',
         'scroll_finder',
@@ -60,9 +56,8 @@ class PerformScrollUntilVisibleTool extends InspectorTool {
   ) async {
     context.validateParams(request, definition.inputSchema.required!);
 
-    final String sessionId = request.arguments!['session_id'] as String;
-    final session = context.session(sessionId);
-    if (session == null) return context.unknownSession(sessionId);
+    final session = context.activeSession;
+    if (session == null) return context.noActiveSession();
     if (!session.hasCompanion) {
       return context.companionNotInstalled('perform_scroll_until_visible');
     }
