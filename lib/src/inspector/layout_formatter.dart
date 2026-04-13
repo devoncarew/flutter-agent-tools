@@ -27,6 +27,17 @@ String formatLayoutDetails(
     final desc = prop.description;
     if (name.isNotEmpty && desc.isNotEmpty) {
       buf.writeln('  $name: $desc');
+      // For renderObject, also show its layout properties (size, constraints,
+      // parentData) indented beneath it.
+      if (name == 'renderObject') {
+        for (final subProp in prop.properties) {
+          final subName = subProp.name ?? '';
+          final subDesc = subProp.description;
+          if (_childLayoutProps.contains(subName) && subDesc.isNotEmpty) {
+            buf.writeln('    $subName: $subDesc');
+          }
+        }
+      }
     }
   }
 
@@ -67,6 +78,18 @@ void _writeChildren(
       final desc = prop.description;
       if (_childLayoutProps.contains(name) && desc.isNotEmpty) {
         buf.writeln('$pad    $name: $desc');
+      }
+    }
+    // Layout properties (size, constraints, parentData) are nested under the
+    // renderObject sub-property in Flutter's diagnostic tree.
+    final renderObj = child.propertyNamed('renderObject');
+    if (renderObj != null) {
+      for (final subProp in renderObj.properties) {
+        final name = subProp.name ?? '';
+        final desc = subProp.description;
+        if (_childLayoutProps.contains(name) && desc.isNotEmpty) {
+          buf.writeln('$pad    $name: $desc');
+        }
       }
     }
     _writeChildren(
