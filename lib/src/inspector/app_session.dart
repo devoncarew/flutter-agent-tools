@@ -53,6 +53,7 @@ class AppSession {
   String? _vmServiceUri;
   FlutterServiceExtensions? _serviceExtensions;
   StreamSubscription<Event>? _vmServiceSubscription;
+  String? _companionVersion;
 
   // Capped at [_maxErrors] most-recent errors; cleared on hot restart.
   static const int _maxErrors = 50;
@@ -67,6 +68,18 @@ class AppSession {
   /// Framework errors received via the `Flutter.Error` VM service event since
   /// the session started or the last hot restart.
   List<FlutterError> get errors => List.unmodifiable(_errors);
+
+  /// Whether the slipstream_agent companion package is installed in the running
+  /// app.
+  ///
+  /// Determined by calling `ext.slipstream.ping` after the VM service connects.
+  /// False until the first ping completes, then stable until the next hot
+  /// restart (after which it is re-determined automatically).
+  bool get hasCompanion => _companionVersion != null;
+
+  /// The slipstream_agent companion version string (e.g. `"0.1.0"`), or null
+  /// if the companion is not installed.
+  String? get companionVersion => _companionVersion;
 
   /// Access to Flutter VM service extensions for this session.
   ///
@@ -417,6 +430,9 @@ class AppSession {
     // after every full restart.
     _serviceExtensions!.bootstrapSemantics().ignore();
 
+    // Detect companion package. Best-effort — fails open if not installed.
+    _pingCompanion();
+
     await vmService.streamListen(EventStreams.kExtension);
 
     _vmServiceSubscription = vmService.onExtensionEvent.listen((Event event) {
@@ -451,9 +467,18 @@ class AppSession {
       } else if (event.extensionKind == 'Flutter.FirstFrame') {
         // This is the last event we receive after a full restart.
 
-        // Re-bootstrap semantics after hot restart.
+        // Re-bootstrap semantics and re-detect companion after hot restart.
         _serviceExtensions?.bootstrapSemantics().ignore();
+        _pingCompanion();
       }
+    });
+  }
+
+  /// Calls [FlutterServiceExtensions.pingCompanion] and stores the result.
+  /// Best-effort — called on initial connect and after each hot restart.
+  void _pingCompanion() {
+    _serviceExtensions?.pingCompanion().then((version) {
+      _companionVersion = version;
     });
   }
 

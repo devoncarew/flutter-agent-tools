@@ -5,18 +5,25 @@ import '../tool_context.dart';
 
 /// Implements the `navigate` MCP tool.
 ///
-/// Navigates to a go_router path by calling `GoRouter.go()` on the app's
-/// router instance via VM service evaluate.
+/// Navigates the app to a route path via the slipstream_agent routing adapter.
+/// Requires the slipstream_agent companion package with a router registered:
+///
+/// ```dart
+/// SlipstreamAgent.init(router: GoRouterAdapter(appRouter));
+/// ```
+///
+/// When the companion is not installed, returns an actionable error.
 class NavigateTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'navigate',
     description:
-        'Navigates the app to a go_router path. Calls GoRouter.go(path) on '
-        'the running app — no app modification required. '
-        'Only works with apps that use go_router. '
-        'Use get_route first to see the current path and understand '
-        'the app\'s route structure. '
+        'Navigates the app to a route path. Requires the slipstream_agent '
+        'companion package with a router adapter registered via '
+        'SlipstreamAgent.init(router: GoRouterAdapter(appRouter)).\n\n'
+        'Supports any routing library for which an adapter exists: GoRouter, '
+        'AutoRouter, Beamer, or a custom adapter. Use get_route first to see '
+        'the current path and understand the app\'s route structure.\n\n'
         'Example path: "/podcast/123".',
     inputSchema: Schema.object(
       properties: {
@@ -25,7 +32,7 @@ class NavigateTool extends InspectorTool {
         ),
         'path': Schema.string(
           description:
-              'The go_router path to navigate to. Must start with "/". '
+              'The route path to navigate to. Must start with "/". '
               'Example: "/podcast/123".',
         ),
       },
@@ -46,6 +53,26 @@ class NavigateTool extends InspectorTool {
       return context.unknownSession(sessionId);
     }
 
+    if (!session.hasCompanion) {
+      return CallToolResult(
+        isError: true,
+        content: [
+          TextContent(
+            text:
+                'navigate: the slipstream_agent companion package is not '
+                'installed in this app.\n\n'
+                'Add it as a dev dependency and register a router adapter:\n\n'
+                '  dev_dependencies:\n'
+                '    slipstream_agent: ^0.1.0\n\n'
+                'Then in main():\n\n'
+                '  if (kDebugMode) {\n'
+                '    SlipstreamAgent.init(router: GoRouterAdapter(appRouter));\n'
+                '  }',
+          ),
+        ],
+      );
+    }
+
     final String path = request.arguments!['path'] as String;
     if (!path.startsWith('/')) {
       return CallToolResult(
@@ -55,28 +82,18 @@ class NavigateTool extends InspectorTool {
     }
 
     try {
-      final extensions = session.serviceExtensions!;
-      final String? vmId = await extensions.resolveGoRouterVmId();
-      if (vmId == null) {
+      final response = await session.serviceExtensions!.callSlipstreamExtension(
+        'ext.slipstream.navigate',
+        args: {'path': path},
+      );
+      final bool ok = response['ok'] as bool? ?? false;
+      if (!ok) {
+        final String error = response['error'] as String? ?? 'navigate failed';
         return CallToolResult(
           isError: true,
-          content: [
-            TextContent(
-              text:
-                  'navigate: go_router not found in the widget tree. '
-                  'This tool only works with apps that use go_router.',
-            ),
-          ],
+          content: [TextContent(text: error)],
         );
       }
-
-      // Escape the path for embedding in a Dart string literal.
-      final escapedPath = path.replaceAll("'", "\\'");
-      await extensions.evaluateOnObject(
-        vmId,
-        "widget.goRouter.go('$escapedPath')",
-      );
-
       return CallToolResult(content: [TextContent(text: 'Navigated to $path')]);
     } on RPCError catch (e) {
       return context.rpcError(e);

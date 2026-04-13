@@ -14,7 +14,7 @@ import 'package:stream_channel/stream_channel.dart';
 void main() async {
   final docFile = File(path.join('docs', 'slipstream_doc.md'));
   final buf = StringBuffer();
-  buf.writeln('# Slipstream');
+  buf.writeln('# Flutter Slipstream');
   buf.writeln();
   buf.writeln(
     "Generated documentation on Slipstream's MCP servers, and their "

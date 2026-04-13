@@ -5,3 +5,5 @@
 .dart_tool/
 build/
 doc/api/
+
+.DS_Store

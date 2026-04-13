@@ -12,11 +12,14 @@ import 'tools/get_route_tool.dart';
 import 'tools/get_semantics_tool.dart';
 import 'tools/inspect_layout_tool.dart';
 import 'tools/navigate_tool.dart';
+import 'tools/perform_scroll_tool.dart';
+import 'tools/perform_scroll_until_visible_tool.dart';
+import 'tools/perform_semantic_action_tool.dart';
+import 'tools/perform_set_text_tool.dart';
+import 'tools/perform_tap_tool.dart';
 import 'tools/reload_tool.dart';
 import 'tools/run_app_tool.dart';
-import 'tools/set_text_tool.dart';
 import 'tools/take_screenshot_tool.dart';
-import 'tools/tap_tool.dart';
 
 /// The MCP server for the runtime inspector feature.
 ///
@@ -59,7 +62,8 @@ Debugging layout issues:
 
 Orientation:
 - get_route shows the current navigator stack with screen widget names and source locations. Use this to confirm which screen is active before inspecting or editing.
-- get_semantics lists visible, interactive nodes with their IDs. Pass node IDs directly to 'tap' and 'set_text'.
+- get_semantics lists visible, interactive nodes with their IDs. Pass node IDs directly to 'perform_semantic_action'.
+- If the app has slipstream_agent installed, use 'perform_tap', 'perform_set_text', 'perform_scroll', or 'perform_scroll_until_visible' instead of 'perform_semantic_action' — these support byKey/byType/byText finders and do not require semantics annotations.
 
 Flutter.Error events are forwarded automatically as MCP log warnings — no polling needed. They include widget IDs for use with inspect_layout.''',
       ) {
@@ -98,9 +102,12 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     register(EvaluateTool());
     register(GetRouteTool());
     register(NavigateTool());
+    register(PerformTapTool());
+    register(PerformSetTextTool());
+    register(PerformScrollTool());
+    register(PerformScrollUntilVisibleTool());
     register(GetSemanticsTool());
-    register(TapTool());
-    register(SetTextTool());
+    register(PerformSemanticActionTool());
     register(CloseAppTool());
   }
 

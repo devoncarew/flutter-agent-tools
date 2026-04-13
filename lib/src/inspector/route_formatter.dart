@@ -67,32 +67,6 @@ String formatRouteInfo(DiagnosticsNode root, {String? currentPath}) {
   return buf.toString().trim();
 }
 
-/// Returns all [DiagnosticsNode] instances in [root]'s subtree whose
-/// [DiagnosticsNode.widgetRuntimeType] is `InheritedGoRouter`.
-///
-/// go_router places a single `InheritedGoRouter` near the top of the tree.
-/// Its `notifier` field holds the [GoRouter] instance, which can be used (via
-/// [FlutterServiceExtensions.evaluateOnObject]) to query the current route
-/// configuration.
-///
-/// Returns an empty list if the app does not use go_router.
-List<DiagnosticsNode> findGoRouterNodes(DiagnosticsNode root) {
-  final result = <DiagnosticsNode>[];
-  _collectGoRouterNodes(root, result);
-  return result;
-}
-
-void _collectGoRouterNodes(DiagnosticsNode node, List<DiagnosticsNode> out) {
-  if (node.widgetRuntimeType == 'InheritedGoRouter') {
-    out.add(node);
-    // Don't recurse further — nested GoRouters are not a go_router pattern.
-    return;
-  }
-  for (final child in node.children) {
-    _collectGoRouterNodes(child, out);
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Internal data types
 
