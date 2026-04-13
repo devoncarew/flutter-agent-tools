@@ -73,7 +73,10 @@ expressions, and observe runtime errors with widget IDs.
 | `evaluate` | Evaluates a Dart expression on the running app's main isolate and returns the result as a string. |
 | `get_route` | Returns the current navigator route stack with screen widget names and source locations. |
 | `navigate` | Navigates the app to a route path. |
-| `perform_action` | Performs a UI action on a widget located by an advanced finder. |
+| `perform_tap` | Taps a widget located by a finder. |
+| `perform_set_text` | Sets the text content of a text field located by a finder. |
+| `perform_scroll` | Scrolls a Scrollable widget by a fixed number of logical pixels. |
+| `perform_scroll_until_visible` | Scrolls a Scrollable widget until a target widget is visible in the viewport. |
 | `get_semantics` | Returns a flat list of visible semantics nodes from the running Flutter app. |
 | `perform_semantic_action` | Dispatches a semantics action on a widget by its semantics node ID or label. |
 | `close_app` | Stops a running Flutter app and releases its session. |

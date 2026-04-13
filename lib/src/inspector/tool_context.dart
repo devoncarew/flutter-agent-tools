@@ -52,6 +52,28 @@ class ToolContext {
     );
   }
 
+  /// Returns an error result indicating the slipstream_agent companion package
+  /// is not installed. [toolName] is included in the first line for context.
+  CallToolResult companionNotInstalled(String toolName) {
+    return CallToolResult(
+      isError: true,
+      content: [
+        TextContent(
+          text:
+              '$toolName: the slipstream_agent companion package is not '
+              'installed in this app.\n\n'
+              'Add it as a dev dependency:\n\n'
+              '  dev_dependencies:\n'
+              '    slipstream_agent: ^0.1.0\n\n'
+              'Then call SlipstreamAgent.init() in your main() inside '
+              'kDebugMode.\n\n'
+              'Alternatively, use perform_semantic_action for '
+              'semantics-based interaction without the companion package.',
+        ),
+      ],
+    );
+  }
+
   /// Returns an error result for a VM service [RPCError].
   CallToolResult rpcError(RPCError e) {
     // TODO: We need to double check what we're doing here. Sometimes e.details
