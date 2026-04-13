@@ -11,8 +11,9 @@ final String projectDir = Directory.current.absolute.path;
 
 PackageResolver resolverFor(String packageName) {
   final packageDir = resolvePackageFromConfig(projectDir, packageName);
-  if (packageDir == null)
+  if (packageDir == null) {
     throw StateError('$packageName not in package config');
+  }
   final packageConfigFile = p.join(
     projectDir,
     '.dart_tool',
