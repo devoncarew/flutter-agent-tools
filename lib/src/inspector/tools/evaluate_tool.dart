@@ -69,7 +69,8 @@ class EvaluateTool extends InspectorTool {
         expression,
         libraryUri: libraryUri,
       );
-      return CallToolResult(content: [TextContent(text: result)]);
+      final String text = result.isEmpty ? "''" : result;
+      return CallToolResult(content: [TextContent(text: text)]);
     } on RPCError catch (e) {
       return context.rpcError(e);
     }
