@@ -1,0 +1,19 @@
+{
+  "name": "flutter-slipstream",
+  "version": "1.0.0",
+  "description": "Flutter/Dart agent tooling: package API summarization and runtime UI introspection.",
+  "repository": "https://github.com/devoncarew/flutter-slipstream",
+  "license": "BSD-3-Clause license",
+  "keywords": ["dart", "flutter"],
+  "mcpServers": {
+    "inspector": {
+      "command": "${extensionPath}/scripts/inspector_mcp.sh",
+      "cwd": "${extensionPath}"
+    },
+    "packages": {
+      "command": "${extensionPath}/scripts/packages_mcp.sh",
+      "cwd": "${extensionPath}"
+    }
+  },
+  "contextFileName": "GEMINI.md"
+}

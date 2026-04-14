@@ -1,7 +1,7 @@
 # Flutter Slipstream
 
-A Claude Code plugin that makes AI coding agents more effective for Dart and
-Flutter projects.
+A tool that makes AI coding agents more effective for Dart and Flutter projects.
+Works as a plugin for Claude Code and as an extension for Gemini CLI.
 
 AI agents working on Dart and Flutter run into two recurring problems. First,
 their training data has a cutoff — they'll reach for discontinued packages, pin
@@ -11,12 +11,14 @@ and stateful, and agents have no way to see a running app: they can't observe a
 layout failure, verify that a state change took effect, or confirm that a
 navigation worked.
 
-This plugin addresses both. It adds hooks that catch stale package choices
-before they land in `pubspec.yaml`, an MCP tool that retrieves accurate package
-API signatures directly from the local pub cache, and a suite of MCP commands
-for launching, inspecting, and interacting with a running Flutter app.
+This tool addresses both. It adds hooks that catch stale package choices before
+they land in `pubspec.yaml`, an MCP server that retrieves accurate package API
+signatures directly from the local pub cache, and a suite of MCP commands for
+launching, inspecting, and interacting with a running Flutter app.
 
 ## Installation
+
+**Claude Code:**
 
 ```sh
 claude plugin add flutter-slipstream
@@ -26,6 +28,20 @@ Or to test from a local checkout:
 
 ```sh
 claude --plugin-dir /path/to/flutter-slipstream
+```
+
+**Gemini CLI:**
+
+```sh
+gemini extension install flutter-slipstream
+```
+
+Or to test from a local checkout, add to your `settings.json`:
+
+```json
+{
+  "extensions": ["/path/to/flutter-slipstream"]
+}
 ```
 
 ## Tools
