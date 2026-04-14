@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:dart_mcp/server.dart';
 
+import '../../common.dart';
 import '../app_session.dart';
 import '../tool_context.dart';
 
@@ -29,7 +32,9 @@ class RunAppTool extends InspectorTool {
     inputSchema: Schema.object(
       properties: {
         'working_directory': Schema.string(
-          description: 'The Flutter project directory to launch.',
+          description:
+              'The Flutter project directory to launch.\n\n'
+              'Note that this should be an absolute path.',
         ),
         'target': Schema.string(
           description:
@@ -59,7 +64,18 @@ class RunAppTool extends InspectorTool {
     final String? device = args['device'] as String?;
     final String? target = args['target'] as String?;
 
-    final bool hadExisting = context.activeSession != null;
+    final dir = Directory(workingDirectory);
+    if (!dir.isAbsolute) {
+      throw ToolException("working_directory should be an absolute path.");
+    }
+
+    final previousSession = context.removeSession();
+    if (previousSession != null) {
+      await previousSession.stop().timeout(
+        Duration(milliseconds: 250),
+        onTimeout: () => null,
+      );
+    }
 
     final AppSession session;
     try {
@@ -70,6 +86,7 @@ class RunAppTool extends InspectorTool {
         target: target,
         debugLog: (message) => context.log(LoggingLevel.info, message),
       );
+      await registerSession(session);
     } on DaemonException catch (e) {
       return CallToolResult(
         isError: true,
@@ -77,11 +94,10 @@ class RunAppTool extends InspectorTool {
       );
     }
 
-    await registerSession(session);
-
     final String deviceInfo =
         session.deviceId != null ? " (device ID: '${session.deviceId}')" : '';
-    final String replaced = hadExisting ? ' Previous app was stopped.' : '';
+    final String replaced =
+        previousSession != null ? '\n\nPrevious app was stopped.' : '';
     return CallToolResult(
       content: [TextContent(text: 'Launched!$deviceInfo$replaced')],
     );
