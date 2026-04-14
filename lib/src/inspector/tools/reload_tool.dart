@@ -53,9 +53,7 @@ class ReloadTool extends InspectorTool {
         TextContent(
           text:
               '$action complete. '
-              'Note: semantics node IDs are reassigned after each reload — '
-              're-fetch with get_semantics before using any '
-              'previously observed node IDs.',
+              'Semantics node IDs reset — call get_semantics before reusing any.',
         ),
       ],
     );
