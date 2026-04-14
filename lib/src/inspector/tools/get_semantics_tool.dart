@@ -24,6 +24,9 @@ class GetSemanticsTool extends InspectorTool {
     inputSchema: Schema.object(properties: {}, required: []),
   );
 
+  // TODO: Implement typed wrappers for the slipstream agent ext. methods in
+  // FlutterServiceExtensions.
+
   @override
   Future<CallToolResult> handle(
     CallToolRequest request,
@@ -33,8 +36,31 @@ class GetSemanticsTool extends InspectorTool {
     if (session == null) return context.noActiveSession();
 
     try {
-      final List<SemanticNode> nodes =
-          await session.serviceExtensions!.getSemanticsTree();
+      final List<SemanticNode> nodes;
+
+      if (session.hasCompanion) {
+        // Use the companion extension — returns screen-space coordinates.
+        final extensions = session.serviceExtensions!;
+
+        var response = await extensions.callSlipstreamExtension(
+          'ext.slipstream.get_semantics',
+        );
+
+        if (response['ok'] != true) {
+          final error = response['error'] as String? ?? 'get_semantics failed';
+          return CallToolResult(
+            content: [TextContent(text: error)],
+            isError: true,
+          );
+        }
+        nodes = parseCompanionSemanticsNodes(
+          response['nodes'] as List<dynamic>? ?? [],
+        );
+      } else {
+        // Fallback: evaluate-based path; coordinates are in local space.
+        nodes = await session.serviceExtensions!.getSemanticsTree();
+      }
+
       return CallToolResult(
         content: [TextContent(text: formatSemanticsTree(nodes))],
       );
