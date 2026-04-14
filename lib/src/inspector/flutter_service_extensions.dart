@@ -93,7 +93,7 @@ class FlutterServiceExtensions {
     required String finder,
     required String finderValue,
     required String direction,
-    required String pixels,
+    required double pixels,
   }) => _slipstreamAction({
     'action': 'scroll',
     'finder': finder,

@@ -1,6 +1,7 @@
 import 'package:dart_mcp/server.dart';
 import 'package:vm_service/vm_service.dart' show RPCError;
 
+import '../../utils.dart';
 import '../tool_context.dart';
 
 const _finderDescription =
@@ -33,7 +34,7 @@ class PerformScrollTool extends InspectorTool {
         'direction': Schema.string(
           description: 'Scroll direction: "up", "down", "left", or "right".',
         ),
-        'pixels': Schema.string(
+        'pixels': Schema.num(
           description: 'Number of logical pixels to scroll.',
         ),
       },
@@ -57,7 +58,7 @@ class PerformScrollTool extends InspectorTool {
     final String finder = request.arguments!['finder'] as String;
     final String finderValue = request.arguments!['finder_value'] as String;
     final String direction = request.arguments!['direction'] as String;
-    final String pixels = request.arguments!['pixels'] as String;
+    final double pixels = coerceDouble(request.arguments!['pixels'])!;
 
     try {
       final result = await session.serviceExtensions!.slipstreamScroll(

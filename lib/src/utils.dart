@@ -26,6 +26,15 @@ bool? coerceBool(Object? value) => switch (value) {
   _ => null,
 };
 
+double? coerceDouble(Object? value) {
+  if (value == null) return null;
+  return switch (value) {
+    num n => n.toDouble(),
+    String s => double.tryParse(s),
+    _ => null,
+  };
+}
+
 Object? jsonTryParse(String source) {
   try {
     return jsonDecode(source);
