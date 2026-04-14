@@ -1,6 +1,6 @@
 {
   "name": "flutter-slipstream",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Flutter/Dart agent tooling: dependency health, package API summarization, and UI runtime introspection.",
   "author": {
     "name": "Devon Carew",

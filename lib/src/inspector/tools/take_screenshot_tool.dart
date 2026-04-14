@@ -1,6 +1,7 @@
 import 'package:dart_mcp/server.dart';
 import 'package:vm_service/vm_service.dart' show RPCError;
 
+import '../../utils.dart';
 import '../tool_context.dart';
 
 /// Implements the `take_screenshot` MCP tool.
@@ -38,8 +39,7 @@ class TakeScreenshotTool extends InspectorTool {
     final session = context.activeSession;
     if (session == null) return context.noActiveSession();
 
-    final num? pixelRatioArg = request.arguments!['pixel_ratio'] as num?;
-    final double? pixelRatio = pixelRatioArg?.toDouble();
+    final pixelRatio = coerceDouble(request.arguments!['pixel_ratio']);
 
     try {
       final String base64Data = await session.takeScreenshot(

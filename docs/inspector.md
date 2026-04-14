@@ -304,5 +304,6 @@ rendered frame).
 
 ## 8. Further Reading
 
-See `DESIGN.md` for the full tool surface, implementation status, and design
-rationale. This document focuses on the underlying protocol and data structures.
+See `docs/DESIGN.md` for the full tool surface, implementation status, and
+design rationale. This document focuses on the underlying protocol and data
+structures.

@@ -127,6 +127,9 @@ replaced. Flutter.Error events from the running app are automatically forwarded
 as MCP log warnings — no polling needed.
 
 - `working_directory`: (required) The Flutter project directory to launch.
+
+Note that this should be an absolute path.
+
 - `target`: The main entry point to launch (e.g. lib/main.dart). Defaults to the
   project default.
 - `device`: Optional device ID override. When omitted, auto-selects the best
