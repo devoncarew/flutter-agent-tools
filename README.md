@@ -19,8 +19,13 @@ for launching, inspecting, and interacting with a running Flutter app.
 ## Installation
 
 ```sh
-# Test locally:
-claude --plugin-dir </path/to>/flutter-slipstream
+claude plugin add flutter-slipstream
+```
+
+Or to test from a local checkout:
+
+```sh
+claude --plugin-dir /path/to/flutter-slipstream
 ```
 
 ## Tools

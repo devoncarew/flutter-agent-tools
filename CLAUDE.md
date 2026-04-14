@@ -15,12 +15,14 @@ observe a running Flutter app.
   `.claude-plugin/plugin.json`.
 - Package currency hook: `bin/deps_check.dart`, invoked via
   `scripts/deps_check.sh --mode=pub-add|pubspec-guard`. Configured in
-  `hooks/hooks.json`.
+  `.claude-plugin/plugin.json`.
 - Hooks receive tool input as JSON on stdin; exit 0 always (warnings only —
   hard-blocking is reserved for cases where proceeding would be clearly wrong).
 - Use `${CLAUDE_PLUGIN_ROOT}` for all paths in hook commands — never hardcode.
 - Fail open on infrastructure errors (network timeout, etc.): don't block the
   agent over tooling failures.
+- Plugin version is tracked in `.claude-plugin/plugin.json` (not `pubspec.yaml`,
+  which has `publish_to: none`).
 
 ## Registered MCP Tools
 
@@ -36,19 +38,51 @@ observe a running Flutter app.
 
 ### inspector server (`bin/inspector_mcp.dart`)
 
-- `run_app` — builds and launches a Flutter app, returns a session ID
-- `reload` — hot reload or hot restart a running app
+Session lifecycle: `run_app` starts a session; `close_app` ends it. Only one
+session is active at a time — `run_app` silently stops any existing session
+before launching.
+
+- `run_app` — builds and launches a Flutter app; `working_directory` must be
+  an absolute path
+- `reload` — hot reload (`full_restart: false`, default) or hot restart
+  (`full_restart: true`)
 - `take_screenshot` — captures a PNG screenshot via the inspector protocol
-- `inspect_layout` — returns the layout tree for a widget (or root)
+- `inspect_layout` — returns the widget layout tree; `widget_id` omitted → root
 - `evaluate` — evaluates an arbitrary Dart expression on the main isolate
-- `get_route` — returns the navigator stack with screen names and source
-  locations; enriches with go_router path when available
-- `navigate` — navigates to a go_router path via `GoRouter.go()`
-- `get_semantics` — returns a flat list of visible semantics nodes (role, ID,
-  state, actions, label, size); node IDs usable with 'tap'
-- `tap` — tap an element by semantics node ID or label
-- `set_text` — set text field content by semantics node ID or label
-- `close_app` — stops a running app and releases its session
+- `get_route` — navigator stack with screen widget names and source locations;
+  enriched with the current router path when `slipstream_agent` is installed
+- `navigate` — navigates to a route path via the registered router adapter;
+  requires `slipstream_agent` companion
+- `get_semantics` — flat list of visible semantics nodes (role, ID, state,
+  actions, label, position/size); uses `ext.slipstream.get_semantics` with
+  screen-space coordinates when companion is present
+- `perform_semantic_action` — dispatches a semantics action (tap, longPress,
+  setText, …) by semantics node ID or label; no companion required
+- `perform_tap` — taps a widget by finder (byKey/byType/byText/bySemanticsLabel);
+  requires `slipstream_agent` companion
+- `perform_set_text` — sets text field content by finder; requires companion
+- `perform_scroll` — scrolls a Scrollable by fixed pixels; requires companion
+- `perform_scroll_until_visible` — scrolls until a target widget is visible;
+  requires companion
+- `close_app` — stops the running app and releases its session
+
+### slipstream_agent companion (`package:slipstream_agent`)
+
+An optional dev dependency apps can install for richer instrumentation. When
+present (detected via `ext.slipstream.ping`), the inspector server uses
+in-process service extensions instead of evaluate-based fallbacks:
+
+- `ext.slipstream.perform_action` — finder-based tap/set_text/scroll/scroll_until_visible
+- `ext.slipstream.navigate` — router-adapter navigation
+- `ext.slipstream.get_route` — current route path from the router adapter
+- `ext.slipstream.get_semantics` — semantics nodes with screen-space coordinates
+- `ext.slipstream.windowResized` event — forwarded as `[window] WxH` log
+- `ext.slipstream.routeChanged` event — forwarded as `[route] /path` log
+
+Typed wrappers for all companion calls live in
+`lib/src/inspector/flutter_service_extensions.dart`
+(`slipstreamTap`, `slipstreamSetText`, etc.). Never call
+`callSlipstreamExtension` directly from tool code.
 
 ## Current Status
 
@@ -57,25 +91,29 @@ observe a running Flutter app.
   check, old major version check, pubspec-guard mode all implemented
 - packages MCP server: functional — `package_summary`, `library_stub`, and
   `class_stub` all implemented
-- inspector MCP server: functional — launch, reload, close, take_screenshot,
-  inspect layout, evaluate, get_route (with go_router path enrichment),
-  navigate, get_semantics, and tap all working
-- Flutter.Error events are pushed to agents with widget IDs for use with
-  `inspect_layout`
+- inspector MCP server: functional — all tools above implemented and working
+- `slipstream_agent` companion detection and event forwarding: implemented
+- Flutter.Error events are pushed to agents as MCP log warnings with widget IDs
 
 ## Development
 
 ```sh
-# Test the deps-check hook directly:
+# Run all tests:
+dart test
+
+# Test the deps-check hook manually:
 echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
   | dart run bin/deps_check.dart --mode=pub-add
 
 # Load the plugin locally:
 claude --plugin-dir /path/to/flutter-slipstream
+
+# Regenerate the README command tables:
+dart run tool/generate_readme.dart
 ```
 
 ## Design Reference
 
-See `DESIGN.md` for the full architecture and planned tool designs.
+See `docs/DESIGN.md` for the full architecture and planned tool designs.
 
 See `docs/inspector.md` for a Flutter runtime inspection guide for AI agents.
