@@ -1,9 +1,10 @@
 # flutter-slipstream
 
-A Claude Code plugin that makes AI coding agents more effective when working on
-Dart and Flutter projects. It addresses two core failure modes: agents using
-outdated APIs due to training cutoff limitations, and agents being unable to
-observe a running Flutter app.
+A tool that makes AI coding agents more effective when working on Dart and
+Flutter projects. Distributed as a Claude Code plugin and a Gemini CLI
+extension. Addresses two core failure modes: agents using outdated APIs due to
+training cutoff limitations, and agents being unable to observe a running
+Flutter app.
 
 ## Key Conventions
 
