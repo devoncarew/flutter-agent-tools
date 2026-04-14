@@ -33,8 +33,26 @@ class GetSemanticsTool extends InspectorTool {
     if (session == null) return context.noActiveSession();
 
     try {
-      final List<SemanticNode> nodes =
-          await session.serviceExtensions!.getSemanticsTree();
+      final List<SemanticNode> nodes;
+
+      if (session.hasCompanion) {
+        // Use the companion extension — returns screen-space coordinates.
+        final result =
+            await session.serviceExtensions!.slipstreamGetSemantics();
+        if (!result.ok) {
+          return CallToolResult(
+            content: [
+              TextContent(text: result.error ?? 'get_semantics failed'),
+            ],
+            isError: true,
+          );
+        }
+        nodes = result.nodes;
+      } else {
+        // Fallback: evaluate-based path; coordinates are in local space.
+        nodes = await session.serviceExtensions!.getSemanticsTree();
+      }
+
       return CallToolResult(
         content: [TextContent(text: formatSemanticsTree(nodes))],
       );

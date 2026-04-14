@@ -52,17 +52,14 @@ class PerformTapTool extends InspectorTool {
     final String finderValue = request.arguments!['finder_value'] as String;
 
     try {
-      final response = await session.serviceExtensions!.callSlipstreamExtension(
-        'ext.slipstream.perform_action',
-        args: {'action': 'tap', 'finder': finder, 'finderValue': finderValue},
+      final result = await session.serviceExtensions!.slipstreamTap(
+        finder: finder,
+        finderValue: finderValue,
       );
-      final bool ok = response['ok'] as bool? ?? false;
-      if (!ok) {
+      if (!result.ok) {
         return CallToolResult(
           isError: true,
-          content: [
-            TextContent(text: response['error'] as String? ?? 'tap failed'),
-          ],
+          content: [TextContent(text: result.error ?? 'tap failed')],
         );
       }
       return CallToolResult(

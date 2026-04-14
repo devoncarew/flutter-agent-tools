@@ -69,25 +69,18 @@ class PerformScrollUntilVisibleTool extends InspectorTool {
         request.arguments!['scroll_finder_value'] as String;
 
     try {
-      final response = await session.serviceExtensions!.callSlipstreamExtension(
-        'ext.slipstream.perform_action',
-        args: {
-          'action': 'scroll_until_visible',
-          'finder': finder,
-          'finderValue': finderValue,
-          'scrollFinder': scrollFinder,
-          'scrollFinderValue': scrollFinderValue,
-        },
-      );
-      final bool ok = response['ok'] as bool? ?? false;
-      if (!ok) {
+      final result = await session.serviceExtensions!
+          .slipstreamScrollUntilVisible(
+            finder: finder,
+            finderValue: finderValue,
+            scrollFinder: scrollFinder,
+            scrollFinderValue: scrollFinderValue,
+          );
+      if (!result.ok) {
         return CallToolResult(
           isError: true,
           content: [
-            TextContent(
-              text:
-                  response['error'] as String? ?? 'scroll_until_visible failed',
-            ),
+            TextContent(text: result.error ?? 'scroll_until_visible failed'),
           ],
         );
       }

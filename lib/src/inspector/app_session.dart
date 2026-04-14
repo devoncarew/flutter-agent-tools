@@ -355,9 +355,7 @@ class AppSession {
     if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) {
       // Convert regular stdio output to log messages.
       if (!_sessionEnded) {
-        _eventListener(
-          DaemonEvent('app.log', {'appId': _appId, 'log': trimmed}),
-        );
+        _eventListener(AppEvent('app.log', {'appId': _appId, 'log': trimmed}));
       }
       return;
     }
@@ -414,7 +412,7 @@ class AppSession {
       }
 
       if (!_sessionEnded) {
-        _eventListener(DaemonEvent(event, params));
+        _eventListener(AppEvent(event, params));
       }
     }
   }
@@ -446,22 +444,21 @@ class AppSession {
             }
             _errors.add(error);
             _eventListener(
-              DaemonEvent('flutter.error', {
-                'summary': compactSummarizer(error),
-              }),
+              AppEvent('flutter.error', {'summary': compactSummarizer(error)}),
             );
           }
         }
-      } else if (event.extensionKind == 'Flutter.Navigation') {
+      } else if (event.extensionKind == 'ext.slipstream.routeChanged') {
         final data = event.extensionData?.data;
-        final route = data?['route'];
-        final description =
-            route is Map ? route['description'] as String? : null;
-        _eventListener(
-          DaemonEvent('flutter.navigation', {
-            if (description != null) 'route': description,
-          }),
-        );
+        final String? path = data?['path'] as String?;
+        if (path != null) {
+          _eventListener(AppEvent('slipstream.routeChanged', {'path': path}));
+        }
+      } else if (event.extensionKind == 'ext.slipstream.windowResized') {
+        final data = event.extensionData?.data;
+        if (data != null) {
+          _eventListener(AppEvent('slipstream.windowResized', Map.of(data)));
+        }
       } else if (event.extensionKind == 'Flutter.FrameworkInitialization') {
         // This happens early after a full restart.
       } else if (event.extensionKind == 'Flutter.FirstFrame') {
@@ -497,7 +494,7 @@ class AppSession {
     // If the app was running and we didn't initiate the stop ourselves,
     // emit a synthetic app.stop so the server can clean up the session.
     if (!_sessionEnded && _appId != null) {
-      _eventListener(DaemonEvent('app.stop', {'appId': _appId}));
+      _eventListener(AppEvent('app.stop', {'appId': _appId}));
     }
 
     _sessionEnded = true;
@@ -509,13 +506,15 @@ class AppSession {
   }
 }
 
-/// An event emitted by a running Flutter app via the `flutter run --machine`
-/// daemon protocol.
-class DaemonEvent {
+/// An event emitted by the running Flutter app.
+///
+/// These are either events directly from the `flutter run --machine` daemon
+/// protocol or semantic events from the VM service protocol.
+class AppEvent {
   final String event;
   final Map<String, dynamic> params;
 
-  DaemonEvent(this.event, this.params);
+  AppEvent(this.event, this.params);
 }
 
 /// An error returned from a command sent to 'flutter run' over the daemon
@@ -581,4 +580,4 @@ class FlutterError {
   String toString() => 'FlutterError: $summary';
 }
 
-typedef EventCallback = void Function(DaemonEvent);
+typedef EventCallback = void Function(AppEvent);

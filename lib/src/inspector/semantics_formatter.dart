@@ -44,17 +44,30 @@ String _formatNode(SemanticNode node) {
   final role = node.role.isNotEmpty ? node.role : 'text';
   buf.writeln('[$role id=${node.id}$statesStr$actionsStr]');
 
-  if (node.label.isNotEmpty) buf.writeln('  label: "${_trunc(node.label)}"');
+  if (node.label.isNotEmpty) {
+    buf.writeln('  label: "${_trunc(_newlines(node.label))}"');
+  }
   if (node.hint.isNotEmpty) buf.writeln('  hint: ${node.hint}');
-  if (node.value.isNotEmpty) buf.writeln('  value: ${_trunc(node.value)}');
+  if (node.value.isNotEmpty) {
+    buf.writeln('  value: ${_trunc(_newlines(node.value))}');
+  }
 
-  // Size only — position is in local coordinate space, not screen space.
   final width = node.right - node.left;
   final height = node.bottom - node.top;
-  buf.writeln('  size: ${_fmt(width)}x${_fmt(height)}');
+  if (node.hasScreenSpaceCoords) {
+    buf.writeln(
+      '  position: ${_fmt(node.left)},${_fmt(node.top)} ${_fmt(width)}x${_fmt(height)}',
+    );
+  } else {
+    // Position is in local coordinate space and unreliable without
+    // accumulating parent transforms — show size only.
+    buf.writeln('  size: ${_fmt(width)}x${_fmt(height)}');
+  }
 
   return buf.toString();
 }
+
+String _newlines(String s) => s.replaceAll('\n', r'\n');
 
 String _trunc(String s, [int max = 100]) =>
     s.length > max ? '${s.substring(0, max - 1)}…' : s;

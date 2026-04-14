@@ -124,7 +124,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     await super.shutdown();
   }
 
-  void _handleEvent(DaemonEvent event) {
+  void _handleEvent(AppEvent event) {
     if (event.event == 'app.stop') {
       _context.removeSession();
 
@@ -134,25 +134,26 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
         logger: _loggerId,
       );
       return;
+    } else if (event.event == 'slipstream.windowResized') {
+      final p = event.params;
+      final double w = (p['logicalWidth'] as num?)?.toDouble() ?? 0;
+      final double h = (p['logicalHeight'] as num?)?.toDouble() ?? 0;
+      final double dpr = (p['devicePixelRatio'] as num?)?.toDouble() ?? 1;
+      log(
+        LoggingLevel.info,
+        '[window] ${w.toStringAsFixed(0)}×${h.toStringAsFixed(0)} logical px '
+        '(dpr=${dpr.toStringAsFixed(1)})',
+        logger: _loggerId,
+      );
+      return;
+    } else if (event.event == 'slipstream.routeChanged') {
+      final String path = event.params['path'] as String? ?? '?';
+      log(LoggingLevel.info, '[route] $path', logger: _loggerId);
+      return;
     } else if (event.event == 'flutter.error') {
       final String summary =
           event.params['summary'] as String? ?? 'Unknown Flutter error';
       log(LoggingLevel.warning, '[flutter.error] $summary', logger: _loggerId);
-      return;
-    } else if (event.event == 'flutter.navigation') {
-      // The Flutter.Navigation event is only emitted by the imperative
-      // Navigator API (push/pop/replace). go_router's context.go() works
-      // declaratively (rebuilds the stack), so navigation events fire on
-      // back-navigation (pop) but not on forward navigation (go()).
-      //
-      // Sample go_router pop event description (path template, not path):
-      //   _PageBasedMaterialPageRoute<void>(/podcast/:id)
-      final routeDesc = event.params['route'];
-      log(
-        LoggingLevel.info,
-        '[flutter.navigation] $routeDesc (use get_route to see current stack)',
-        logger: _loggerId,
-      );
       return;
     }
 
@@ -172,7 +173,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     }
   }
 
-  (LoggingLevel, String)? _convertToLog(DaemonEvent event) {
+  (LoggingLevel, String)? _convertToLog(AppEvent event) {
     final Map<String, dynamic> params = event.params;
 
     String message = params.keys

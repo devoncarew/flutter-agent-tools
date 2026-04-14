@@ -23,6 +23,7 @@ class SemanticNode {
     required this.top,
     required this.right,
     required this.bottom,
+    this.hasScreenSpaceCoords = false,
   });
 
   /// Framework-internal integer ID. Root node is always 0.
@@ -72,12 +73,18 @@ class SemanticNode {
   /// - focus=1<<22.
   final int actions;
 
-  /// Bounding box in the node's local coordinate space.
-  /// The root node's local space is screen coordinates.
+  /// Bounding box coordinates. When [hasScreenSpaceCoords] is true, these are
+  /// accumulated screen-space coordinates (from the companion package). When
+  /// false, they are local coordinate space (only reliable for the root node).
   final double left;
   final double top;
   final double right;
   final double bottom;
+
+  /// Whether [left]/[top]/[right]/[bottom] are in screen space. True when the
+  /// data came from `ext.slipstream.get_semantics` (companion), which
+  /// accumulates transforms. False for the evaluate-based fallback path.
+  final bool hasScreenSpaceCoords;
 
   /// Whether the node supports a tap action.
   bool get supportsTap => actions & 1 != 0;
@@ -119,6 +126,44 @@ class SemanticNode {
 List<SemanticNode> parseSemanticsTree(String json) {
   final List<dynamic> raw = jsonDecode(json) as List<dynamic>;
   return raw.map((e) => _nodeFromTuple(e as List<dynamic>)).toList();
+}
+
+/// Parses the `nodes` array from an `ext.slipstream.get_semantics` response
+/// into a flat list of [SemanticNode]s.
+///
+/// Each element in [nodes] is an object:
+/// ```json
+/// { "id": 7, "role": "button", "label": "...", "value": "", "hint": "",
+///   "checked": null, "toggled": null, "selected": null, "enabled": null,
+///   "focused": false, "actions": 4194305,
+///   "left": 16.0, "top": 200.0, "right": 377.0, "bottom": 272.0 }
+/// ```
+///
+/// Coordinates are in screen space (accumulated transforms), unlike the
+/// tuple-based format where coordinates are in local space.
+List<SemanticNode> parseCompanionSemanticsNodes(List<dynamic> nodes) {
+  return nodes.map((e) => _nodeFromMap(e as Map<String, dynamic>)).toList();
+}
+
+SemanticNode _nodeFromMap(Map<String, dynamic> m) {
+  return SemanticNode(
+    id: m['id'] as int,
+    role: m['role'] as String? ?? '',
+    label: m['label'] as String? ?? '',
+    value: m['value'] as String? ?? '',
+    hint: m['hint'] as String? ?? '',
+    checked: m['checked'] as bool?,
+    toggled: m['toggled'] as bool?,
+    selected: m['selected'] as bool?,
+    enabled: m['enabled'] as bool?,
+    focused: m['focused'] as bool? ?? false,
+    actions: m['actions'] as int? ?? 0,
+    left: (m['left'] as num?)?.toDouble() ?? 0,
+    top: (m['top'] as num?)?.toDouble() ?? 0,
+    right: (m['right'] as num?)?.toDouble() ?? 0,
+    bottom: (m['bottom'] as num?)?.toDouble() ?? 0,
+    hasScreenSpaceCoords: true,
+  );
 }
 
 SemanticNode _nodeFromTuple(List<dynamic> t) {

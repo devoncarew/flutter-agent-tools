@@ -60,24 +60,15 @@ class PerformSetTextTool extends InspectorTool {
     final String text = request.arguments!['text'] as String;
 
     try {
-      final response = await session.serviceExtensions!.callSlipstreamExtension(
-        'ext.slipstream.perform_action',
-        args: {
-          'action': 'set_text',
-          'finder': finder,
-          'finderValue': finderValue,
-          'text': text,
-        },
+      final result = await session.serviceExtensions!.slipstreamSetText(
+        finder: finder,
+        finderValue: finderValue,
+        text: text,
       );
-      final bool ok = response['ok'] as bool? ?? false;
-      if (!ok) {
+      if (!result.ok) {
         return CallToolResult(
           isError: true,
-          content: [
-            TextContent(
-              text: response['error'] as String? ?? 'set_text failed',
-            ),
-          ],
+          content: [TextContent(text: result.error ?? 'set_text failed')],
         );
       }
       return CallToolResult(

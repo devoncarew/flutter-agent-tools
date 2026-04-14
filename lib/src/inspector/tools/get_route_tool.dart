@@ -41,12 +41,8 @@ class GetRouteTool extends InspectorTool {
       String? currentPath;
       if (session.hasCompanion) {
         try {
-          final response = await extensions.callSlipstreamExtension(
-            'ext.slipstream.get_route',
-          );
-          if (response['ok'] == true) {
-            currentPath = response['path'] as String?;
-          }
+          final result = await extensions.slipstreamGetRoute();
+          if (result.ok) currentPath = result.path;
         } catch (_) {
           // Path enrichment is best-effort — proceed without it.
         }
