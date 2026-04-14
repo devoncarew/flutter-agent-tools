@@ -76,16 +76,11 @@ class NavigateTool extends InspectorTool {
     }
 
     try {
-      final response = await session.serviceExtensions!.callSlipstreamExtension(
-        'ext.slipstream.navigate',
-        args: {'path': path},
-      );
-      final bool ok = response['ok'] as bool? ?? false;
-      if (!ok) {
-        final String error = response['error'] as String? ?? 'navigate failed';
+      final result = await session.serviceExtensions!.slipstreamNavigate(path);
+      if (!result.ok) {
         return CallToolResult(
           isError: true,
-          content: [TextContent(text: error)],
+          content: [TextContent(text: result.error ?? 'navigate failed')],
         );
       }
       return CallToolResult(content: [TextContent(text: 'Navigated to $path')]);

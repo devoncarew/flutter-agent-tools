@@ -38,19 +38,7 @@ class FlutterServiceExtensions {
   }
 
   // ---------------------------------------------------------------------------
-  // ext.slipstream.* — companion package detection
-
-  /// Calls a `ext.slipstream.*` extension and returns the response JSON.
-  ///
-  /// The caller is responsible for checking `response['ok']` and handling
-  /// `response['error']`. Throws an [RPCError] on VM service failures.
-  Future<Map<String, dynamic>> callSlipstreamExtension(
-    String method, {
-    Map<String, dynamic>? args,
-  }) async {
-    final response = await _callExtension(method, args: args);
-    return (response.json ?? {}).cast<String, dynamic>();
-  }
+  // ext.slipstream.* — companion package
 
   /// Calls `ext.slipstream.ping` to detect the slipstream_agent companion
   /// package.
@@ -66,6 +54,137 @@ class FlutterServiceExtensions {
       // Extension not registered — companion not installed. Fail open.
       return null;
     }
+  }
+
+  /// Calls `ext.slipstream.perform_action` to tap a widget located by
+  /// [finder]/[finderValue].
+  ///
+  /// Returns `(ok: true)` on success or `(ok: false, error: '...')` on failure.
+  Future<({bool ok, String? error})> slipstreamTap({
+    required String finder,
+    required String finderValue,
+  }) => _slipstreamAction({
+    'action': 'tap',
+    'finder': finder,
+    'finderValue': finderValue,
+  });
+
+  /// Calls `ext.slipstream.perform_action` to set text on a widget located by
+  /// [finder]/[finderValue].
+  ///
+  /// Returns `(ok: true)` on success or `(ok: false, error: '...')` on failure.
+  Future<({bool ok, String? error})> slipstreamSetText({
+    required String finder,
+    required String finderValue,
+    required String text,
+  }) => _slipstreamAction({
+    'action': 'set_text',
+    'finder': finder,
+    'finderValue': finderValue,
+    'text': text,
+  });
+
+  /// Calls `ext.slipstream.perform_action` to scroll a [Scrollable] widget
+  /// located by [finder]/[finderValue] by [pixels] logical pixels in
+  /// [direction].
+  ///
+  /// Returns `(ok: true)` on success or `(ok: false, error: '...')` on failure.
+  Future<({bool ok, String? error})> slipstreamScroll({
+    required String finder,
+    required String finderValue,
+    required String direction,
+    required String pixels,
+  }) => _slipstreamAction({
+    'action': 'scroll',
+    'finder': finder,
+    'finderValue': finderValue,
+    'direction': direction,
+    'pixels': pixels,
+  });
+
+  /// Calls `ext.slipstream.perform_action` to scroll the [Scrollable] located
+  /// by [scrollFinder]/[scrollFinderValue] until the widget located by
+  /// [finder]/[finderValue] is visible.
+  ///
+  /// Returns `(ok: true)` on success or `(ok: false, error: '...')` on failure.
+  Future<({bool ok, String? error})> slipstreamScrollUntilVisible({
+    required String finder,
+    required String finderValue,
+    required String scrollFinder,
+    required String scrollFinderValue,
+  }) => _slipstreamAction({
+    'action': 'scroll_until_visible',
+    'finder': finder,
+    'finderValue': finderValue,
+    'scrollFinder': scrollFinder,
+    'scrollFinderValue': scrollFinderValue,
+  });
+
+  Future<({bool ok, String? error})> _slipstreamAction(
+    Map<String, dynamic> args,
+  ) async {
+    final response = await _callExtension(
+      'ext.slipstream.perform_action',
+      args: args,
+    );
+    final json = (response.json ?? {}).cast<String, dynamic>();
+    return (ok: json['ok'] as bool? ?? false, error: json['error'] as String?);
+  }
+
+  /// Calls `ext.slipstream.navigate` to navigate the app to [path] via the
+  /// registered router adapter.
+  ///
+  /// Returns `(ok: true)` on success or `(ok: false, error: '...')` on failure.
+  Future<({bool ok, String? error})> slipstreamNavigate(String path) async {
+    final response = await _callExtension(
+      'ext.slipstream.navigate',
+      args: {'path': path},
+    );
+    final json = (response.json ?? {}).cast<String, dynamic>();
+    return (ok: json['ok'] as bool? ?? false, error: json['error'] as String?);
+  }
+
+  /// Calls `ext.slipstream.get_route` to get the current route path from the
+  /// registered router adapter.
+  ///
+  /// Returns `(ok: true, path: '/...')` on success or
+  /// `(ok: false, error: '...')` on failure.
+  Future<({bool ok, String? path, String? error})> slipstreamGetRoute() async {
+    final response = await _callExtension('ext.slipstream.get_route');
+    final json = (response.json ?? {}).cast<String, dynamic>();
+    return (
+      ok: json['ok'] as bool? ?? false,
+      path: json['path'] as String?,
+      error: json['error'] as String?,
+    );
+  }
+
+  /// Calls `ext.slipstream.enable_semantics` to enable the Flutter semantics
+  /// tree and schedule a frame so the tree is populated.
+  Future<void> slipstreamEnableSemantics() async {
+    await _callExtension('ext.slipstream.enable_semantics');
+  }
+
+  /// Calls `ext.slipstream.get_semantics` to get a flat list of visible
+  /// semantics nodes with screen-space coordinates.
+  ///
+  /// Returns `(ok: true, nodes: [...])` on success or
+  /// `(ok: false, error: '...')` on failure (e.g. semantics not enabled).
+  Future<({bool ok, List<SemanticNode> nodes, String? error})>
+  slipstreamGetSemantics() async {
+    final response = await _callExtension('ext.slipstream.get_semantics');
+    final json = (response.json ?? {}).cast<String, dynamic>();
+    final bool ok = json['ok'] as bool? ?? false;
+    return (
+      ok: ok,
+      nodes:
+          ok
+              ? parseCompanionSemanticsNodes(
+                json['nodes'] as List<dynamic>? ?? [],
+              )
+              : const <SemanticNode>[],
+      error: json['error'] as String?,
+    );
   }
 
   // ---------------------------------------------------------------------------

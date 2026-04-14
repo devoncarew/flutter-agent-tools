@@ -60,23 +60,16 @@ class PerformScrollTool extends InspectorTool {
     final String pixels = request.arguments!['pixels'] as String;
 
     try {
-      final response = await session.serviceExtensions!.callSlipstreamExtension(
-        'ext.slipstream.perform_action',
-        args: {
-          'action': 'scroll',
-          'finder': finder,
-          'finderValue': finderValue,
-          'direction': direction,
-          'pixels': pixels,
-        },
+      final result = await session.serviceExtensions!.slipstreamScroll(
+        finder: finder,
+        finderValue: finderValue,
+        direction: direction,
+        pixels: pixels,
       );
-      final bool ok = response['ok'] as bool? ?? false;
-      if (!ok) {
+      if (!result.ok) {
         return CallToolResult(
           isError: true,
-          content: [
-            TextContent(text: response['error'] as String? ?? 'scroll failed'),
-          ],
+          content: [TextContent(text: result.error ?? 'scroll failed')],
         );
       }
       return CallToolResult(
