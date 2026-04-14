@@ -42,8 +42,8 @@ Session lifecycle: `run_app` starts a session; `close_app` ends it. Only one
 session is active at a time — `run_app` silently stops any existing session
 before launching.
 
-- `run_app` — builds and launches a Flutter app; `working_directory` must be
-  an absolute path
+- `run_app` — builds and launches a Flutter app; `working_directory` must be an
+  absolute path
 - `reload` — hot reload (`full_restart: false`, default) or hot restart
   (`full_restart: true`)
 - `take_screenshot` — captures a PNG screenshot via the inspector protocol
@@ -58,8 +58,8 @@ before launching.
   screen-space coordinates when companion is present
 - `perform_semantic_action` — dispatches a semantics action (tap, longPress,
   setText, …) by semantics node ID or label; no companion required
-- `perform_tap` — taps a widget by finder (byKey/byType/byText/bySemanticsLabel);
-  requires `slipstream_agent` companion
+- `perform_tap` — taps a widget by finder
+  (byKey/byType/byText/bySemanticsLabel); requires `slipstream_agent` companion
 - `perform_set_text` — sets text field content by finder; requires companion
 - `perform_scroll` — scrolls a Scrollable by fixed pixels; requires companion
 - `perform_scroll_until_visible` — scrolls until a target widget is visible;
@@ -68,11 +68,12 @@ before launching.
 
 ### slipstream_agent companion (`package:slipstream_agent`)
 
-An optional dev dependency apps can install for richer instrumentation. When
-present (detected via `ext.slipstream.ping`), the inspector server uses
-in-process service extensions instead of evaluate-based fallbacks:
+An optional dependency apps can install for richer instrumentation. When present
+(detected via `ext.slipstream.ping`), the inspector server uses in-process
+service extensions instead of evaluate-based fallbacks:
 
-- `ext.slipstream.perform_action` — finder-based tap/set_text/scroll/scroll_until_visible
+- `ext.slipstream.perform_action` — finder-based
+  tap/set_text/scroll/scroll_until_visible
 - `ext.slipstream.navigate` — router-adapter navigation
 - `ext.slipstream.get_route` — current route path from the router adapter
 - `ext.slipstream.get_semantics` — semantics nodes with screen-space coordinates
@@ -80,9 +81,9 @@ in-process service extensions instead of evaluate-based fallbacks:
 - `ext.slipstream.routeChanged` event — forwarded as `[route] /path` log
 
 Typed wrappers for all companion calls live in
-`lib/src/inspector/flutter_service_extensions.dart`
-(`slipstreamTap`, `slipstreamSetText`, etc.). Never call
-`callSlipstreamExtension` directly from tool code.
+`lib/src/inspector/flutter_service_extensions.dart` (`slipstreamTap`,
+`slipstreamSetText`, etc.). Never call `callSlipstreamExtension` directly from
+tool code.
 
 ## Current Status
 

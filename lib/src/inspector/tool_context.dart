@@ -76,8 +76,8 @@ class ToolContext {
           text:
               '$toolName: the slipstream_agent companion package is not '
               'installed in this app.\n\n'
-              'Add it as a dev dependency:\n\n'
-              '  dev_dependencies:\n'
+              'Add it as a dependency:\n\n'
+              '  dependencies:\n'
               '    slipstream_agent: ^0.1.0\n\n'
               'Then call SlipstreamAgent.init() in your main() inside '
               'kDebugMode.\n\n'

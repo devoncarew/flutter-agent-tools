@@ -55,8 +55,8 @@ class NavigateTool extends InspectorTool {
             text:
                 'navigate: the slipstream_agent companion package is not '
                 'installed in this app.\n\n'
-                'Add it as a dev dependency and register a router adapter:\n\n'
-                '  dev_dependencies:\n'
+                'Add it as a dependency and register a router adapter:\n\n'
+                '  dependencies:\n'
                 '    slipstream_agent: ^0.1.0\n\n'
                 'Then in main():\n\n'
                 '  if (kDebugMode) {\n'
