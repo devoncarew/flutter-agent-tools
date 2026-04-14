@@ -124,13 +124,25 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     await super.shutdown();
   }
 
-  void _handleEvent(DaemonEvent event) {
+  void _handleEvent(AppEvent event) {
     if (event.event == 'app.stop') {
       _context.removeSession();
 
       log(
         LoggingLevel.info,
         'App stopped; session released.',
+        logger: _loggerId,
+      );
+      return;
+    } else if (event.event == 'slipstream.windowResized') {
+      final p = event.params;
+      final double w = (p['logicalWidth'] as num?)?.toDouble() ?? 0;
+      final double h = (p['logicalHeight'] as num?)?.toDouble() ?? 0;
+      final double dpr = (p['devicePixelRatio'] as num?)?.toDouble() ?? 1;
+      log(
+        LoggingLevel.info,
+        '[window] ${w.toStringAsFixed(0)}×${h.toStringAsFixed(0)} logical px '
+        '(dpr=${dpr.toStringAsFixed(1)})',
         logger: _loggerId,
       );
       return;
@@ -172,7 +184,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     }
   }
 
-  (LoggingLevel, String)? _convertToLog(DaemonEvent event) {
+  (LoggingLevel, String)? _convertToLog(AppEvent event) {
     final Map<String, dynamic> params = event.params;
 
     String message = params.keys

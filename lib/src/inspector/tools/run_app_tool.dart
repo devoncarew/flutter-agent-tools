@@ -15,7 +15,7 @@ class RunAppTool extends InspectorTool {
   final Future<void> Function(AppSession session) registerSession;
 
   /// Called to forward daemon events from the session to the server.
-  final void Function(DaemonEvent event) eventListener;
+  final void Function(AppEvent event) eventListener;
 
   @override
   final Tool definition = Tool(
@@ -80,10 +80,10 @@ class RunAppTool extends InspectorTool {
     await registerSession(session);
 
     final String deviceInfo =
-        session.deviceId != null ? ' Device: ${session.deviceId}.' : '';
+        session.deviceId != null ? " (device ID: '${session.deviceId}')" : '';
     final String replaced = hadExisting ? ' Previous app was stopped.' : '';
     return CallToolResult(
-      content: [TextContent(text: 'Launched.$deviceInfo$replaced')],
+      content: [TextContent(text: 'Launched!$deviceInfo$replaced')],
     );
   }
 }
