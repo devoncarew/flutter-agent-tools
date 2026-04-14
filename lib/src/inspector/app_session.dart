@@ -448,16 +448,12 @@ class AppSession {
             );
           }
         }
-      } else if (event.extensionKind == 'Flutter.Navigation') {
+      } else if (event.extensionKind == 'ext.slipstream.routeChanged') {
         final data = event.extensionData?.data;
-        final route = data?['route'];
-        final description =
-            route is Map ? route['description'] as String? : null;
-        _eventListener(
-          AppEvent('flutter.navigation', {
-            if (description != null) 'route': description,
-          }),
-        );
+        final String? path = data?['path'] as String?;
+        if (path != null) {
+          _eventListener(AppEvent('slipstream.routeChanged', {'path': path}));
+        }
       } else if (event.extensionKind == 'ext.slipstream.windowResized') {
         final data = event.extensionData?.data;
         if (data != null) {
