@@ -65,7 +65,15 @@ class EvaluateTool extends InspectorTool {
         .replaceAll('&amp;', '&');
     final String? libraryUri = request.arguments!['library_uri'] as String?;
     try {
-      final String result = await session.serviceExtensions!.evaluate(
+      final extensions = session.serviceExtensions!;
+      if (session.hasCompanion) {
+        final msg =
+            expression.length > 60
+                ? '${expression.substring(0, 59)}…'
+                : expression;
+        extensions.slipstreamLog('evaluate', details: '"$msg"');
+      }
+      final String result = await extensions.evaluate(
         expression,
         libraryUri: libraryUri,
       );

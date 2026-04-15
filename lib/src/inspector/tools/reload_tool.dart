@@ -48,6 +48,15 @@ class ReloadTool extends InspectorTool {
     }
 
     final String action = fullRestart ? 'Hot restart' : 'Hot reload';
+
+    if (session.hasCompanion) {
+      // TODO: This may be too early to call 'log'. Consider delaying it until
+      // we know the companion package is available.
+      session.serviceExtensions?.slipstreamLog(
+        fullRestart ? 'restart' : 'reload',
+      );
+    }
+
     return CallToolResult(
       content: [
         TextContent(
