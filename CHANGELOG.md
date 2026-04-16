@@ -1,4 +1,18 @@
-# Changelog
+## 1.1.0
+
+### `slipstream_agent` companion integration improvements
+
+When `package:slipstream_agent` is installed in the target app, inspector tools
+now report their activity to the companion's ghost overlay:
+
+- `take_screenshot` suppresses the Flutter debug banner before capture and
+  restores it afterward (via `ext.slipstream.overlays`)
+- `reload` and hot restart log the operation with elapsed time
+- `evaluate`, `inspect_layout`, and `perform_semantic_action` log their
+  invocations with relevant context (expression snippet, widget ID, action
+  target)
+- Hot restart timing is handled correctly: the log fires after the companion
+  re-registers its extensions post-restart
 
 ## 1.0.0
 
@@ -8,8 +22,8 @@ Initial public release.
 
 - Warns when an agent adds a discontinued package (with official replacement if
   one is listed)
-- Warns when a constraint targets an older major version than the current pub.dev
-  release
+- Warns when a constraint targets an older major version than the current
+  pub.dev release
 - Warns when a package name is not found on pub.dev
 - Fires on `flutter pub add` / `dart pub add` and on direct `pubspec.yaml` edits
 - Always exits 0 — advisory only, never hard-blocks
@@ -24,8 +38,8 @@ Initial public release.
 
 ### `inspector` MCP server
 
-- `run_app` — builds and launches a Flutter app; auto-selects the best
-  available device (desktop > simulator > emulator > physical > web)
+- `run_app` — builds and launches a Flutter app; auto-selects the best available
+  device (desktop > simulator > emulator > physical > web)
 - `reload` — hot reload or hot restart
 - `take_screenshot` — PNG screenshot via the inspector protocol
 - `inspect_layout` — widget layout tree (subtree depth configurable)
