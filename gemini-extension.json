@@ -1,6 +1,6 @@
 {
   "name": "flutter-slipstream",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Flutter/Dart agent tooling: package API summarization and runtime UI introspection.",
   "repository": "https://github.com/devoncarew/flutter-slipstream",
   "license": "BSD-3-Clause license",
