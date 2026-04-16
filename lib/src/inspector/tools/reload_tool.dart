@@ -34,11 +34,17 @@ class ReloadTool extends InspectorTool {
     ToolContext context,
   ) async {
     final session = context.activeSession;
-    if (session == null) return context.noActiveSession();
+    if (session == null) {
+      return context.noActiveSession();
+    }
 
     final bool fullRestart =
         coerceBool(request.arguments!['full_restart']) ?? false;
+
     try {
+      // Start a reload / restart timer.
+      session.reloadTimer = Stopwatch()..start();
+
       await session.restart(fullRestart: fullRestart);
     } on DaemonException catch (e) {
       return CallToolResult(
@@ -48,6 +54,7 @@ class ReloadTool extends InspectorTool {
     }
 
     final String action = fullRestart ? 'Hot restart' : 'Hot reload';
+
     return CallToolResult(
       content: [
         TextContent(

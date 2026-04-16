@@ -91,12 +91,23 @@ class PerformSemanticActionTool extends InspectorTool {
     }
 
     try {
-      final result = await session.serviceExtensions!.performSemanticsAction(
+      final extensions = session.serviceExtensions!;
+      final result = await extensions.performSemanticsAction(
         actionType: action,
         nodeId: nodeId,
         label: label,
         arguments: value,
       );
+      if (session.hasCompanion) {
+        final String target = nodeId != null ? 'id=$nodeId' : '"$label"';
+        // We don't have a semantic ID finder type. We may consider adding one?
+        // It could also be used for 'perform_tap', ...
+        extensions.slipstreamLog(
+          'perform semantic',
+          details: '$action $target',
+          kind: 'interact',
+        );
+      }
       return CallToolResult(content: [TextContent(text: result)]);
     } on RPCError catch (e) {
       return context.rpcError(e);

@@ -40,7 +40,9 @@ class InspectLayoutTool extends InspectorTool {
     ToolContext context,
   ) async {
     final session = context.activeSession;
-    if (session == null) return context.noActiveSession();
+    if (session == null) {
+      return context.noActiveSession();
+    }
 
     final String? widgetId = request.arguments!['widget_id'] as String?;
     final int subtreeDepth =
@@ -80,6 +82,18 @@ class InspectLayoutTool extends InspectorTool {
         subtreeDepth: subtreeDepth,
       );
       final layoutSummary = formatLayoutDetails(node, maxDepth: subtreeDepth);
+      if (session.hasCompanion) {
+        // We don't have a way to pass Flutter Inspector IDs as a widget finder.
+        // That's not really an issue; for the moment it means that the widget
+        // under inspection won't flash. In the future we may have an
+        // 'ext.slipstream.inspect_layout', which would be finder based.
+        extensions.slipstreamLog(
+          'inspect layout',
+          details: widgetId,
+          kind: 'read',
+          viz: 'layout',
+        );
+      }
       return CallToolResult(content: [TextContent(text: layoutSummary)]);
     } on RPCError catch (e) {
       return context.rpcError(e);

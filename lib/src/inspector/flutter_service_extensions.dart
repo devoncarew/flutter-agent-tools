@@ -187,6 +187,64 @@ class FlutterServiceExtensions {
     );
   }
 
+  /// Calls `ext.slipstream.log` to record an agent command in the ghost
+  /// overlay command log.
+  ///
+  /// [command] is a short label such as `"reload"`, `"screenshot"`, or
+  /// `"evaluate"`. [details] is an optional string appended after a colon
+  /// (e.g. a path or expression snippet). In-process extensions
+  /// (`perform_action`, `navigate`, etc.) log themselves automatically — call
+  /// this only for operations that go through the MCP server directly.
+  ///
+  /// [kind] is the icon category shown in the overlay:
+  /// `"reload"`, `"screenshot"`, `"read"`, or `"interact"`.
+  ///
+  /// [finder] and [finderValue] identify the widget of interest (used with
+  /// `viz: "outline"` or `viz: "layout"`).
+  ///
+  /// [viz] requests an extra visualisation:
+  /// `"flash"`, `"outline"`, `"layout"`, or `"semantics"`.
+  ///
+  /// Best-effort: failures are silently ignored so a logging hiccup never
+  /// breaks the calling tool.
+  Future<void> slipstreamLog(
+    String command, {
+    String? details,
+    String? kind,
+    String? finder,
+    String? finderValue,
+    String? viz,
+  }) async {
+    try {
+      final Map<String, dynamic> args = {'command': command};
+      if (details != null) args['details'] = details;
+      if (kind != null) args['kind'] = kind;
+      if (finder != null) args['finder'] = finder;
+      if (finderValue != null) args['finderValue'] = finderValue;
+      if (viz != null) args['viz'] = viz;
+      await _callExtension('ext.slipstream.log', args: args);
+    } catch (_) {
+      // Logging is best-effort — never let it break the calling tool.
+    }
+  }
+
+  /// Calls `ext.slipstream.overlays` to show or hide Slipstream-managed
+  /// overlays (currently the Flutter debug banner).
+  ///
+  /// Pass `enabled: false` before taking a screenshot to hide overlays, then
+  /// `enabled: true` to restore them. Best-effort: failures are silently
+  /// ignored.
+  Future<void> slipstreamOverlays({required bool enabled}) async {
+    try {
+      await _callExtension(
+        'ext.slipstream.overlays',
+        args: {'enabled': enabled},
+      );
+    } catch (_) {
+      // Best-effort — don't let an overlay failure break the screenshot.
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Semantics
 

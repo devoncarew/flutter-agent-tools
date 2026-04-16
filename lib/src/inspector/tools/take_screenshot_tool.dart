@@ -41,14 +41,33 @@ class TakeScreenshotTool extends InspectorTool {
 
     final pixelRatio = coerceDouble(request.arguments!['pixel_ratio']);
 
+    final extensions = session.serviceExtensions;
+    bool overlaysDisabled = false;
     try {
+      if (session.hasCompanion) {
+        await extensions!.slipstreamOverlays(enabled: false);
+        overlaysDisabled = true;
+      }
       final String base64Data = await session.takeScreenshot(
         maxPixelRatio: pixelRatio,
       );
+      if (session.hasCompanion) {
+        overlaysDisabled = false;
+        await extensions!.slipstreamOverlays(enabled: true);
+        extensions.slipstreamLog(
+          'screenshot',
+          kind: 'screenshot',
+          viz: 'flash',
+        );
+      }
       return CallToolResult(
         content: [ImageContent(data: base64Data, mimeType: 'image/png')],
       );
     } on RPCError catch (e) {
+      // Restore overlays even on failure.
+      if (overlaysDisabled) {
+        extensions!.slipstreamOverlays(enabled: true).ignore();
+      }
       return context.rpcError(e);
     }
   }
