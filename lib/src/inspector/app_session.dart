@@ -75,10 +75,6 @@ class AppSession {
   // ignore: unused_field
   String? _dtdToolsUri;
 
-  /// Framework errors received via the `Flutter.Error` VM service event since
-  /// the session started or the last hot restart.
-  List<FlutterError> get errors => List.unmodifiable(_errors);
-
   /// Appends a prefixed line to the output buffer.
   void addOutput(String prefix, String line) {
     final pre = '[$prefix] ';

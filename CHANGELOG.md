@@ -1,7 +1,11 @@
-## 1.2.0-wip
+## 1.2.0
 
 - Addressed an issue where a 'restart' message could appear in the app under
   test at startup (and not just after a hot restart).
+- Added `get_output` tool: returns buffered app stdout, Flutter errors, and
+  route changes since the last call (or the last reload/restart), then clears
+  the buffer. Replaces push-based MCP log notifications, which are not forwarded
+  to agent context in Claude Code or Gemini CLI.
 
 ## 1.1.0
 
