@@ -15,7 +15,7 @@ import '../test/test_utils.dart';
 //
 // For the moment this script is run manually.
 
-// TODO: complete the test coverage for the commands
+// TODO: Complete test coverage for the commands.
 
 void main(List<String> args) {
   // Require the app to run as the first arg.
@@ -37,11 +37,6 @@ void main(List<String> args) {
   });
 
   tearDownAll(() async {
-    // TODO: Sombody else is closing the app for us...
-    // await env.serverConnection.callTool(
-    //   CallToolRequest(name: 'close_app'),
-    // );
-
     await env.shutdown();
   });
 

@@ -71,7 +71,7 @@ class EvaluateTool extends InspectorTool {
             expression.length > 60
                 ? '${expression.substring(0, 59)}…'
                 : expression;
-        extensions.slipstreamLog('evaluate', details: '"$msg"');
+        extensions.slipstreamLog('evaluate', details: '"$msg"', kind: 'read');
       }
       final String result = await extensions.evaluate(
         expression,

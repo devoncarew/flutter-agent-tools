@@ -43,6 +43,9 @@ class AppSession {
 
   final DebugLogger debugLog;
 
+  // Used to time reload / restart operations.
+  Stopwatch? reloadTimer;
+
   final Completer<void> _startedCompleter = Completer<void>();
   int _nextId = 0;
   final Map<int, Completer<Map<String, dynamic>>> _pending = {};
@@ -52,7 +55,11 @@ class AppSession {
 
   String? _vmServiceUri;
   FlutterServiceExtensions? _serviceExtensions;
-  StreamSubscription<Event>? _vmServiceSubscription;
+  StreamSubscription<Event>? _vmIsolateEventSubscription;
+  StreamSubscription<Event>? _vmExtensionEventSubscription;
+
+  // TODO: We need to null this out when the associated isolate stops (as part
+  // of a hot restart).
   String? _companionVersion;
 
   // Capped at [_maxErrors] most-recent errors; cleared on hot restart.
@@ -409,12 +416,49 @@ class AppSession {
         _devToolsUri = params['uri'] as String?;
       } else if (event == 'app.dtd') {
         _dtdToolsUri = params['uri'] as String?;
+      } else if (event == 'app.progress') {
+        // {id: '2', progressId: 'hot.reload', finished: true}
+        final progressId = params['progressId'] as String? ?? '';
+        final finished = params['finished'] == true;
+
+        if (finished && progressId == 'hot.reload') {
+          final duration = reloadTimer?.elapsed;
+          reloadTimer = null;
+
+          if (hasCompanion) {
+            serviceExtensions?.slipstreamLog(
+              'reload',
+              kind: 'reload',
+              details: describeShortDuration(duration),
+            );
+          }
+        } else if (finished && progressId == 'hot.restart') {
+          // Stop the timer now. The companion agent hasn't had a chance to boot
+          // up and register its 'ping' or 'log' extensions. Wait until we see
+          // an extension registragion go by for them, then send a
+          // slipstreamLog('restart') message.
+          reloadTimer?.stop();
+        }
       }
 
       if (!_sessionEnded) {
         _eventListener(AppEvent(event, params));
       }
     }
+  }
+
+  // Perform the second half of a hot restart notification. We've already
+  // stopped the timer, and we're only called here after the companion agent
+  // has become available.
+  void _checkHotRestartTimer() {
+    final duration = reloadTimer?.elapsed;
+    reloadTimer = null;
+
+    serviceExtensions?.slipstreamLog(
+      'restart',
+      kind: 'reload',
+      details: describeShortDuration(duration),
+    );
   }
 
   Future<void> _connectVmService(String wsUri) async {
@@ -431,9 +475,27 @@ class AppSession {
     // Detect companion package. Best-effort — fails open if not installed.
     _pingCompanion();
 
-    await vmService.streamListen(EventStreams.kExtension);
+    // Isolate events
+    vmService.streamListen(EventStreams.kIsolate).ignore();
+    _vmIsolateEventSubscription = vmService.onIsolateEvent.listen((
+      Event event,
+    ) {
+      // Also available:
+      //   kIsolateStart, kIsolateRunnable, kIsolateExit, kIsolateReload
 
-    _vmServiceSubscription = vmService.onExtensionEvent.listen((Event event) {
+      if (event.kind == EventKind.kServiceExtensionAdded) {
+        final rpcName = event.extensionRPC;
+        if (rpcName == 'ext.slipstream.ping') {
+          _pingCompanion(ifAvailable: _checkHotRestartTimer);
+        }
+      }
+    });
+
+    // Extension events
+    vmService.streamListen(EventStreams.kExtension).ignore();
+    _vmExtensionEventSubscription = vmService.onExtensionEvent.listen((
+      Event event,
+    ) {
       if (event.extensionKind == 'Flutter.Error') {
         final data = event.extensionData?.data;
         if (data != null) {
@@ -473,9 +535,13 @@ class AppSession {
 
   /// Calls [FlutterServiceExtensions.pingCompanion] and stores the result.
   /// Best-effort — called on initial connect and after each hot restart.
-  void _pingCompanion() {
+  void _pingCompanion({Function? ifAvailable}) {
     _serviceExtensions?.pingCompanion().then((version) {
       _companionVersion = version;
+
+      if (ifAvailable != null) {
+        ifAvailable();
+      }
     });
   }
 
@@ -499,8 +565,10 @@ class AppSession {
 
     _sessionEnded = true;
 
-    _vmServiceSubscription?.cancel();
-    _vmServiceSubscription = null;
+    _vmIsolateEventSubscription?.cancel();
+    _vmIsolateEventSubscription = null;
+    _vmExtensionEventSubscription?.cancel();
+    _vmExtensionEventSubscription = null;
     _serviceExtensions?.dispose();
     _serviceExtensions = null;
   }

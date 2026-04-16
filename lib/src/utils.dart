@@ -42,3 +42,17 @@ Object? jsonTryParse(String source) {
     return null;
   }
 }
+
+/// Describe a short duration. This may return '100ms' or it may return '6.1s'.
+String? describeShortDuration(Duration? elapsed) {
+  if (elapsed == null) return null;
+
+  final ms = elapsed.inMilliseconds;
+
+  if (ms < 1000) {
+    return '${ms}ms';
+  } else {
+    final s = ms / 1000.0;
+    return '${s.toStringAsFixed(1)}s';
+  }
+}

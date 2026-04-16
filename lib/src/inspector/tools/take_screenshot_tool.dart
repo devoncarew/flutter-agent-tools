@@ -54,7 +54,11 @@ class TakeScreenshotTool extends InspectorTool {
       if (session.hasCompanion) {
         overlaysDisabled = false;
         await extensions!.slipstreamOverlays(enabled: true);
-        extensions.slipstreamLog('screenshot');
+        extensions.slipstreamLog(
+          'screenshot',
+          kind: 'screenshot',
+          viz: 'flash',
+        );
       }
       return CallToolResult(
         content: [ImageContent(data: base64Data, mimeType: 'image/png')],

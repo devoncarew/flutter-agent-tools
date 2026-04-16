@@ -31,9 +31,9 @@ class SemanticNode {
   final int id;
 
   /// Role derived from the node's flags: 'button', 'textfield', 'slider',
-  /// 'link', 'image', 'header', 'checkbox', 'toggle', 'radio', or '' for
+  /// 'link', 'image', 'header', 'checkbox', 'toggle', 'radio', or null for
   /// plain text/containers.
-  final String role;
+  final String? role;
 
   /// Primary accessibility label.
   final String label;
@@ -148,7 +148,7 @@ List<SemanticNode> parseCompanionSemanticsNodes(List<dynamic> nodes) {
 SemanticNode _nodeFromMap(Map<String, dynamic> m) {
   return SemanticNode(
     id: m['id'] as int,
-    role: m['role'] as String? ?? '',
+    role: m['role'] as String?,
     label: m['label'] as String? ?? '',
     value: m['value'] as String? ?? '',
     hint: m['hint'] as String? ?? '',

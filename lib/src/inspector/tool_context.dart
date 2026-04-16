@@ -90,9 +90,7 @@ class ToolContext {
 
   /// Returns an error result for a VM service [RPCError].
   CallToolResult rpcError(RPCError e) {
-    // TODO: We need to double check what we're doing here. Sometimes e.details
-    // is populated with information we want to preserve. Should we just be
-    // doing
+    // TODO: We need to double check what we're doing here.
     final details = e.details;
     final error = ServiceError.tryParse(e);
     return CallToolResult(

@@ -105,7 +105,7 @@ void main() {
   group('formatSemanticsTree', () {
     SemanticNode node({
       int id = 1,
-      String role = '',
+      String? role,
       String label = '',
       String value = '',
       String hint = '',

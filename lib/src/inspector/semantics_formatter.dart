@@ -41,7 +41,7 @@ String _formatNode(SemanticNode node) {
   // Supported actions on the header line.
   final actionsStr = node.describeActions.map((a) => ' action:$a').join('');
 
-  final role = node.role.isNotEmpty ? node.role : 'text';
+  final role = node.role ?? 'text';
   buf.writeln('[$role id=${node.id}$statesStr$actionsStr]');
 
   if (node.label.isNotEmpty) {
@@ -80,7 +80,7 @@ final RegExp _stripTrailingZeros = RegExp(r'\.?0+$');
 bool _hasContent(SemanticNode node) {
   if (node.describeState.isNotEmpty) return true;
   if (node.actions != 0) return true;
-  if (node.role.isNotEmpty) return true;
+  if (node.role != null) return true;
 
   return node.label.isNotEmpty || node.value.isNotEmpty || node.hint.isNotEmpty;
 }
