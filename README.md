@@ -89,6 +89,7 @@ expressions, and observe runtime errors with widget IDs.
 |---------|-------------|
 | `run_app` | Builds and launches the Flutter app. |
 | `reload` | Applies source file changes to a running Flutter app. |
+| `get_output` | Returns buffered app output and runtime events since the last call (or the last reload/restart). |
 | `take_screenshot` | Captures a PNG screenshot of the running Flutter app. |
 | `inspect_layout` | Use when debugging layout issues, overflow errors, or unexpected widget sizing. |
 | `evaluate` | Evaluates a Dart expression on the running app's main isolate and returns the result as a string. |

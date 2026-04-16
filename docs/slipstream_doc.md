@@ -96,7 +96,7 @@ Recommended workflow for UI changes:
 Debugging layout issues:
 
 - inspect_layout with no widget_id starts from the root.
-- Widget IDs appear in flutter.error log events — use them to jump directly to
+- Widget IDs appear in flutter.error log output — use them to jump directly to
   the failing widget.
 - Increase subtree_depth to see deeper into the tree.
 
@@ -112,8 +112,8 @@ Orientation:
   instead of 'perform_semantic_action' — these support byKey/byType/byText
   finders and do not require semantics annotations.
 
-Flutter.Error events are forwarded automatically as MCP log warnings — no
-polling needed. They include widget IDs for use with inspect_layout.
+After reload or any interaction tool, call get_output to see app stdout, Flutter
+errors, and route changes since the last call.
 
 ### `inspector:run_app`
 
@@ -149,6 +149,26 @@ be fully reset.
 
 - `full_restart`: If true, performs a hot restart instead of a hot reload.
   Defaults to false.
+
+### `inspector:get_output`
+
+```
+get_output()
+```
+
+Returns buffered app output and runtime events since the last call (or the last
+reload/restart).
+
+Call this after reload, after interaction tools (perform_tap, perform_set_text,
+etc.), and after run_app to check for errors or unexpected output. Calling this
+clears the buffer.
+
+Output is prefixed by source:
+
+- [app] print() / debugPrint() output from the app
+- [stdout] other process stdout
+- [flutter.error] framework errors; widget IDs usable with inspect_layout
+- [route] navigation events (requires slipstream_agent companion)
 
 ### `inspector:take_screenshot`
 

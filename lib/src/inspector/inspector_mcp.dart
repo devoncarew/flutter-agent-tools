@@ -7,6 +7,7 @@ import 'app_session.dart';
 import 'tool_context.dart';
 import 'tools/close_app_tool.dart';
 import 'tools/evaluate_tool.dart';
+import 'tools/get_output_tool.dart';
 import 'tools/get_route_tool.dart';
 import 'tools/get_semantics_tool.dart';
 import 'tools/inspect_layout_tool.dart';
@@ -28,9 +29,13 @@ base class InspectorMCPServer extends MCPServer
     with ToolsSupport, LoggingSupport {
   static const String _loggerId = 'flutter_agent_tools';
 
-  late final ToolContext _context = ToolContext(
-    log: (level, message) => log(level, message, logger: _loggerId),
-  );
+  late final ToolContext _context = ToolContext(log: _serverLog);
+
+  /// Diagnostic log — sent as an MCP notification (not buffered for agents).
+  /// Use for internal server events; not expected to reach the model context.
+  void _serverLog(String message) {
+    log(LoggingLevel.info, message, logger: _loggerId);
+  }
 
   InspectorMCPServer(super.channel)
     : super.fromStreamChannel(
@@ -51,7 +56,7 @@ Recommended workflow for UI changes:
 
 Debugging layout issues:
 - inspect_layout with no widget_id starts from the root.
-- Widget IDs appear in flutter.error log events — use them to jump directly to the failing widget.
+- Widget IDs appear in flutter.error log output — use them to jump directly to the failing widget.
 - Increase subtree_depth to see deeper into the tree.
 
 Orientation:
@@ -59,7 +64,7 @@ Orientation:
 - get_semantics lists visible, interactive nodes with their IDs. Pass node IDs directly to 'perform_semantic_action'.
 - If the app has slipstream_agent installed, use 'perform_tap', 'perform_set_text', 'perform_scroll', or 'perform_scroll_until_visible' instead of 'perform_semantic_action' — these support byKey/byType/byText finders and do not require semantics annotations.
 
-Flutter.Error events are forwarded automatically as MCP log warnings — no polling needed. They include widget IDs for use with inspect_layout.''',
+After reload or any interaction tool, call get_output to see app stdout, Flutter errors, and route changes since the last call.''',
       ) {
     loggingLevel = LoggingLevel.info;
 
@@ -90,6 +95,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
       ),
     );
     register(ReloadTool());
+    register(GetOutputTool());
     register(TakeScreenshotTool());
     register(InspectLayoutTool());
     register(EvaluateTool());
@@ -127,33 +133,32 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
   void _handleEvent(AppEvent event) {
     if (event.event == 'app.stop') {
       _context.removeSession();
-
-      log(
-        LoggingLevel.info,
-        'App stopped; session released.',
-        logger: _loggerId,
-      );
+      _serverLog('App stopped; session released.');
       return;
-    } else if (event.event == 'slipstream.windowResized') {
+    }
+
+    final session = _context.activeSession;
+
+    if (event.event == 'slipstream.windowResized') {
       final p = event.params;
       final double w = (p['logicalWidth'] as num?)?.toDouble() ?? 0;
       final double h = (p['logicalHeight'] as num?)?.toDouble() ?? 0;
       final double dpr = (p['devicePixelRatio'] as num?)?.toDouble() ?? 1;
-      log(
-        LoggingLevel.info,
+      _serverLog(
         '[window] ${w.toStringAsFixed(0)}×${h.toStringAsFixed(0)} logical px '
         '(dpr=${dpr.toStringAsFixed(1)})',
-        logger: _loggerId,
       );
       return;
     } else if (event.event == 'slipstream.routeChanged') {
       final String path = event.params['path'] as String? ?? '?';
-      log(LoggingLevel.info, '[route] $path', logger: _loggerId);
+      session?.addOutput('route', path);
+      _serverLog('[route] $path');
       return;
     } else if (event.event == 'flutter.error') {
       final String summary =
           event.params['summary'] as String? ?? 'Unknown Flutter error';
-      log(LoggingLevel.warning, '[flutter.error] $summary', logger: _loggerId);
+      session?.addOutput('flutter.error', summary);
+      _serverLog('[flutter.error] $summary');
       return;
     }
 
@@ -161,19 +166,23 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
     if (item != null) {
       if (event.event == 'app.log') {
         const appOutputPrefix = 'flutter: ';
-        if (item.$2.startsWith(appOutputPrefix)) {
-          final msg = item.$2.substring(appOutputPrefix.length);
-          log(item.$1, '[app] $msg', logger: _loggerId);
+        final String line;
+        if (item.startsWith(appOutputPrefix)) {
+          line = item.substring(appOutputPrefix.length);
+          session?.addOutput('app', line);
+          _serverLog('[app] $line');
         } else {
-          log(item.$1, '[stdout] ${item.$2}', logger: _loggerId);
+          line = item;
+          session?.addOutput('stdout', line);
+          _serverLog('[stdout] $line');
         }
       } else {
-        log(item.$1, '[${event.event}] ${item.$2}', logger: _loggerId);
+        _serverLog('[${event.event}] $item');
       }
     }
   }
 
-  (LoggingLevel, String)? _convertToLog(AppEvent event) {
+  String? _convertToLog(AppEvent event) {
     final Map<String, dynamic> params = event.params;
 
     String message = params.keys
@@ -187,8 +196,7 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
       case 'app.log':
         {
           message = params['log'] as String? ?? message;
-          final bool isError = params['error'] as bool? ?? false;
-          return (isError ? LoggingLevel.warning : LoggingLevel.info, message);
+          return message;
         }
       case 'app.progress':
         {
@@ -205,6 +213,6 @@ Flutter.Error events are forwarded automatically as MCP log warnings — no poll
         }
     }
 
-    return (LoggingLevel.info, message);
+    return message;
   }
 }
