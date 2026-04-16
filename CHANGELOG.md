@@ -1,3 +1,8 @@
+## 1.2.0-wip
+
+- Addressed an issue where a 'restart' message could appear in the app under
+  test at startup (and not just after a hot restart).
+
 ## 1.1.0
 
 ### `slipstream_agent` companion integration improvements

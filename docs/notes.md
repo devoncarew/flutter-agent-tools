@@ -34,16 +34,21 @@
       `3` is not of type `int` at path #root["subtree_depth"]"; Same pattern as
       the `node_id` issue above — likely the same underlying schema problem.
 
-### How-to
+## How-to
 
 - adding semantic nodes helps traversal (and also screen readers, ...)
 - modifying the source to improve getting and setting routes?
-- ship a small 'agents tools' library?
-  - it could add vm service extension methods which we could then call
-  - improved semantic node traversal
 
-- [ ] explore what a guide to agents adding 'assists' to the code would look
-      like (semantic nodes; something to aide navigation?)
 - [x] explore what an in-line package could provide; would it be a big enough
       win to recommend it? better semantic tree retrieval, better routing
       support, ...; package:slipstream_agent / package:slipstream_support
+
+## Logging
+
+- Claude Code does not appear to forward notifications/message MCP events into
+  the model context at all.
+- Once we do get log messages to the model we should make sure they're not too
+  verbose.
+
+- [ ] resolution: design and add an 'output' tool; get most recent stdout and
+      errors

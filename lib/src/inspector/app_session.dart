@@ -451,7 +451,9 @@ class AppSession {
   // stopped the timer, and we're only called here after the companion agent
   // has become available.
   void _checkHotRestartTimer() {
-    final duration = reloadTimer?.elapsed;
+    if (reloadTimer == null) return;
+
+    final duration = reloadTimer!.elapsed;
     reloadTimer = null;
 
     serviceExtensions?.slipstreamLog(
