@@ -32,6 +32,8 @@ Typical call sequence:
 Source is the local pub cache — already downloaded, always matches the resolved
 version in pubspec.lock, no network required.''',
       ) {
+    loggingLevel = LoggingLevel.info;
+
     _registerTools();
   }
 

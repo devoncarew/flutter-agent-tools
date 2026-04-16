@@ -23,7 +23,7 @@ class AppSession {
     this._process,
     this._eventListener, {
     this.deviceId,
-    required this.debugLog,
+    required this.serverLog,
   }) {
     _process.stdout
         .transform(utf8.decoder)
@@ -41,7 +41,7 @@ class AppSession {
   /// The 'flutter run' device ID that we launched on.
   final String? deviceId;
 
-  final DebugLogger debugLog;
+  final DebugLogger serverLog;
 
   // Used to time reload / restart operations.
   Stopwatch? reloadTimer;
@@ -66,15 +66,29 @@ class AppSession {
   static const int _maxErrors = 50;
   final List<FlutterError> _errors = [];
 
+  // Output buffer — prefixed lines accumulated since the last drain or reload.
+  final List<String> _outputBuffer = [];
+
   // ignore: unused_field
   String? _devToolsUri;
 
   // ignore: unused_field
   String? _dtdToolsUri;
 
-  /// Framework errors received via the `Flutter.Error` VM service event since
-  /// the session started or the last hot restart.
-  List<FlutterError> get errors => List.unmodifiable(_errors);
+  /// Appends a prefixed line to the output buffer.
+  void addOutput(String prefix, String line) {
+    final pre = '[$prefix] ';
+    line = line.trimRight();
+    line = line.replaceAll('\n', '\n  ');
+    _outputBuffer.addAll('$pre$line'.split('\n'));
+  }
+
+  /// Returns all buffered output lines and clears the buffer.
+  List<String> drainOutput() {
+    final lines = List<String>.from(_outputBuffer);
+    _outputBuffer.clear();
+    return lines;
+  }
 
   /// Whether the slipstream_agent companion package is installed in the running
   /// app.
@@ -108,7 +122,7 @@ class AppSession {
     required EventCallback eventListener,
     String? deviceId,
     String? target,
-    required DebugLogger debugLog,
+    required DebugLogger serverLog,
   }) async {
     deviceId ??= await _autoSelectDevice(workingDirectory);
 
@@ -129,7 +143,7 @@ class AppSession {
       process,
       eventListener,
       deviceId: deviceId,
-      debugLog: debugLog,
+      serverLog: serverLog,
     );
     await session._startedCompleter.future;
     return session;
@@ -298,6 +312,7 @@ class AppSession {
       throw DaemonException('app.restart failed (code $code): $message');
     }
     _errors.clear();
+    _outputBuffer.clear();
   }
 
   /// Stops the running app.
@@ -451,7 +466,9 @@ class AppSession {
   // stopped the timer, and we're only called here after the companion agent
   // has become available.
   void _checkHotRestartTimer() {
-    final duration = reloadTimer?.elapsed;
+    if (reloadTimer == null) return;
+
+    final duration = reloadTimer!.elapsed;
     reloadTimer = null;
 
     serviceExtensions?.slipstreamLog(

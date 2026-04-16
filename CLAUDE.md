@@ -47,6 +47,8 @@ before launching.
   absolute path
 - `reload` — hot reload (`full_restart: false`, default) or hot restart
   (`full_restart: true`)
+- `get_output` — drains the output buffer; call after reload and interaction
+  tools to see app stdout, Flutter errors, and route changes
 - `take_screenshot` — captures a PNG screenshot via the inspector protocol
 - `inspect_layout` — returns the widget layout tree; `widget_id` omitted → root
 - `evaluate` — evaluates an arbitrary Dart expression on the main isolate
@@ -95,7 +97,8 @@ tool code.
   `class_stub` all implemented
 - inspector MCP server: functional — all tools above implemented and working
 - `slipstream_agent` companion detection and event forwarding: implemented
-- Flutter.Error events are pushed to agents as MCP log warnings with widget IDs
+- `get_output` tool: pull-based output buffer for app stdout, Flutter errors,
+  and route changes; `_serverLog` is diagnostic-only (not agent-visible)
 
 ## Development
 

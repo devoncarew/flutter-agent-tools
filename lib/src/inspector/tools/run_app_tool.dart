@@ -26,9 +26,8 @@ class RunAppTool extends InspectorTool {
     description:
         'Builds and launches the Flutter app. Call this first before '
         'inspecting, screenshotting, or evaluating. If an app is already '
-        'running it is stopped and replaced. Flutter.Error events from the '
-        'running app are automatically forwarded as MCP log warnings — no '
-        'polling needed.',
+        'running it is stopped and replaced. Call get_output after run_app '
+        'to see initial app output and any startup errors.',
     inputSchema: Schema.object(
       properties: {
         'working_directory': Schema.string(
@@ -84,7 +83,7 @@ class RunAppTool extends InspectorTool {
         eventListener: eventListener,
         deviceId: device,
         target: target,
-        debugLog: (message) => context.log(LoggingLevel.info, message),
+        serverLog: context.log,
       );
       await registerSession(session);
     } on DaemonException catch (e) {

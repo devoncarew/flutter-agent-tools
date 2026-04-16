@@ -35,7 +35,7 @@ class ToolContext {
   AppSession? _session;
 
   /// Logs a message at the given level to the MCP client.
-  final void Function(LoggingLevel level, String message) log;
+  final void Function(String message) log;
 
   /// The currently active app session, or null if no app is running.
   AppSession? get activeSession => _session;
