@@ -2,56 +2,86 @@
 
 - flutter create --platforms=android,ios,macos,web showcase
 - cd showcase
-- flutter run -d macos
 - `rm test/*_test.dart`
+- flutter run -d macos
 - claude --plugin-dir /Users/.../flutter-agent-tools
 
-## .claude/settings.local.json:
+## .claude/settings.local.json
 
 ```
 {
   "permissions": {
     "allow": [
-      "Bash(flutter pub:*)",
+      "Bash(dart *)",
+      "Bash(flutter *)",
+      "Edit",
+      "Write",
       "mcp__plugin_flutter-slipstream_packages__package_summary",
-      "mcp__plugin_flutter-slipstream_packages__library_stub",
       "mcp__plugin_flutter-slipstream_packages__class_stub",
       "mcp__plugin_flutter-slipstream_inspector__run_app",
+      "mcp__plugin_flutter-slipstream_inspector__get_output",
       "mcp__plugin_flutter-slipstream_inspector__take_screenshot",
+      "mcp__plugin_flutter-slipstream_inspector__perform_set_text",
+      "mcp__plugin_flutter-slipstream_inspector__perform_tap",
       "mcp__plugin_flutter-slipstream_inspector__navigate",
+      "mcp__plugin_flutter-slipstream_inspector__perform_scroll_until_visible",
+      "mcp__plugin_flutter-slipstream_inspector__perform_scroll",
       "mcp__plugin_flutter-slipstream_inspector__reload",
-      "mcp__plugin_flutter-slipstream_inspector__tap",
+      "mcp__plugin_flutter-slipstream_inspector__perform_semantic_action",
       "mcp__plugin_flutter-slipstream_inspector__get_semantics",
+      "mcp__plugin_flutter-slipstream_inspector__get_route",
       "mcp__plugin_flutter-slipstream_inspector__close_app"
     ]
   }
 }
 ```
 
-## Prompt
+## Claude Prompt
 
-Hi! We're testing out a new Claude plugin, with two MCP servers, 'inspector' and
-'packages'. The plugin is flutter-slipstream: "A Claude Code plugin that makes
-AI coding agents more effective for Dart and Flutter projects.".
+TODO: This tends to just write everything and then run the tool after. We should
+switch to having separate, sequential min-prompts per page.
 
-Your job is to test the plugin - learn what it does well and where it could
-improve - and provide feedback about the tool. Please familiarize yourself with
-its MCP tools. In order to test it you'll be building an app. This directory is
-populated with a standard hello-world flutter app. Please - working
-iteratively - turn it into a Flutter widget showcase. Try and use popular and
-common packages, like provider and go_router. Feel free to use packages you're
-less familiar with, in order to test out the tool's features. Building the app
-is a mechanism for testing this Claude plugin.
+Hi! We're testing out a new Claude plugin; it has two MCP servers, 'inspector'
+and 'packages'. The plugin is flutter-slipstream: "A tool that makes AI coding
+agents more effective for Dart and Flutter projects".
 
-Relatively early in your work, please start the app. Then work iteratively, hot
-reloading at regular intervals. If you get stuck please ask questions. Otherwise
-work independently. Once you're done, please write your feedback - pros, cons,
-bugs, and things which could improve the tool - as well as a work log - to
-/Users/.../flutter-agent-tools/docs/feedback-xx.md.
+Your job is to put the plugin through its paces — learn what it does well and
+where it could improve — and provide feedback about it. Please familiarize
+yourself with its MCP tools before starting. In order to test it you'll be
+building an app. This directory is populated with a standard hello-world Flutter
+app. Please — working iteratively — turn it into a small Flutter widget
+showcase. You can assume a mobile phone sized screen.
+
+App requirements:
+
+- Scaffold with a drawer and a bottom navigation bar (3 or 4 tabs)
+- theme toggle in the app bar (light/dark)
+- each tab should demo a few Flutter widgets — include at minimum a text input
+  field, a scrollable list, and a form with a button
+- use `provider` for state management (theme toggle is fine)
+- use `go_router` for navigation
+- add `slipstream_agent` as a dependency and initialize it in main — this
+  unlocks companion-mode tooling in the inspector
+
+How to work:
+
+- start the app relatively early (via the inspector's `run_app`)
+- hot reload as you go; after each reload or interaction, check `get_output` for
+  errors and app output
+- take screenshots to verify visual changes; don't assume edits worked
+- to interact with the running app, prefer the finder-based tools
+  (`perform_tap`, `perform_set_text`, `perform_scroll`)
+- use the `packages` MCP server to learn the API of any unfamiliar package
+- work independently; if you get stuck, skip the section you're working on
+
+Once done, please write your feedback — pros, cons, bugs, and areas for
+improvement, along with a brief work log — to a `feedback.md` document in this
+directory. Building the app is a mechanism for testing the plugin, not the end
+goal.
 
 Do you have any questions before you begin?
 
-## Gemini
+## Gemini Prompt
 
 Hi! We're testing out new coding agent tooling in the form of two MCP servers,
 'inspector' and 'packages'. The general tool is Flutter Slipstream /
@@ -84,7 +114,7 @@ as a work log - to 'feedback.md' in the current directory.
 
 Do you have any questions before you begin?
 
-## Smoke test
+## Gemini Smoke test
 
 Hi! We're testing out new coding agent tooling in the form of two MCP servers,
 'inspector' and 'packages'. The general tool is Flutter Slipstream /
