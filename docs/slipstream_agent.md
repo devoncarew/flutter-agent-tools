@@ -2,12 +2,11 @@
 
 ## Overview
 
-`slipstream_agent` is an optional, opt-in `dev_dependency` that developers (or
-their AI agents) can install into a Flutter app under development. It upgrades
-the connection between the Slipstream MCP server and the running app from
-external observation to internal cooperation — providing typed service
-extensions, direct element targeting, visual feedback, and richer framework
-hooks.
+`slipstream_agent` is an optional, opt-in `dependency` that developers (or their
+AI agents) can install into a Flutter app under development. It upgrades the
+connection between the Slipstream MCP server and the running app from external
+observation to internal cooperation — providing typed service extensions, direct
+element targeting, visual feedback, and richer framework hooks.
 
 ## Philosophical Context
 
@@ -235,10 +234,10 @@ structured JSON events via `postExtensionEvent`:
 
 ### Installation
 
-Added as a development dependency — not shipped in production builds.
+Added as a dependency:
 
 ```yaml
-dev_dependencies:
+dependencies:
   slipstream_agent: ^1.0.0
 ```
 
@@ -284,8 +283,8 @@ overlay widget. It is a no-op if called outside `kDebugMode`.
 
 ### Suggested Phasing
 
-| Phase | Features                                                      | Value                                               |
-| ----- | ------------------------------------------------------------- | --------------------------------------------------- |
-| 1     | Finders (byKey, byType, byText), Scroll                       | Eliminates the main reason agents annotate app code |
-| 2     | Routing adapter, Service extensions for tap/set_text/navigate | Reliability + multi-router support                  |
-| 3     | Ghost Overlay, Telemetry                                      | Developer trust, debugging signals                  |
+| Phase | Features                                        | Value                              |
+| ----- | ----------------------------------------------- | ---------------------------------- |
+| 1     | Finders (byKey, byType, byText), Scroll         | Improved widget locatability       |
+| 2     | Routing adapter, Service extensions for tap/... | Reliability + multi-router support |
+| 3     | Ghost Overlay, Telemetry                        | Developer trust, debugging signals |

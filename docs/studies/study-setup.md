@@ -1,0 +1,139 @@
+## Setup
+
+```bash
+flutter create --platforms=android,ios,macos,web showcase && \
+  cd showcase && \
+  rm test/*_test.dart && \
+  mkdir .claude && \
+  mkdir .gemini && \
+  echo "{}" > .claude/settings.json && \
+  echo "{}" > .gemini/settings.json && \
+  flutter run -d macos
+```
+
+## .claude/settings.json
+
+```
+{
+  "permissions": {
+    "allow": [
+      "Bash(dart *)",
+      "Bash(flutter *)",
+      "Edit",
+      "Write",
+      "mcp__plugin_flutter-slipstream_packages__package_summary",
+      "mcp__plugin_flutter-slipstream_packages__class_stub",
+      "mcp__plugin_flutter-slipstream_inspector__run_app",
+      "mcp__plugin_flutter-slipstream_inspector__get_output",
+      "mcp__plugin_flutter-slipstream_inspector__take_screenshot",
+      "mcp__plugin_flutter-slipstream_inspector__perform_set_text",
+      "mcp__plugin_flutter-slipstream_inspector__perform_tap",
+      "mcp__plugin_flutter-slipstream_inspector__navigate",
+      "mcp__plugin_flutter-slipstream_inspector__perform_scroll_until_visible",
+      "mcp__plugin_flutter-slipstream_inspector__perform_scroll",
+      "mcp__plugin_flutter-slipstream_inspector__reload",
+      "mcp__plugin_flutter-slipstream_inspector__perform_semantic_action",
+      "mcp__plugin_flutter-slipstream_inspector__get_semantics",
+      "mcp__plugin_flutter-slipstream_inspector__get_route",
+      "mcp__plugin_flutter-slipstream_inspector__close_app"
+    ]
+  }
+}
+```
+
+## .gemini/settings.json
+
+```
+{
+  "mcpServers": {
+    "inspector": {
+      "trust": true
+    },
+    "packages": {
+      "trust": true
+    }
+  },
+  "tools": {
+    "allowed": [
+      "read_file",
+      "write_file",
+      "replace",
+      "run_shell_command(dart)",
+      "run_shell_command(flutter)"
+    ]
+  }
+}
+```
+
+## Study Prompt
+
+Hi! You'll be building a Flutter widget-showcase app to test a new Claude
+plugin. The plugin — **flutter-slipstream** — has two MCP servers: `inspector`
+(launch, reload, screenshot, and interact with a running Flutter app) and
+`packages` (accurate API signatures pulled from the local pub cache). Take a
+moment to read the available tools before starting.
+
+Use `provider` for state and `go_router` for routing. Add `slipstream_agent` as
+a dependency and call `SlipstreamAgent.init()` in `main` — this unlocks
+finder-based interaction tools in the inspector. Assume a mobile phone screen.
+
+Please work through these steps in order:
+
+**1. Scaffold** — Build a minimal shell: Scaffold with a drawer, a bottom
+navigation bar (3 tabs), and a light/dark theme toggle in the app bar. No tab
+content yet. Run the app, take a screenshot, and verify it looks right.
+
+**2. Inputs tab** — A text field, a slider, and a row of toggle chips or switch
+tiles. Reload, screenshot, then use `perform_set_text` and `perform_tap` to
+interact with the controls.
+
+**3. List tab** — A scrollable list of 25+ cards (title + subtitle). Reload,
+screenshot, scroll with `perform_scroll`, and tap a card.
+
+**4. Form tab** — A validated form with a name field, an email field, a
+checkbox, and a Submit button that shows a result. Reload, screenshot, fill the
+form with `perform_set_text`, and submit it.
+
+**5. Navigate** — Use `navigate` to jump between tabs; verify with `get_route`.
+Open the drawer and tap a drawer item.
+
+A few reminders: call `get_output` after every reload and interaction to catch
+errors early; use `package_summary` or `class_stub` rather than guessing at
+APIs; skip a step if you get stuck.
+
+When done, write your feedback — pros, cons, bugs, areas for improvement — and a
+brief work log to `feedback.md` in this directory.
+
+Do you have any questions before you begin?
+
+## Smoke test prompt
+
+Hi! You'll be smoke-testing **flutter-slipstream**, a Claude plugin with two MCP
+servers: `inspector` (launch, reload, screenshot, and interact with a running
+Flutter app) and `packages` (accurate API signatures from the local pub cache).
+The goal is to catch regressions and rough edges across the main workflows. This
+directory has a Flutter app you can use.
+
+Work through these steps:
+
+**1. Packages** — Run `package_summary` on a package (e.g. `provider`), then use
+`class_stub` to drill into one of its classes.
+
+**2. Launch** — Start the app with `run_app`, call `get_output`, take a
+screenshot.
+
+**3. Edit and reload** — Make a small visible change (e.g. update the title or a
+label), `reload`, then `get_output` and `take_screenshot` to confirm.
+
+**4. Inspect** — Run `inspect_layout` on the root widget. Try `evaluate` with a
+simple Dart expression.
+
+**5. Interact** — Use `get_semantics` to find an interactive element, then tap
+it with `perform_semantic_action`.
+
+**6. Close** — Call `close_app`.
+
+Skip a step if you get stuck. When done, write your feedback — what worked, what
+didn't, any bugs or rough spots — and a brief work log to `feedback.md`.
+
+Do you have any questions before you begin?
