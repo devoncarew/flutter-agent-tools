@@ -1,7 +1,7 @@
 {
   "name": "flutter-slipstream",
   "version": "1.2.0",
-  "description": "Flutter/Dart agent tooling: package API summarization and runtime UI introspection.",
+  "description": "Live Flutter app introspection for coding agents: screenshots, widget-tree inspection, tap/type/scroll, and error capture. Dart package API summarization for agents.",
   "repository": "https://github.com/devoncarew/flutter-slipstream",
   "license": "BSD-3-Clause license",
   "keywords": ["dart", "flutter"],
