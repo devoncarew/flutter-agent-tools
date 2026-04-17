@@ -5,7 +5,8 @@
   alongside the launch result, and failure results include any output captured
   before the error. Session cleanup on process exit is now driven by the process
   `exitCode` future rather than the stdout `onDone` callback.
-- Updated the plugin / extension description.
+- Updated the plugin and extension descriptions.
+- Updated the plugin and extension installation instructions.
 
 ## 1.2.0
 
