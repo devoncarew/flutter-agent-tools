@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:flutter_slipstream/src/deps/deps_check.dart';
 
 /// PreToolUse hook: validates Dart/Flutter package additions against pub.dev.
@@ -12,14 +13,21 @@ import 'package:flutter_slipstream/src/deps/deps_check.dart';
 /// Reads tool input JSON from stdin. Always exits 0 (warnings only — the
 /// agent decides whether to proceed).
 void main(List<String> args) async {
-  final String mode;
-  if (args.contains('--mode=pub-add')) {
-    mode = 'pub-add';
-  } else if (args.contains('--mode=pubspec-guard')) {
-    mode = 'pubspec-guard';
-  } else {
+  final parser =
+      ArgParser()..addOption('mode', allowed: ['pub-add', 'pubspec-guard']);
+
+  final ArgResults results;
+  try {
+    results = parser.parse(args);
+  } on ArgParserException catch (e) {
+    stderr.writeln('deps_check: ${e.message}');
+    exit(0); // Fail open.
+  }
+
+  final String? mode = results['mode'] as String?;
+  if (mode == null) {
     stderr.writeln(
-      'deps_check: unknown mode. Pass --mode=pub-add or --mode=pubspec-guard',
+      'deps_check: --mode is required. Pass --mode=pub-add or --mode=pubspec-guard',
     );
     exit(0); // Fail open.
   }
@@ -44,4 +52,8 @@ void main(List<String> args) async {
   } else {
     await handlePubspecGuard(input);
   }
+
+  // We call `exit` explicitly here in case any network calls - to pub? - would
+  // otherwise delay exit.
+  exit(0);
 }

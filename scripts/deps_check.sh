@@ -27,5 +27,15 @@ if [[ "$*" == *"--mode=pub-add"* ]]; then
   exit 0
 fi
 
+if [[ "$*" == *"--mode=pubspec-guard"* ]]; then
+  INPUT=$(cat)
+  if ! printf '%s' "$INPUT" | grep -qF 'pubspec.yaml'; then
+    exit 0
+  fi
+  if ! command -v dart &>/dev/null; then exit 0; fi
+  printf '%s' "$INPUT" | (cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check.dart" "$@")
+  exit 0
+fi
+
 if ! command -v dart &>/dev/null; then exit 0; fi
 (cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check.dart" "$@")
