@@ -12,7 +12,7 @@ import 'semantic_node.dart';
 class FlutterServiceExtensions {
   // Object group name used for inspector extension calls. The inspector uses
   // groups to manage the lifetime of server-side object references.
-  static const String inspectorGroup = 'flutter_agent_tools';
+  static const String inspectorGroup = 'flutter_slipstream';
 
   final VmService _vmService;
 
@@ -894,7 +894,10 @@ class FlutterServiceExtensions {
         return ref.id!;
       }
     }
-    throw rpcError('No isolate found with extension: $extension');
+    throw rpcError(
+      'No isolate found with extension: $extension',
+      fromMethod: '_callExtension',
+    );
   }
 }
 
@@ -942,5 +945,5 @@ class FlutterServiceExtensions {
 const String _kSemanticsTreeExpression =
     r"""(() { final owner = (SemanticsBinding.instance as dynamic).pipelineOwner.semanticsOwner; if (owner == null) return 'error:semantics not enabled'; final root = owner.rootSemanticsNode; if (root == null) return 'error:semantics tree empty - retry after a frame renders'; final parts = []; final stack = [root]; while (stack.isNotEmpty) { final node = stack.removeLast(); if (node.isInvisible) continue; final d = node.getSemanticsData(); final f = d.flagsCollection; if (f.isHidden) continue; final r = node.rect; final role = f.isButton ? 'button' : f.isTextField ? 'textfield' : f.isSlider ? 'slider' : f.isLink ? 'link' : f.isImage ? 'image' : f.isHeader ? 'header' : f.isChecked != CheckedState.none ? 'checkbox' : f.isToggled != Tristate.none ? 'toggle' : f.isInMutuallyExclusiveGroup ? 'radio' : ''; final lb = '${node.label}'.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', ' '); final vl = '${node.value}'.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', ' '); final hn = '${node.hint}'.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', ' '); final checked = f.isChecked == CheckedState.none ? 'null' : f.isChecked == CheckedState.isTrue ? 'true' : 'false'; final toggled = f.isToggled == Tristate.none ? 'null' : f.isToggled == Tristate.isTrue ? 'true' : 'false'; final selected = f.isSelected == Tristate.none ? 'null' : f.isSelected == Tristate.isTrue ? 'true' : 'false'; final enabled = f.isEnabled == Tristate.none ? 'null' : f.isEnabled == Tristate.isTrue ? 'true' : 'false'; final focused = f.isFocused == Tristate.isTrue; parts.add('[${node.id},"$role","$lb","$vl","$hn",$checked,$toggled,$selected,$enabled,$focused,${d.actions},${r.left},${r.top},${r.right},${r.bottom}]'); if (!node.mergeAllDescendantsIntoThisNode) node.visitChildren((child) => (stack..add(child)).isNotEmpty); } return '[${parts.join(",")}]'; })()""";
 
-RPCError rpcError(String message, {String? fromMethod}) =>
+RPCError rpcError(String message, {required String fromMethod}) =>
     RPCError(fromMethod, 0, message);

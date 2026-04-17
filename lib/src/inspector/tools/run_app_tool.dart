@@ -11,11 +11,7 @@ import '../tool_context.dart';
 /// Builds and launches a Flutter app. If an app is already running it is
 /// stopped first — only one session is active at a time.
 class RunAppTool extends InspectorTool {
-  RunAppTool({required this.registerSession, required this.eventListener});
-
-  /// Called to register the new [AppSession] as the active session. Any
-  /// previously active session is stopped by the caller before this returns.
-  final Future<void> Function(AppSession session) registerSession;
+  RunAppTool({required this.eventListener});
 
   /// Called to forward daemon events from the session to the server.
   final void Function(AppEvent event) eventListener;
@@ -81,24 +77,47 @@ class RunAppTool extends InspectorTool {
       session = await AppSession.start(
         workingDirectory: workingDirectory,
         eventListener: eventListener,
+        sessionFinishedListener: context.handleSessionClosed,
         deviceId: device,
         target: target,
         serverLog: context.log,
       );
-      await registerSession(session);
-    } on DaemonException catch (e) {
+    } catch (e) {
       return CallToolResult(
         isError: true,
-        content: [TextContent(text: e.message)],
+        content: [TextContent(text: 'failed to start app: $e')],
       );
     }
 
-    final String deviceInfo =
-        session.deviceId != null ? " (device ID: '${session.deviceId}')" : '';
-    final String replaced =
-        previousSession != null ? '\n\nPrevious app was stopped.' : '';
-    return CallToolResult(
-      content: [TextContent(text: 'Launched!$deviceInfo$replaced')],
-    );
+    context.setSession(session);
+
+    try {
+      // We're starting the app, but wait for full startup.
+      await session.started;
+
+      final String deviceInfo =
+          session.deviceId != null ? " device ID: '${session.deviceId}'" : '';
+      final String replaced =
+          previousSession != null ? '; previous app was stopped' : '';
+
+      final output = session.drainOutput();
+
+      return CallToolResult(
+        content: [
+          TextContent(text: 'Launched!$deviceInfo$replaced'),
+          if (output.isNotEmpty) TextContent(text: output.join('\n')),
+        ],
+      );
+    } catch (e) {
+      final output = session.drainOutput();
+      final msg = e is DaemonException ? e.message : '$e';
+      return CallToolResult(
+        isError: true,
+        content: [
+          TextContent(text: 'failed to start app: $msg'),
+          if (output.isNotEmpty) TextContent(text: output.join('\n')),
+        ],
+      );
+    }
   }
 }

@@ -1,3 +1,11 @@
+## 1.3.0-wip
+
+- Fixed a race condition where app output emitted during startup was dropped;
+  `run_app` now returns buffered output (build messages, initial route) alongside
+  the launch result, and failure results include any output captured before the
+  error. Session cleanup on process exit is now driven by the process `exitCode`
+  future rather than the stdout `onDone` callback.
+
 ## 1.2.0
 
 - Addressed an issue where a 'restart' message could appear in the app under

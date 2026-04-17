@@ -4,45 +4,8 @@ import '../tool_context.dart';
 
 /// Implements the `get_output` MCP tool.
 ///
-/// Returns buffered app output and runtime events since the last call (or
-/// since the last reload/restart, whichever is more recent), then clears the
-/// buffer. Agents should call this after `reload`, after interaction tools
-/// (`perform_tap`, `perform_set_text`, etc.), and after `run_app` to see
-/// what the app has printed and whether any errors occurred.
-///
-/// ## Buffer contents
-///
-/// The buffer accumulates the following in order of occurrence:
-///
-/// - **App stdout** — anything the app prints via `print()` or `debugPrint()`,
-///   prefixed `[app]`. Non-`flutter:` stdout (e.g. from native code) is
-///   prefixed `[stdout]`.
-/// - **Flutter errors** — uncaught framework errors with a one-line summary
-///   and widget ID, prefixed `[flutter.error]`. Widget IDs can be passed
-///   directly to `inspect_layout`.
-/// - **Route changes** — navigation events from the slipstream_agent companion,
-///   prefixed `[route]`. Only present when the companion is installed with a
-///   router adapter.
-/// - **Window resize** — logical size changes, prefixed `[window]`. Only
-///   present when the companion is installed.
-///
-/// ## Reset behaviour
-///
-/// The buffer is cleared:
-/// - After each `get_output` call (this call).
-/// - On hot reload and hot restart.
-/// - On `run_app` (new session).
-///
-/// ## Example output
-///
-/// ```
-/// [app] Loading podcast feed…
-/// [app] Loaded 42 episodes.
-/// [flutter.error] RenderFlex overflowed by 32px (widget id: inspector-12)
-/// [route] /podcast/abc123
-/// ```
-///
-/// An empty result means no output has been produced since the last reset.
+/// Drains the session output buffer and returns the accumulated lines. The
+/// buffer is cleared after each call and on hot reload/restart.
 class GetOutputTool extends InspectorTool {
   @override
   final Tool definition = Tool(
