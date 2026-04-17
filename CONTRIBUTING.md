@@ -5,18 +5,34 @@ discussion with an issue first.
 
 ## Development
 
-```sh
-# Run all tests:
-dart test
+Load the Claude Code plugin locally:
 
-# Test the deps-check hook manually:
+```
+claude --plugin-dir /path/to/flutter-slipstream
+```
+
+Load the Gemini CLI extension locally:
+
+```sh
+gemini extensions link /path/to/flutter-slipstream
+```
+
+Run all tests:
+
+```sh
+dart test
+```
+
+Test the deps-check hook manually:
+
+```sh
 echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
   | dart run bin/deps_check.dart --mode=pub-add
+```
 
-# Load the plugin locally:
-claude --plugin-dir /path/to/flutter-slipstream
+Regenerate the README command tables:
 
-# Regenerate the README command tables:
+```sh
 dart run tool/generate_readme.dart
 ```
 

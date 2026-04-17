@@ -21,60 +21,16 @@ launching, inspecting, and interacting with a running Flutter app.
 **Claude Code:**
 
 ```sh
-claude plugin add flutter-slipstream
-```
-
-Or to test from a local checkout:
-
-```sh
-claude --plugin-dir /path/to/flutter-slipstream
+claude plugin install flutter-slipstream
 ```
 
 **Gemini CLI:**
 
 ```sh
-gemini extension install flutter-slipstream
-```
-
-Or to test from a local checkout, add to your `settings.json`:
-
-```json
-{
-  "extensions": ["/path/to/flutter-slipstream"]
-}
+gemini extensions install https://github.com/devoncarew/flutter-slipstream
 ```
 
 ## Tools
-
-### Package currency hook
-
-A `PreToolUse` hook that fires when an agent adds a package via
-`flutter pub add` / `dart pub add` or edits `pubspec.yaml` directly. Emits
-advisory warnings and lets the agent decide; never hard-blocks.
-
-Checks:
-
-- **Discontinued:** warns with the official replacement if one is listed.
-- **Old major version:** warns when the constraint targets an older major than
-  what pub.dev currently publishes (e.g. `http:^0.13.0` vs latest `1.x`).
-- **Not found:** warns if the package name doesn't exist on pub.dev.
-
-### Package API retrieval (`packages`)
-
-Retrieves a package's public API surface directly from the local pub cache and
-returns it as a compact Dart stub — signatures only, no bodies, no private
-members. Agents get accurate, version-matched API information without reading
-raw source files or relying on training-data summaries.
-
-<!-- packages -->
-<!-- prettier-ignore-start -->
-| Command | Description |
-|---------|-------------|
-| `package_summary` | Returns API summaries for Dart or Flutter packages; start here to orient on an unfamiliar package. |
-| `library_stub` | Returns the full public API for one library as a Dart stub (signatures only, no bodies). |
-| `class_stub` | Returns the public API for a single named class, mixin, or extension as a Dart stub (signatures only, no bodies). |
-<!-- prettier-ignore-end -->
-<!-- packages -->
 
 ### Flutter UI agent (`inspector`)
 
@@ -104,6 +60,36 @@ expressions, and observe runtime errors with widget IDs.
 | `close_app` | Stops the running Flutter app and releases its session. |
 <!-- prettier-ignore-end -->
 <!-- inspector -->
+
+### Package API retrieval (`packages`)
+
+Retrieves a package's public API surface directly from the local pub cache and
+returns it as a compact Dart stub — signatures only, no bodies, no private
+members. Agents get accurate, version-matched API information without reading
+raw source files or relying on training-data summaries.
+
+<!-- packages -->
+<!-- prettier-ignore-start -->
+| Command | Description |
+|---------|-------------|
+| `package_summary` | Returns API summaries for Dart or Flutter packages; start here to orient on an unfamiliar package. |
+| `library_stub` | Returns the full public API for one library as a Dart stub (signatures only, no bodies). |
+| `class_stub` | Returns the public API for a single named class, mixin, or extension as a Dart stub (signatures only, no bodies). |
+<!-- prettier-ignore-end -->
+<!-- packages -->
+
+### Package validation hooks
+
+A `PreToolUse` hook that fires when an agent adds a package via
+`flutter pub add` / `dart pub add` or edits `pubspec.yaml` directly. Emits
+advisory warnings and lets the agent decide; never hard-blocks.
+
+Checks:
+
+- **Discontinued:** warns with the official replacement if one is listed.
+- **Old major version:** warns when the constraint targets an older major than
+  what pub.dev currently publishes (e.g. `http:^0.13.0` vs latest `1.x`).
+- **Not found:** warns if the package name doesn't exist on pub.dev.
 
 ## Contributing
 
