@@ -41,6 +41,12 @@ Prefer finder-based tools when `slipstream_agent` is installed:
 Fall back to `perform_semantic_action` (no companion required) when the target
 widget has no key and no distinctive text — e.g. a built-in `IconButton`.
 
+### `get_semantics` after navigation
+
+`get_semantics` can return stale data if called immediately after `navigate` or
+a tap that triggers a route transition. Call `take_screenshot` first to
+synchronise on a rendered frame, then call `get_semantics`.
+
 ### Tooltip text is not a semantics label
 
 Flutter's built-in widgets sometimes set a `Tooltip` (e.g. the Drawer
@@ -79,6 +85,13 @@ training-data memory, especially for packages that have changed major versions.
   below the error widget.
 - `evaluate` is useful for exact runtime values (`MediaQuery.of(...)`,
   controller state, etc.) that don't appear in the layout tree.
+
+## Hot reload vs. hot restart
+
+`reload` (hot reload) preserves app state and is fast, but it cannot apply
+structural changes — new routes, modified `initState`, changed widget keys, or
+constructor signature changes. If the app looks wrong after a reload, try
+`reload` with `full_restart: true`. Expect state to reset.
 
 ## When `run_app` fails
 
