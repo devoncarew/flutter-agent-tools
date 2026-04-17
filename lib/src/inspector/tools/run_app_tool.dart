@@ -83,9 +83,10 @@ class RunAppTool extends InspectorTool {
         serverLog: context.log,
       );
     } catch (e) {
+      final msg = e is DaemonException ? e.message : '$e';
       return CallToolResult(
         isError: true,
-        content: [TextContent(text: 'failed to start app: $e')],
+        content: [TextContent(text: 'failed to start app: $msg')],
       );
     }
 
