@@ -123,8 +123,8 @@ run_app(working_directory, [target, device])
 
 Builds and launches the Flutter app. Call this first before inspecting,
 screenshotting, or evaluating. If an app is already running it is stopped and
-replaced. Flutter.Error events from the running app are automatically forwarded
-as MCP log warnings — no polling needed.
+replaced. Call get_output after run_app to see initial app output and any
+startup errors.
 
 - `working_directory`: (required) The Flutter project directory to launch.
 

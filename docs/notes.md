@@ -50,5 +50,5 @@
 - Once we do get log messages to the model we should make sure they're not too
   verbose.
 
-- [ ] resolution: design and add an 'output' tool; get most recent stdout and
+- [x] resolution: design and add an 'output' tool; get most recent stdout and
       errors
