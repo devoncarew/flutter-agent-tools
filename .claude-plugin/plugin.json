@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/deps_check.sh --mode=pub-add",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/deps_check_claude.sh --mode=pub-add",
             "description": "Validates packages before flutter pub add runs",
             "cwd": "${CLAUDE_PLUGIN_ROOT}"
           }
@@ -33,7 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/deps_check.sh --mode=pubspec-guard",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/deps_check_claude.sh --mode=pubspec-guard",
             "description": "Validates packages on direct pubspec.yaml edits",
             "cwd": "${CLAUDE_PLUGIN_ROOT}"
           }

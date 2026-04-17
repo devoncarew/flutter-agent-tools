@@ -8,27 +8,137 @@ import 'package:yaml/yaml.dart';
 import 'blocklist.dart';
 
 // ---------------------------------------------------------------------------
-// pub-add mode
+// Claude PreToolUse handlers
 
-/// Handles a `flutter pub add` / `dart pub add` hook invocation.
+/// Handles a `flutter pub add` / `dart pub add` hook invocation (Claude).
 ///
-/// [input] is the decoded hook JSON from stdin. Emits any warnings to stdout
-/// and returns. Never throws.
-Future<void> handlePubAdd(
+/// [input] is the decoded hook JSON from stdin. Returns any warning strings.
+/// Never throws.
+Future<List<String>> handlePubAddClaude(
   Map<String, Object?> input, {
   http.Client? httpClient,
 }) async {
   final toolName = input['tool_name'] as String?;
-  if (toolName != 'Bash') return;
+  if (toolName != 'Bash') return const [];
 
   final command = (input['tool_input'] as Map?)?['command'] as String? ?? '';
-  if (!RegExp(r'(flutter|dart)\s+pub\s+add').hasMatch(command)) return;
+  if (!RegExp(r'(flutter|dart)\s+pub\s+add').hasMatch(command)) return const [];
 
   final packages = extractPackagesFromCommand(command);
-  if (packages.isEmpty) return;
+  if (packages.isEmpty) return const [];
 
-  await checkPackages(packages, httpClient: httpClient);
+  return await checkPackages(packages, httpClient: httpClient);
 }
+
+/// Handles a Write/Edit hook invocation targeting `pubspec.yaml` (Claude).
+///
+/// [input] is the decoded hook JSON from stdin. Returns any warning strings.
+/// Never throws.
+Future<List<String>> handlePubspecGuardClaude(
+  Map<String, Object?> input, {
+  http.Client? httpClient,
+}) async {
+  final toolName = input['tool_name'] as String?;
+  if (toolName != 'Write' && toolName != 'Edit') return const [];
+
+  final toolInput =
+      (input['tool_input'] as Map?)?.cast<String, Object?>() ?? {};
+  final filePath = toolInput['file_path'] as String? ?? '';
+
+  if (!filePath.endsWith('pubspec.yaml')) return const [];
+
+  // Read the current file from disk (before the edit).
+  String oldContent = '';
+  try {
+    oldContent = File(filePath).readAsStringSync();
+  } catch (_) {
+    // File doesn't exist yet or unreadable — treat all incoming deps as new.
+  }
+
+  // Reconstruct the new file content.
+  final String newContent;
+  if (toolName == 'Write') {
+    newContent = toolInput['content'] as String? ?? '';
+  } else {
+    // Edit: apply old_string → new_string substitution.
+    final oldString = toolInput['old_string'] as String? ?? '';
+    final newString = toolInput['new_string'] as String? ?? '';
+    newContent = oldContent.replaceFirst(oldString, newString);
+  }
+
+  final added = newlyAddedPackages(oldContent, newContent);
+  if (added.isEmpty) return const [];
+  return await checkPackages(added, httpClient: httpClient);
+}
+
+// ---------------------------------------------------------------------------
+// Gemini BeforeTool handlers
+
+/// Handles a `flutter pub add` / `dart pub add` BeforeTool hook invocation
+/// (Gemini CLI).
+///
+/// Gemini input uses `tool_arguments` (not `tool_input`) and the tool name is
+/// `run_shell_command` (not `Bash`). Returns any warning strings. Never throws.
+Future<List<String>> handlePubAddGemini(
+  Map<String, Object?> input, {
+  http.Client? httpClient,
+}) async {
+  final toolName = input['tool_name'] as String?;
+  if (toolName != 'run_shell_command') return const [];
+
+  final command =
+      (input['tool_arguments'] as Map?)?['command'] as String? ?? '';
+  if (!RegExp(r'(flutter|dart)\s+pub\s+add').hasMatch(command)) return const [];
+
+  final packages = extractPackagesFromCommand(command);
+  if (packages.isEmpty) return const [];
+
+  return await checkPackages(packages, httpClient: httpClient);
+}
+
+/// Handles a write_file/replace BeforeTool hook invocation targeting
+/// `pubspec.yaml` (Gemini CLI).
+///
+/// Gemini input uses `tool_arguments` with `path` (not `tool_input.file_path`),
+/// and tool names are `write_file` / `replace` (not `Write` / `Edit`). Returns
+/// any warning strings. Never throws.
+Future<List<String>> handlePubspecGuardGemini(
+  Map<String, Object?> input, {
+  http.Client? httpClient,
+}) async {
+  final toolName = input['tool_name'] as String?;
+  if (toolName != 'write_file' && toolName != 'replace') return const [];
+
+  final toolArgs =
+      (input['tool_arguments'] as Map?)?.cast<String, Object?>() ?? {};
+  final filePath = toolArgs['path'] as String? ?? '';
+
+  if (!filePath.endsWith('pubspec.yaml')) return const [];
+
+  String oldContent = '';
+  try {
+    oldContent = File(filePath).readAsStringSync();
+  } catch (_) {
+    // File doesn't exist yet — treat all incoming deps as new.
+  }
+
+  final String newContent;
+  if (toolName == 'write_file') {
+    newContent = toolArgs['content'] as String? ?? '';
+  } else {
+    // replace: apply old_string → new_string substitution.
+    final oldString = toolArgs['old_string'] as String? ?? '';
+    final newString = toolArgs['new_string'] as String? ?? '';
+    newContent = oldContent.replaceFirst(oldString, newString);
+  }
+
+  final added = newlyAddedPackages(oldContent, newContent);
+  if (added.isEmpty) return const [];
+  return await checkPackages(added, httpClient: httpClient);
+}
+
+// ---------------------------------------------------------------------------
+// common
 
 /// Extracts `[(packageName, versionConstraint?)]` from a `pub add` command.
 ///
@@ -55,50 +165,6 @@ List<(String, String?)> extractPackagesFromCommand(String command) {
     }
   }
   return results;
-}
-
-// ---------------------------------------------------------------------------
-// pubspec-guard mode
-
-/// Handles a Write/Edit hook invocation targeting `pubspec.yaml`.
-///
-/// [input] is the decoded hook JSON from stdin. Emits any warnings to stdout
-/// and returns. Never throws.
-Future<void> handlePubspecGuard(
-  Map<String, Object?> input, {
-  http.Client? httpClient,
-}) async {
-  final toolName = input['tool_name'] as String?;
-  if (toolName != 'Write' && toolName != 'Edit') return;
-
-  final toolInput =
-      (input['tool_input'] as Map?)?.cast<String, Object?>() ?? {};
-  final filePath = toolInput['file_path'] as String? ?? '';
-
-  if (!filePath.endsWith('pubspec.yaml')) return;
-
-  // Read the current file from disk (before the edit).
-  String oldContent = '';
-  try {
-    oldContent = File(filePath).readAsStringSync();
-  } catch (_) {
-    // File doesn't exist yet or unreadable — treat all incoming deps as new.
-  }
-
-  // Reconstruct the new file content.
-  final String newContent;
-  if (toolName == 'Write') {
-    newContent = toolInput['content'] as String? ?? '';
-  } else {
-    // Edit: apply old_string → new_string substitution.
-    final oldString = toolInput['old_string'] as String? ?? '';
-    final newString = toolInput['new_string'] as String? ?? '';
-    newContent = oldContent.replaceFirst(oldString, newString);
-  }
-
-  final added = newlyAddedPackages(oldContent, newContent);
-  if (added.isEmpty) return;
-  await checkPackages(added, httpClient: httpClient);
 }
 
 /// Returns the list of packages newly added between [oldContent] and
@@ -146,15 +212,12 @@ Map<String, String> parsePubspecDeps(String content) {
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// pub.dev validation
-
-/// Checks [packages] against the blocklist and pub.dev, printing any warnings
-/// to stdout. Never throws.
+/// Checks [packages] against the blocklist and pub.dev, returning any warning
+/// strings. Never throws.
 ///
 /// [httpClient] is used for pub.dev requests; defaults to a new [http.Client].
 /// Pass a custom client in tests to avoid real network calls.
-Future<void> checkPackages(
+Future<List<String>> checkPackages(
   List<(String, String?)> packages, {
   http.Client? httpClient,
 }) async {
@@ -208,12 +271,7 @@ Future<void> checkPackages(
     }
   }
 
-  if (warnings.isNotEmpty) {
-    print('flutter-slipstream: dependency warnings:');
-    for (final w in warnings) {
-      print(w);
-    }
-  }
+  return warnings;
 }
 
 /// Returns a warning string if [requestedConstraint] targets an older major
@@ -238,9 +296,6 @@ String? checkMajorVersion(
   }
   return null;
 }
-
-// ---------------------------------------------------------------------------
-// pub.dev HTTP
 
 /// Fetches package metadata from pub.dev.
 ///

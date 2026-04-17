@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
-# deps_check.sh
+# deps_check_claude.sh
 #
-# PreToolUse hook entry point for dependency health checks.
+# Claude PreToolUse hook entry point for dependency health checks.
 #
 # Uses $0 to locate itself, so it works regardless of how ${CLAUDE_PLUGIN_ROOT}
 # is resolved by the host — the script is its own source of truth for the
 # plugin root directory.
 #
-# All arguments are forwarded to deps_check.dart (e.g. --mode=pub-add).
+# All arguments are forwarded to deps_check_claude.dart (e.g. --mode=pub-add).
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -23,7 +23,7 @@ if [[ "$*" == *"--mode=pub-add"* ]]; then
     exit 0
   fi
   if ! command -v dart &>/dev/null; then exit 0; fi
-  printf '%s' "$INPUT" | (cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check.dart" "$@")
+  printf '%s' "$INPUT" | (cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check_claude.dart" "$@")
   exit 0
 fi
 
@@ -33,9 +33,9 @@ if [[ "$*" == *"--mode=pubspec-guard"* ]]; then
     exit 0
   fi
   if ! command -v dart &>/dev/null; then exit 0; fi
-  printf '%s' "$INPUT" | (cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check.dart" "$@")
+  printf '%s' "$INPUT" | (cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check_claude.dart" "$@")
   exit 0
 fi
 
 if ! command -v dart &>/dev/null; then exit 0; fi
-(cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check.dart" "$@")
+(cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check_claude.dart" "$@")

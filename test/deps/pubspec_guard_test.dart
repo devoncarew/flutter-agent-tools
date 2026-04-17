@@ -2,7 +2,7 @@ import 'package:flutter_slipstream/src/deps/deps_check.dart';
 import 'package:test/test.dart';
 
 /// Tests for [newlyAddedPackages] — the pure diff function extracted from
-/// [handlePubspecGuard].
+/// [handlePubspecGuardClaude].
 ///
 /// The failure modes we care about:
 ///  1. Write hook — brand new file or full rewrite: all deps are "new".

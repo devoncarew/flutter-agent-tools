@@ -6,10 +6,11 @@ import 'package:test/test.dart';
 
 final _scriptPath = path.join(
   Directory.current.path,
-  'scripts/deps_check_claude.sh',
+  'scripts/deps_check_gemini.sh',
 );
 
-/// Runs deps_check_claude.sh with [mode] and [stdin], returning (exitCode, stdout).
+/// Runs deps_check_gemini.sh with [mode] and [stdin], returning
+/// (exitCode, stdout).
 ///
 /// The Dart behavior is covered by unit tests; these tests focus on whether
 /// the shell script correctly fast-exits (filtered) or reaches the Dart
@@ -33,19 +34,21 @@ Future<({int exitCode, String stdout})> runScript(
   return (exitCode: exitCode, stdout: out);
 }
 
-// Minimal tool-input JSON wrappers.
+// Minimal Gemini-format tool-arguments JSON wrappers.
 String pubAddInput(String command) => jsonEncode({
-  'tool_input': {'command': command},
+  'tool_name': 'run_shell_command',
+  'tool_arguments': {'command': command},
 });
 
-String editInput(String filePath) => jsonEncode({
-  'tool_input': {'file_path': filePath, 'old_string': '', 'new_string': ''},
+String writeFileInput(String filePath) => jsonEncode({
+  'tool_name': 'write_file',
+  'tool_arguments': {'path': filePath, 'content': ''},
 });
 
 void main() {
-  group('deps_check_claude.sh --mode=pub-add', () {
+  group('deps_check_gemini.sh --mode=pub-add', () {
     test(
-      'filtered: non-pub-add bash command exits immediately with no output',
+      'filtered: non-pub-add shell command exits immediately with no output',
       () async {
         final r = await runScript('pub-add', pubAddInput('dart pub get'));
         expect(r.exitCode, 0);
@@ -60,13 +63,13 @@ void main() {
     });
   });
 
-  group('deps_check_claude.sh --mode=pubspec-guard', () {
+  group('deps_check_gemini.sh --mode=pubspec-guard', () {
     test(
-      'filtered: edit to a non-pubspec file exits immediately with no output',
+      'filtered: write to a non-pubspec file exits immediately with no output',
       () async {
         final r = await runScript(
           'pubspec-guard',
-          editInput('/app/lib/main.dart'),
+          writeFileInput('/app/lib/main.dart'),
         );
         expect(r.exitCode, 0);
         expect(r.stdout, isEmpty);
@@ -74,11 +77,11 @@ void main() {
     );
 
     test(
-      'pass-through: edit to pubspec.yaml reaches Dart and exits 0',
+      'pass-through: write to pubspec.yaml reaches Dart and exits 0',
       () async {
         final r = await runScript(
           'pubspec-guard',
-          editInput('/app/pubspec.yaml'),
+          writeFileInput('/app/pubspec.yaml'),
         );
         expect(r.exitCode, 0);
       },

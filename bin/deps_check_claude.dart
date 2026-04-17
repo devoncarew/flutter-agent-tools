@@ -7,8 +7,8 @@ import 'package:flutter_slipstream/src/deps/deps_check.dart';
 /// PreToolUse hook: validates Dart/Flutter package additions against pub.dev.
 ///
 /// Usage:
-///   dart run bin/deps_check.dart --mode=pub-add
-///   dart run bin/deps_check.dart --mode=pubspec-guard
+///   dart run bin/deps_check_claude.dart --mode=pub-add
+///   dart run bin/deps_check_claude.dart --mode=pubspec-guard
 ///
 /// Reads tool input JSON from stdin. Always exits 0 (warnings only — the
 /// agent decides whether to proceed).
@@ -47,10 +47,16 @@ void main(List<String> args) async {
     exit(0);
   }
 
-  if (mode == 'pub-add') {
-    await handlePubAdd(input);
-  } else {
-    await handlePubspecGuard(input);
+  final warnings =
+      mode == 'pub-add'
+          ? await handlePubAddClaude(input)
+          : await handlePubspecGuardClaude(input);
+
+  if (warnings.isNotEmpty) {
+    print('flutter-slipstream: dependency warnings:');
+    for (final w in warnings) {
+      print(w);
+    }
   }
 
   // We call `exit` explicitly here in case any network calls - to pub? - would

@@ -7,6 +7,9 @@
   `exitCode` future rather than the stdout `onDone` callback.
 - Updated the plugin and extension descriptions.
 - Updated the plugin and extension installation instructions.
+- Added Gemini CLI hook support (`hooks/hooks.json`, `scripts/deps_check_gemini.sh`):
+  the same package-currency checks (pub-add and pubspec-guard modes) now run as
+  Gemini `BeforeTool` hooks.
 
 ## 1.2.0
 
