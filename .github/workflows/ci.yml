@@ -19,8 +19,13 @@ jobs:
       - run: bash -n scripts/inspector_mcp.sh
       - run: bash -n scripts/packages_mcp.sh
 
-      # Dart checks.
       - run: dart pub get
+
+      # Validate manifests.
+      - run: dart run tool/validate_manifest.dart .claude-plugin/plugin.json
+      - run: dart run tool/validate_manifest.dart gemini-extension.json
+
+      # Dart checks.
       - run: dart analyze
       - run: dart format --output=none --set-exit-if-changed bin/ lib/ test/
       - run: dart test
