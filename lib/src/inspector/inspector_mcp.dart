@@ -27,14 +27,12 @@ import 'tools/take_screenshot_tool.dart';
 /// live in lib/src/tools/ and are decoupled from this class via [ToolContext].
 base class InspectorMCPServer extends MCPServer
     with ToolsSupport, LoggingSupport {
-  static const String _loggerId = 'flutter_agent_tools';
-
   late final ToolContext _context = ToolContext(log: _serverLog);
 
   /// Diagnostic log — sent as an MCP notification (not buffered for agents).
   /// Use for internal server events; not expected to reach the model context.
   void _serverLog(String message) {
-    log(LoggingLevel.info, message, logger: _loggerId);
+    log(LoggingLevel.info, message, logger: 'slipstream');
   }
 
   InspectorMCPServer(super.channel)
@@ -88,12 +86,7 @@ After reload or any interaction tool, call get_output to see app stdout, Flutter
       }, validateArguments: false);
     }
 
-    register(
-      RunAppTool(
-        registerSession: _registerSession,
-        eventListener: _handleEvent,
-      ),
-    );
+    register(RunAppTool(eventListener: _handleAppEvent));
     register(ReloadTool());
     register(GetOutputTool());
     register(TakeScreenshotTool());
@@ -110,18 +103,6 @@ After reload or any interaction tool, call get_output to see app stdout, Flutter
     register(CloseAppTool());
   }
 
-  /// Registers [session] as the active session, stopping any existing one.
-  Future<void> _registerSession(AppSession session) async {
-    final existing = _context.removeSession();
-    if (existing != null) {
-      await existing.stop().timeout(
-        Duration(milliseconds: 250),
-        onTimeout: () => null,
-      );
-    }
-    _context.setSession(session);
-  }
-
   @override
   Future<void> shutdown() async {
     final session = _context.removeSession();
@@ -130,10 +111,10 @@ After reload or any interaction tool, call get_output to see app stdout, Flutter
     await super.shutdown();
   }
 
-  void _handleEvent(AppEvent event) {
+  void _handleAppEvent(AppEvent event) {
     if (event.event == 'app.stop') {
-      _context.removeSession();
-      _serverLog('App stopped; session released.');
+      // This is informational; our session end signal is process exit.
+      _serverLog('App stopped.');
       return;
     }
 

@@ -21,18 +21,22 @@ import 'flutter_service_extensions.dart';
 class AppSession {
   AppSession._(
     this._process,
-    this._eventListener, {
+    this._eventListener,
+    this._sessionFinishedListener, {
     this.deviceId,
     required this.serverLog,
   }) {
     _process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
-        .listen(_handleLine, onDone: _handleDone);
+        .listen(_handleLine);
     _process.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen(_handleLine);
+
+    // Listen for process exit.
+    _process.exitCode.then(_handleDone);
   }
 
   final Process _process;
@@ -51,6 +55,7 @@ class AppSession {
   final Map<int, Completer<Map<String, dynamic>>> _pending = {};
 
   final EventCallback _eventListener;
+  final SessionFinishedCallback _sessionFinishedListener;
   bool _sessionEnded = false;
 
   String? _vmServiceUri;
@@ -62,18 +67,11 @@ class AppSession {
   // of a hot restart).
   String? _companionVersion;
 
-  // Capped at [_maxErrors] most-recent errors; cleared on hot restart.
-  static const int _maxErrors = 50;
-  final List<FlutterError> _errors = [];
-
   // Output buffer — prefixed lines accumulated since the last drain or reload.
   final List<String> _outputBuffer = [];
 
-  // ignore: unused_field
-  String? _devToolsUri;
-
-  // ignore: unused_field
-  String? _dtdToolsUri;
+  /// This will complete once the app has been launched successfully.
+  Future<void> get started => _startedCompleter.future;
 
   /// Appends a prefixed line to the output buffer.
   void addOutput(String prefix, String line) {
@@ -109,8 +107,7 @@ class AppSession {
   /// connected or has been disposed.
   FlutterServiceExtensions? get serviceExtensions => _serviceExtensions;
 
-  /// Launches `flutter run --machine` in [workingDirectory] and waits until
-  /// the app has fully started.
+  /// Launches `flutter run --machine` in [workingDirectory].
   ///
   /// When [deviceId] is omitted, auto-selects the best available device
   /// (preferring desktop, then simulators/emulators, then physical devices).
@@ -120,6 +117,7 @@ class AppSession {
   static Future<AppSession> start({
     required String workingDirectory,
     required EventCallback eventListener,
+    required SessionFinishedCallback sessionFinishedListener,
     String? deviceId,
     String? target,
     required DebugLogger serverLog,
@@ -142,10 +140,10 @@ class AppSession {
     final AppSession session = AppSession._(
       process,
       eventListener,
+      sessionFinishedListener,
       deviceId: deviceId,
       serverLog: serverLog,
     );
-    await session._startedCompleter.future;
     return session;
   }
 
@@ -301,6 +299,8 @@ class AppSession {
   ///
   /// Throws a [DaemonException] if there were issues performing the restart.
   Future<void> restart({bool fullRestart = false}) async {
+    _outputBuffer.clear();
+
     final String appId = _appId!;
     final Map<String, dynamic> result = await _sendCommand('app.restart', {
       'appId': appId,
@@ -311,8 +311,6 @@ class AppSession {
       final String message = result['message'] as String? ?? 'unknown error';
       throw DaemonException('app.restart failed (code $code): $message');
     }
-    _errors.clear();
-    _outputBuffer.clear();
   }
 
   /// Stops the running app.
@@ -336,12 +334,18 @@ class AppSession {
     final DiagnosticsNode rootNode = await extensions.getRootWidget();
     final String? rootId = rootNode.valueId;
     if (rootId == null) {
-      throw rpcError('getRootWidget did not return a valueId');
+      throw rpcError(
+        'getRootWidget did not return a valueId',
+        fromMethod: 'take_screenshot',
+      );
     }
 
     var size = await extensions.getPhysicalWindowSize();
     if (size == null) {
-      throw rpcError('Could not determine widget size for screenshot');
+      throw rpcError(
+        'Could not determine widget size for screenshot',
+        fromMethod: 'take_screenshot',
+      );
     }
 
     final String? base64Data = await extensions.screenshot(
@@ -351,7 +355,10 @@ class AppSession {
       maxPixelRatio: maxPixelRatio,
     );
     if (base64Data == null) {
-      throw rpcError('Screenshot returned null — widget may not be on screen');
+      throw rpcError(
+        'Screenshot returned null — widget may not be on screen',
+        fromMethod: 'take_screenshot',
+      );
     }
     return base64Data;
   }
@@ -371,9 +378,8 @@ class AppSession {
   }
 
   void _handleLine(String line) {
-    // Daemon messages are wrapped in [ ]; ignore stray output (build logs,
-    // etc).
-    final String trimmed = line.trim();
+    // Daemon messages are wrapped in [ ... ].
+    final String trimmed = line.trimRight();
     if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) {
       // Convert regular stdio output to log messages.
       if (!_sessionEnded) {
@@ -428,9 +434,9 @@ class AppSession {
         _vmServiceUri = params['wsUri'] as String?;
         _connectVmService(_vmServiceUri!);
       } else if (event == 'app.devTools') {
-        _devToolsUri = params['uri'] as String?;
+        // _devToolsUri = params['uri'] as String?;
       } else if (event == 'app.dtd') {
-        _dtdToolsUri = params['uri'] as String?;
+        // _dtdToolsUri = params['uri'] as String?;
       } else if (event == 'app.progress') {
         // {id: '2', progressId: 'hot.reload', finished: true}
         final progressId = params['progressId'] as String? ?? '';
@@ -518,10 +524,6 @@ class AppSession {
         if (data != null) {
           final error = FlutterError.tryParse(data);
           if (error != null) {
-            if (_errors.length >= _maxErrors) {
-              _errors.removeAt(0);
-            }
-            _errors.add(error);
             _eventListener(
               AppEvent('flutter.error', {'summary': compactSummarizer(error)}),
             );
@@ -562,15 +564,17 @@ class AppSession {
     });
   }
 
-  void _handleDone() {
+  void _handleDone(int exitCode) {
     // Process stdout closed — the subprocess exited.
     if (!_startedCompleter.isCompleted) {
       _startedCompleter.completeError(
-        rpcError('flutter run exited before app started.'),
+        DaemonException(
+          'flutter run exited before app started (exit code $exitCode).',
+        ),
       );
     }
     for (final Completer<Map<String, dynamic>> c in _pending.values) {
-      c.completeError(rpcError('flutter run process exited'));
+      c.completeError(DaemonException('flutter run process exited'));
     }
     _pending.clear();
 
@@ -581,6 +585,7 @@ class AppSession {
     }
 
     _sessionEnded = true;
+    _sessionFinishedListener(this);
 
     _vmIsolateEventSubscription?.cancel();
     _vmIsolateEventSubscription = null;
@@ -666,3 +671,5 @@ class FlutterError {
 }
 
 typedef EventCallback = void Function(AppEvent);
+
+typedef SessionFinishedCallback = void Function(AppSession);

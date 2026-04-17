@@ -45,6 +45,12 @@ class ToolContext {
     _session = session;
   }
 
+  void handleSessionClosed(AppSession session) {
+    if (session == _session) {
+      _session = null;
+    }
+  }
+
   /// Removes and returns the active session, or null if none is running.
   AppSession? removeSession() {
     final s = _session;
