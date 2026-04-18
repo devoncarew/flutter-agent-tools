@@ -71,8 +71,7 @@ jobs:
           NOTES=$(dart run tool/repo.dart extract-changelog "$VERSION")
           gh pr comment "${{ github.event.pull_request.number }}" \
             --edit-last --create-if-none \
-            --body "Note: merging this PR will create a new release.\n\n" \
-              "### ${VERSION}\n\n${NOTES}"
+            --body "Note: merging this PR will create a new release.\n\n### ${VERSION}\n\n${NOTES}"
 
       # --- Push-to-main steps ---
 
