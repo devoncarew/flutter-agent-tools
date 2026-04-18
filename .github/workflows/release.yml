@@ -70,7 +70,7 @@ jobs:
           VERSION="${{ steps.version.outputs.current }}"
           gh pr comment "${{ github.event.pull_request.number }}" \
             --edit-last --create-if-none \
-            --body "🚀 **Note:** merging this PR will publish version `v${VERSION}`."
+            --body "🚀 **Note:** merging this PR will publish version 'v${VERSION}'."
 
       # --- Push-to-main steps ---
 
