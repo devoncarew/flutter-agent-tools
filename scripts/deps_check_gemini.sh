@@ -5,8 +5,7 @@
 # BeforeTool hook entry point for dependency health checks (Gemini CLI).
 #
 # Gemini input differs from Claude input: tool names differ ('run_shell_command'
-# vs 'Bash', 'write_file'/'replace' vs 'Write'/'Edit'), and output must be JSON
-# rather than plain text.
+# vs 'Bash', 'write_file'/'replace' vs 'Write'/'Edit').
 #
 # Uses $0 to locate itself, so it works regardless of how ${extensionPath}
 # is resolved by the host.
