@@ -1,4 +1,4 @@
-## 1.3.0-wip
+## 1.3.0
 
 - Fixed a race condition where app output emitted during startup was dropped;
   `run_app` now returns buffered output (build messages, initial route)

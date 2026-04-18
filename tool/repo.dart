@@ -264,10 +264,6 @@ class BumpVersionCommand extends Command<void> {
     // Confirm and show what will be released.
     print('Bumped to v$version.');
     print('');
-    print(
-      'Merging a PR with these changes will trigger a release of v$version.',
-    );
-    print('');
     print('Changelog for v$version:');
     print('');
 
@@ -280,6 +276,10 @@ class BumpVersionCommand extends Command<void> {
       body.writeln(lines[i]);
     }
     print(body.toString().trim());
+    print('');
+    print(
+      'Note that merging a PR with these changes will trigger a release of v$version.',
+    );
   }
 
   void _bumpJsonVersion(String filePath, String version) {
