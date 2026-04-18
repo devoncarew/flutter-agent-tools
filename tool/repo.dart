@@ -22,7 +22,8 @@ void main(List<String> args) async {
         ..addCommand(CheckCommand())
         ..addCommand(ValidateManifestsCommand())
         ..addCommand(GenerateDocsCommand())
-        ..addCommand(ExtractChangelogCommand());
+        ..addCommand(ExtractChangelogCommand())
+        ..addCommand(BumpVersionCommand());
 
   try {
     await runner.run(args);
@@ -209,6 +210,111 @@ class ExtractChangelogCommand extends Command<void> {
     }
 
     print(body.toString().trim());
+  }
+}
+
+// ---------------------------------------------------------------------------
+
+class BumpVersionCommand extends Command<void> {
+  @override
+  String get name => 'bump-version';
+
+  @override
+  String get description =>
+      'Bump the release version in plugin.json, gemini-extension.json, and '
+      'CHANGELOG.md. Defaults to the current -wip version.';
+
+  @override
+  String get invocation => '${runner!.executableName} bump-version [<version>]';
+
+  @override
+  void run() {
+    final String version;
+
+    if (argResults!.rest.isEmpty) {
+      // Derive from the first changelog entry, which must end in '-wip'.
+      final errors = <String>[];
+      final entries = _readChangelogVersions('CHANGELOG.md', errors);
+      if (errors.isNotEmpty) {
+        for (final e in errors) {
+          stderr.writeln('error: $e');
+        }
+        exit(1);
+      }
+      final first = entries.first;
+      if (!first.endsWith('-wip')) {
+        stderr.writeln(
+          'error: first CHANGELOG.md entry is "$first", which does not end '
+          'in "-wip". Pass an explicit version or add a -wip section.',
+        );
+        exit(1);
+      }
+      version = first.substring(0, first.length - '-wip'.length);
+    } else {
+      version = argResults!.rest.first;
+    }
+
+    // Update both manifest files.
+    _bumpJsonVersion('.claude-plugin/plugin.json', version);
+    _bumpJsonVersion('gemini-extension.json', version);
+
+    // Rename the -wip heading in CHANGELOG.md.
+    _bumpChangelog('CHANGELOG.md', version);
+
+    // Confirm and show what will be released.
+    print('Bumped to v$version.');
+    print('');
+    print(
+      'Merging a PR with these changes will trigger a release of v$version.',
+    );
+    print('');
+    print('Changelog for v$version:');
+    print('');
+
+    // Re-use extract logic: find and print the section.
+    final lines = File('CHANGELOG.md').readAsLinesSync();
+    final start = lines.indexWhere((l) => l.trim() == '## $version');
+    final body = StringBuffer();
+    for (var i = start + 1; i < lines.length; i++) {
+      if (lines[i].startsWith('## ')) break;
+      body.writeln(lines[i]);
+    }
+    print(body.toString().trim());
+  }
+
+  void _bumpJsonVersion(String filePath, String version) {
+    final file = File(filePath);
+    final Map<String, dynamic> json;
+    try {
+      json = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
+    } on FormatException catch (e) {
+      stderr.writeln('error: $filePath: invalid JSON — $e');
+      exit(1);
+    }
+    json['version'] = version;
+    // Preserve a trailing newline.
+    file.writeAsStringSync(
+      '${const JsonEncoder.withIndent('  ').convert(json)}\n',
+    );
+    print('  updated $filePath');
+  }
+
+  void _bumpChangelog(String filePath, String version) {
+    final file = File(filePath);
+    final original = file.readAsStringSync();
+    // Replace the first occurrence of a -wip heading with the release version.
+    final updated = original.replaceFirst(
+      RegExp(r'^## .+-wip$', multiLine: true),
+      '## $version',
+    );
+    if (updated == original) {
+      stderr.writeln(
+        'warning: no -wip heading found in $filePath; changelog not updated',
+      );
+      return;
+    }
+    file.writeAsStringSync(updated);
+    print('  updated $filePath');
   }
 }
 
