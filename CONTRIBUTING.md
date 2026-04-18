@@ -33,7 +33,7 @@ echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
 Regenerate the README command tables:
 
 ```sh
-dart run tool/generate_readme.dart
+dart run tool/repo.dart generate-docs
 ```
 
 ## Pull requests
@@ -51,3 +51,20 @@ dart run tool/generate_readme.dart
   agent over tooling failures.
 - Hooks exit 0 always; hard-blocking is reserved for cases where proceeding
   would be clearly wrong.
+
+## Releasing
+
+Releases are triggered automatically when a version-bump PR lands on `main`. To
+prepare a release:
+
+1. Update `CHANGELOG.md` — rename the `X.Y.Z-wip` section to `X.Y.Z` and add a
+   new `X+1.Y.Z-wip` section at the top.
+2. Bump the `version` field in both `.claude-plugin/plugin.json` and
+   `gemini-extension.json` to match.
+3. Open a PR. CI will detect the version bump, label it `release-pr`, and post a
+   comment confirming the version that will be published.
+4. Once the PR lands, CI creates a GitHub release tagged `vX.Y.Z` with the
+   matching changelog section as the release notes.
+
+`dart run tool/repo.dart check-versions` validates that the three files are in
+sync before you open the PR.

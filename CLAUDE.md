@@ -114,7 +114,7 @@ echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
 claude --plugin-dir /path/to/flutter-slipstream
 
 # Regenerate the README command tables:
-dart run tool/generate_readme.dart
+dart run tool/repo.dart generate-docs
 ```
 
 ## Design Reference
