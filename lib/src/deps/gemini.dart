@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
 
 import 'deps_check.dart';
 
@@ -22,14 +23,14 @@ import 'deps_check.dart';
 //   "hook_event_name": "BeforeTool",
 //   "tool_name": "write_file",
 //   "tool_input": {
-//     "path": "src/main.ts",
+//     "file_path": "src/main.ts",
 //     "content": "..."
 //   },
 //   "messages": [...],
 //   "timestamp": "2026-04-17T..."
 // }
-// For 'write_file', 'tool_input' includes 'path' and 'content'.
-// For 'replace', 'tool_input' includes 'path', 'old_string', and 'new_string'.
+// For 'write_file', 'tool_input' includes 'file_path' and 'content'.
+// For 'replace', 'tool_input' includes 'file_path', 'old_string', and 'new_string'.
 
 // Gemini output:
 
@@ -65,14 +66,17 @@ Future<List<String>> handlePubspecGuardGemini(
   final toolName = input['tool_name'] as String?;
   if (toolName != 'write_file' && toolName != 'replace') return const [];
 
+  final cwd = input['cwd'] as String? ?? '.';
   final toolArgs = (input['tool_input'] as Map?)?.cast<String, Object?>() ?? {};
-  final filePath = toolArgs['path'] as String? ?? '';
+  final filePath = toolArgs['file_path'] as String? ?? '';
 
   if (!filePath.endsWith('pubspec.yaml')) return const [];
 
   String oldContent = '';
   try {
-    oldContent = File(filePath).readAsStringSync();
+    final fullPath =
+        path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
+    oldContent = File(fullPath).readAsStringSync();
   } catch (_) {
     // File doesn't exist yet — treat all incoming deps as new.
   }

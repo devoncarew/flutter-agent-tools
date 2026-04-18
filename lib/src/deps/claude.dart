@@ -112,6 +112,16 @@ Future<List<String>> handlePubspecGuardClaude(
 Map<String, Object> claudeValidationFailure(List<String> warnings) {
   final message = warnings.join('\n');
 
+  // Note that we use 'ask' below because that seems the most appropriate.
+  // Models seems to ignore, or not surface, 'ask' results in many cases. Using
+  // 'deny' does surface it but is also a hard stop for the particular task.
+
+  // 'permissionDecision': 'ask' / 'deny',
+
+  // 'ask' seems to be surfaced to the user for the Bash hook but not the Edit
+  // hook. 'deny' does show for the Edit hook. Perhaps a bug in Claude Code's
+  // PreToolUse handling?
+
   return {
     'hookSpecificOutput': {
       'hookEventName': 'PreToolUse',

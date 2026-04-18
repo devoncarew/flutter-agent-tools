@@ -89,7 +89,6 @@ Checks:
 - **Discontinued:** warns with the official replacement if one is listed.
 - **Old major version:** warns when the constraint targets an older major than
   what pub.dev currently publishes (e.g. `http:^0.13.0` vs latest `1.x`).
-- **Not found:** warns if the package name doesn't exist on pub.dev.
 
 ## Contributing
 

@@ -42,7 +42,8 @@ String pubAddInput(String command) => jsonEncode({
 
 String writeFileInput(String filePath, {String content = ''}) => jsonEncode({
   'tool_name': 'write_file',
-  'tool_input': {'path': filePath, 'content': content},
+  'cwd': Directory.current.absolute.path,
+  'tool_input': {'file_path': filePath, 'content': content},
 });
 
 void main() {

@@ -48,7 +48,7 @@ void main() {
     test('ignores Write/Edit tool names (Claude format)', () async {
       final result = await handlePubspecGuardGemini({
         'tool_name': 'Write',
-        'tool_input': {'path': '/app/pubspec.yaml', 'content': ''},
+        'tool_input': {'file_path': '/app/pubspec.yaml', 'content': ''},
       }, httpClient: noNet);
       expect(result, isEmpty);
     });
@@ -56,12 +56,12 @@ void main() {
     test('ignores write_file targeting a non-pubspec file', () async {
       final result = await handlePubspecGuardGemini({
         'tool_name': 'write_file',
-        'tool_input': {'path': '/app/lib/main.dart', 'content': ''},
+        'tool_input': {'file_path': '/app/lib/main.dart', 'content': ''},
       }, httpClient: noNet);
       expect(result, isEmpty);
     });
 
-    test('reads file path from tool_input.path (not file_path)', () async {
+    test('reads file path from tool_input.file_path', () async {
       // No existing file at the path → treats all deps as new.
       const newPubspec = '''
 dependencies:
@@ -70,7 +70,7 @@ dependencies:
       final result = await handlePubspecGuardGemini({
         'tool_name': 'write_file',
         'tool_input': {
-          'path': '/nonexistent/pubspec.yaml',
+          'file_path': '/nonexistent/pubspec.yaml',
           'content': newPubspec,
         },
       }, httpClient: noNet);
@@ -83,7 +83,7 @@ dependencies:
       final result = await handlePubspecGuardGemini({
         'tool_name': 'replace',
         'tool_input': {
-          'path': '/nonexistent/pubspec.yaml',
+          'file_path': '/nonexistent/pubspec.yaml',
           'old_string': '',
           'new_string': '',
         },
@@ -96,7 +96,7 @@ dependencies:
       final result = await handlePubspecGuardGemini({
         'tool_name': 'replace',
         'tool_input': {
-          'path': '/nonexistent/pubspec.yaml',
+          'file_path': '/nonexistent/pubspec.yaml',
           'old_string': '',
           'new_string': '',
         },

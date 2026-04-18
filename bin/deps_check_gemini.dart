@@ -11,7 +11,6 @@ import 'package:flutter_slipstream/src/deps/gemini.dart';
 ///
 /// Gemini input differs from Claude input:
 ///   - tool name is 'run_shell_command' / 'write_file' / 'replace'
-///   - file path key is 'path' (not 'file_path')
 ///
 /// Usage:
 ///   dart run bin/deps_check_gemini.dart --mode=pub-add

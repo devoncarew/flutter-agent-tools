@@ -99,20 +99,17 @@ Future<List<String>> checkPackages(
           blocklistEntry.suggestion != null
               ? '; consider ${blocklistEntry.suggestion} instead'
               : '';
-      warnings.add("  ⚠  '$pkg': ${blocklistEntry.reason}$suffix");
+      warnings.add("'$pkg': ${blocklistEntry.reason}$suffix");
       // Still check pub.dev for discontinued status and version warnings.
     }
 
     final info = await fetchPubDevInfo(pkg, client);
     if (info == null) {
-      warnings.add("  ⚠  '$pkg': could not reach pub.dev (proceeding anyway)");
+      warnings.add("'$pkg': could not reach pub.dev (proceeding anyway)");
       continue;
     }
 
     if (info['notFound'] == true) {
-      warnings.add(
-        "  ⚠  '$pkg': package not found on pub.dev — verify the name before adding",
-      );
       continue;
     }
 
@@ -123,8 +120,8 @@ Future<List<String>> checkPackages(
     if (isDiscontinued) {
       warnings.add(
         replacedBy != null
-            ? "  ⚠  '$pkg' is discontinued. Official replacement: '$replacedBy'"
-            : "  ⚠  '$pkg' is discontinued with no official replacement listed",
+            ? "'$pkg' is discontinued. Official replacement: '$replacedBy'"
+            : "'$pkg' is discontinued with no official replacement listed",
       );
       continue; // Skip major-version check for discontinued packages.
     }
@@ -153,7 +150,7 @@ String? checkMajorVersion(
     if (floor.isEmpty) return null;
     final requested = Version.parse(floor);
     if (requested.major < latest.major) {
-      return "  ⚠  '$pkg': you're requesting major version ${requested.major} "
+      return "'$pkg': you're requesting major version ${requested.major} "
           "(v$requestedConstraint) but the current major is ${latest.major} "
           "(v$latestVersionStr) — consider using the latest major version";
     }
