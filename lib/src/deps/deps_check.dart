@@ -1,34 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 import 'blocklist.dart';
-
-// ---------------------------------------------------------------------------
-// pub-add mode
-
-/// Handles a `flutter pub add` / `dart pub add` hook invocation.
-///
-/// [input] is the decoded hook JSON from stdin. Emits any warnings to stdout
-/// and returns. Never throws.
-Future<void> handlePubAdd(
-  Map<String, Object?> input, {
-  http.Client? httpClient,
-}) async {
-  final toolName = input['tool_name'] as String?;
-  if (toolName != 'Bash') return;
-
-  final command = (input['tool_input'] as Map?)?['command'] as String? ?? '';
-  if (!RegExp(r'(flutter|dart)\s+pub\s+add').hasMatch(command)) return;
-
-  final packages = extractPackagesFromCommand(command);
-  if (packages.isEmpty) return;
-
-  await checkPackages(packages, httpClient: httpClient);
-}
 
 /// Extracts `[(packageName, versionConstraint?)]` from a `pub add` command.
 ///
@@ -55,50 +31,6 @@ List<(String, String?)> extractPackagesFromCommand(String command) {
     }
   }
   return results;
-}
-
-// ---------------------------------------------------------------------------
-// pubspec-guard mode
-
-/// Handles a Write/Edit hook invocation targeting `pubspec.yaml`.
-///
-/// [input] is the decoded hook JSON from stdin. Emits any warnings to stdout
-/// and returns. Never throws.
-Future<void> handlePubspecGuard(
-  Map<String, Object?> input, {
-  http.Client? httpClient,
-}) async {
-  final toolName = input['tool_name'] as String?;
-  if (toolName != 'Write' && toolName != 'Edit') return;
-
-  final toolInput =
-      (input['tool_input'] as Map?)?.cast<String, Object?>() ?? {};
-  final filePath = toolInput['file_path'] as String? ?? '';
-
-  if (!filePath.endsWith('pubspec.yaml')) return;
-
-  // Read the current file from disk (before the edit).
-  String oldContent = '';
-  try {
-    oldContent = File(filePath).readAsStringSync();
-  } catch (_) {
-    // File doesn't exist yet or unreadable — treat all incoming deps as new.
-  }
-
-  // Reconstruct the new file content.
-  final String newContent;
-  if (toolName == 'Write') {
-    newContent = toolInput['content'] as String? ?? '';
-  } else {
-    // Edit: apply old_string → new_string substitution.
-    final oldString = toolInput['old_string'] as String? ?? '';
-    final newString = toolInput['new_string'] as String? ?? '';
-    newContent = oldContent.replaceFirst(oldString, newString);
-  }
-
-  final added = newlyAddedPackages(oldContent, newContent);
-  if (added.isEmpty) return;
-  await checkPackages(added, httpClient: httpClient);
 }
 
 /// Returns the list of packages newly added between [oldContent] and
@@ -146,15 +78,12 @@ Map<String, String> parsePubspecDeps(String content) {
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// pub.dev validation
-
-/// Checks [packages] against the blocklist and pub.dev, printing any warnings
-/// to stdout. Never throws.
+/// Checks [packages] against the blocklist and pub.dev, returning any warning
+/// strings. Never throws.
 ///
 /// [httpClient] is used for pub.dev requests; defaults to a new [http.Client].
 /// Pass a custom client in tests to avoid real network calls.
-Future<void> checkPackages(
+Future<List<String>> checkPackages(
   List<(String, String?)> packages, {
   http.Client? httpClient,
 }) async {
@@ -170,20 +99,17 @@ Future<void> checkPackages(
           blocklistEntry.suggestion != null
               ? '; consider ${blocklistEntry.suggestion} instead'
               : '';
-      warnings.add("  ⚠  '$pkg': ${blocklistEntry.reason}$suffix");
+      warnings.add("'$pkg': ${blocklistEntry.reason}$suffix");
       // Still check pub.dev for discontinued status and version warnings.
     }
 
     final info = await fetchPubDevInfo(pkg, client);
     if (info == null) {
-      warnings.add("  ⚠  '$pkg': could not reach pub.dev (proceeding anyway)");
+      warnings.add("'$pkg': could not reach pub.dev (proceeding anyway)");
       continue;
     }
 
     if (info['notFound'] == true) {
-      warnings.add(
-        "  ⚠  '$pkg': package not found on pub.dev — verify the name before adding",
-      );
       continue;
     }
 
@@ -194,8 +120,8 @@ Future<void> checkPackages(
     if (isDiscontinued) {
       warnings.add(
         replacedBy != null
-            ? "  ⚠  '$pkg' is discontinued. Official replacement: '$replacedBy'"
-            : "  ⚠  '$pkg' is discontinued with no official replacement listed",
+            ? "'$pkg' is discontinued. Official replacement: '$replacedBy'"
+            : "'$pkg' is discontinued with no official replacement listed",
       );
       continue; // Skip major-version check for discontinued packages.
     }
@@ -208,12 +134,7 @@ Future<void> checkPackages(
     }
   }
 
-  if (warnings.isNotEmpty) {
-    print('flutter-slipstream: dependency warnings:');
-    for (final w in warnings) {
-      print(w);
-    }
-  }
+  return warnings;
 }
 
 /// Returns a warning string if [requestedConstraint] targets an older major
@@ -229,7 +150,7 @@ String? checkMajorVersion(
     if (floor.isEmpty) return null;
     final requested = Version.parse(floor);
     if (requested.major < latest.major) {
-      return "  ⚠  '$pkg': you're requesting major version ${requested.major} "
+      return "'$pkg': you're requesting major version ${requested.major} "
           "(v$requestedConstraint) but the current major is ${latest.major} "
           "(v$latestVersionStr) — consider using the latest major version";
     }
@@ -238,9 +159,6 @@ String? checkMajorVersion(
   }
   return null;
 }
-
-// ---------------------------------------------------------------------------
-// pub.dev HTTP
 
 /// Fetches package metadata from pub.dev.
 ///

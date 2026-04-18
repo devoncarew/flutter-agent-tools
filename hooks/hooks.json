@@ -1,0 +1,29 @@
+{
+  "_hooksComment": "Note that BeforeTool is a Gemini specific hook.",
+  "hooks": {
+    "BeforeTool": [
+      {
+        "matcher": "run_shell_command",
+        "hooks": [
+          {
+            "name": "deps-check-pub-add",
+            "type": "command",
+            "command": "${extensionPath}/scripts/deps_check_gemini.sh --mode=pub-add",
+            "description": "Validates packages before flutter pub add runs"
+          }
+        ]
+      },
+      {
+        "matcher": "write_file|replace",
+        "hooks": [
+          {
+            "name": "deps-check-pubspec-guard",
+            "type": "command",
+            "command": "${extensionPath}/scripts/deps_check_gemini.sh --mode=pubspec-guard",
+            "description": "Validates packages on direct pubspec.yaml edits"
+          }
+        ]
+      }
+    ]
+  }
+}

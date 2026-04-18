@@ -15,15 +15,24 @@ jobs:
       - uses: dart-lang/setup-dart@v1
 
       # Check the shell scripts.
-      - run: bash -n scripts/deps_check.sh
+      - run: bash -n scripts/deps_check_claude.sh
+      - run: bash -n scripts/deps_check_gemini.sh
       - run: bash -n scripts/inspector_mcp.sh
       - run: bash -n scripts/packages_mcp.sh
 
+      # Get packages.
       - run: dart pub get
 
       # Validate manifests.
-      - run: dart run tool/validate_manifest.dart .claude-plugin/plugin.json
-      - run: dart run tool/validate_manifest.dart gemini-extension.json
+      - run: dart tool/validate_manifest.dart hooks/hooks.json
+      - run: >-
+          dart run tool/validate_manifest.dart
+          --keys=name,version,description,repository,license,keywords,mcpServers
+          .claude-plugin/plugin.json
+      - run: >-
+          dart run tool/validate_manifest.dart
+          --keys=name,version,description,repository,license,keywords,mcpServers
+          gemini-extension.json
 
       # Dart checks.
       - run: dart analyze

@@ -1,20 +1,7 @@
 import 'package:flutter_slipstream/src/deps/deps_check.dart';
 import 'package:test/test.dart';
 
-/// Tests for [newlyAddedPackages] — the pure diff function extracted from
-/// [handlePubspecGuard].
-///
-/// The failure modes we care about:
-///  1. Write hook — brand new file or full rewrite: all deps are "new".
-///  2. Edit hook — adding a dep to an existing section.
-///  3. Edit hook — adding a new section (e.g. dev_dependencies didn't exist).
-///  4. Edit hook — changing only a version constraint: not reported as new.
-///  5. Edit hook — removing a dep: not reported as new.
-///  6. Edge cases: malformed YAML, empty files, null-valued deps (sdk: flutter).
 void main() {
-  // ---------------------------------------------------------------------------
-  // Core diff behaviour
-
   group('newlyAddedPackages', () {
     test('empty old → all new deps are reported', () {
       const old = '';

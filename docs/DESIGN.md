@@ -58,8 +58,8 @@ effectively abandoned but not officially marked `isDiscontinued` on pub.dev
 blocklist in `lib/src/deps/blocklist.dart` would cover these. Each entry should
 name the package, a reason, and the recommended alternative.
 
-**Implementation:** Dart CLI (`bin/deps_check.dart`) invoked via a thin shell
-launcher (`scripts/deps_check.sh`). Reads tool input JSON from stdin; mode
+**Implementation:** Dart CLIs (`bin/deps_check_claude.dart` / `bin/deps_check_gemini.dart`) invoked via thin shell
+launchers (`scripts/deps_check_claude.sh` / `scripts/deps_check_gemini.sh`). Reads tool input JSON from stdin; mode
 selected via `--mode=pub-add` or `--mode=pubspec-guard`. The pubspec-guard mode
 diffs the YAML before and after the edit to find newly added packages and runs
 the same checks.
