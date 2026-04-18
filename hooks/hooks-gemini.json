@@ -1,5 +1,4 @@
 {
-  "_hooksComment": "Note that BeforeTool is a Gemini specific hook.",
   "hooks": {
     "BeforeTool": [
       {

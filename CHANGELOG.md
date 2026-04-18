@@ -1,3 +1,10 @@
+## 1.3.1
+
+- Disabled Gemini `BeforeTool` hooks for now: Claude Code rejects unknown keys
+  in `hooks/hooks.json` at startup, and there is no way to declare hooks inside
+  `gemini-extension.json` yet. Tracking in
+  [gemini-cli#25630](https://github.com/google-gemini/gemini-cli/issues/25630).
+
 ## 1.3.0
 
 - Fixed a race condition where app output emitted during startup was dropped;

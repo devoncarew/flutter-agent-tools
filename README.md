@@ -2,14 +2,13 @@
 
 # Flutter Slipstream
 
-Flutter Slipstream makes AI coding agents significantly more effective on Dart
-and Flutter projects. It works as a plugin for
-[Claude Code](https://claude.ai/code) and as an extension for
-[Gemini CLI](https://github.com/google-gemini/gemini-cli). It addresses two
-structural problems agents face: a training cutoff that leads to stale package
-choices and subtly wrong API signatures, and a lack of runtime visibility into a
-running Flutter app — agents can't see screenshots, inspect the widget tree, or
-verify that a state change took effect.
+Flutter Slipstream makes AI coding agents more effective on Dart and Flutter
+projects. It works as a plugin for [Claude Code](https://claude.ai/code) and as
+an extension for [Gemini CLI](https://github.com/google-gemini/gemini-cli). It
+addresses two structural problems agents face: a training cutoff that leads to
+stale package choices and subtly wrong API signatures, and a lack of runtime
+visibility into a running Flutter app — agents can't see screenshots, inspect
+the widget tree, or verify that a state change took effect.
 
 ## Features
 
