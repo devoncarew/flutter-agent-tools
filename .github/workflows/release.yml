@@ -58,7 +58,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh pr edit "${{ github.event.pull_request.number }}" \
-            --add-label "release-pr" || true  # label may not exist yet; fail open
+            --add-label "release-pr" || true  # fail open
 
       - name: Comment on PR about release
         if:
@@ -68,9 +68,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="${{ steps.version.outputs.current }}"
+          NOTES=$(dart run tool/repo.dart extract-changelog "$VERSION")
           gh pr comment "${{ github.event.pull_request.number }}" \
             --edit-last --create-if-none \
-            --body "🚀 **Note:** merging this PR will publish version 'v${VERSION}'."
+            --body "Note: merging this PR will create a new release.\n\n" \
+              "### ${VERSION}\n\n${NOTES}"
 
       # --- Push-to-main steps ---
 
