@@ -28,5 +28,5 @@ This extension provides tools for Dart/Flutter development:
    - `get_semantics` to find interactive elements by label or ID.
    - `evaluate` for runtime state (e.g., `MediaQuery`).
 4. **Interact**: Use `perform_tap`, `perform_set_text`, `perform_scroll`, or
-   `perform_navigate`.
+   `navigate`.
 5. **Finish**: `close_app` to release resources.

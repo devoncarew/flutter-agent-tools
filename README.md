@@ -1,20 +1,28 @@
+![Flutter Slipstream in action](docs/slipstream-hero-banner.png)
+
 # Flutter Slipstream
 
-A tool that makes AI coding agents more effective for Dart and Flutter projects.
-Works as a plugin for Claude Code and as an extension for Gemini CLI.
+Flutter Slipstream makes AI coding agents significantly more effective on Dart
+and Flutter projects. It works as a plugin for
+[Claude Code](https://claude.ai/code) and as an extension for
+[Gemini CLI](https://github.com/google-gemini/gemini-cli). It addresses two
+structural problems agents face: a training cutoff that leads to stale package
+choices and subtly wrong API signatures, and a lack of runtime visibility into a
+running Flutter app — agents can't see screenshots, inspect the widget tree, or
+verify that a state change took effect.
 
-AI agents working on Dart and Flutter run into two recurring problems. First,
-their training data has a cutoff — they'll reach for discontinued packages, pin
-outdated major versions, or produce subtly wrong API signatures that compile
-only after a correction loop. Second, Flutter development is inherently visual
-and stateful, and agents have no way to see a running app: they can't observe a
-layout failure, verify that a state change took effect, or confirm that a
-navigation worked.
+## Features
 
-This tool addresses both. It adds hooks that catch stale package choices before
-they land in `pubspec.yaml`, an MCP server that retrieves accurate package API
-signatures directly from the local pub cache, and a suite of MCP commands for
-launching, inspecting, and interacting with a running Flutter app.
+- **Live app inspection** — launch a Flutter app, take screenshots, inspect the
+  widget tree, evaluate Dart expressions, and observe runtime errors, all from
+  agent tool calls.
+- **Tap, type, and scroll** — interact with the running app via semantics or
+  widget finders; no test harness required.
+- **Accurate package APIs** — retrieve any package's public API directly from
+  the local pub cache as a compact Dart stub, version-matched and free of
+  implementation noise.
+- **Package validation hooks** — catch discontinued packages and outdated major
+  versions before they land in `pubspec.yaml`.
 
 ## Installation
 
