@@ -37,12 +37,12 @@ Future<({int exitCode, String stdout})> runScript(
 // Minimal Gemini-format tool-arguments JSON wrappers.
 String pubAddInput(String command) => jsonEncode({
   'tool_name': 'run_shell_command',
-  'tool_arguments': {'command': command},
+  'tool_input': {'command': command},
 });
 
-String writeFileInput(String filePath) => jsonEncode({
+String writeFileInput(String filePath, {String content = ''}) => jsonEncode({
   'tool_name': 'write_file',
-  'tool_arguments': {'path': filePath, 'content': ''},
+  'tool_input': {'path': filePath, 'content': content},
 });
 
 void main() {
@@ -60,6 +60,18 @@ void main() {
       // The Dart handler is invoked; it fails open on any issue and exits 0.
       final r = await runScript('pub-add', pubAddInput('flutter pub add http'));
       expect(r.exitCode, 0);
+    });
+
+    // Note that this does actual network access.
+    test('warn on discontinued package', () async {
+      final r = await runScript(
+        'pub-add',
+        pubAddInput('flutter pub add flutter_markdown'),
+      );
+      expect(r.exitCode, 0);
+      expect(r.stdout, isNotEmpty);
+      expect(r.stdout, contains('flutter_markdown'));
+      expect(r.stdout, contains('discontinued'));
     });
   });
 
@@ -86,5 +98,23 @@ void main() {
         expect(r.exitCode, 0);
       },
     );
+
+    // Note that this does actual network access.
+    test('warn on discontinued package', () async {
+      final file = File('pubspec.yaml');
+      var content = file.readAsStringSync();
+      content = content.replaceFirst(
+        '\ndependencies:',
+        '\ndependencies:\n  flutter_markdown: any',
+      );
+
+      final r = await runScript(
+        'pubspec-guard',
+        writeFileInput('pubspec.yaml', content: content),
+      );
+      expect(r.stdout, isNotEmpty);
+      expect(r.stdout, contains('flutter_markdown'));
+      expect(r.stdout, contains('discontinued'));
+    });
   });
 }

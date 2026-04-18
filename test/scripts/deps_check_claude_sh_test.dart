@@ -35,11 +35,21 @@ Future<({int exitCode, String stdout})> runScript(
 
 // Minimal tool-input JSON wrappers.
 String pubAddInput(String command) => jsonEncode({
+  'tool_name': 'Bash',
   'tool_input': {'command': command},
 });
 
-String editInput(String filePath) => jsonEncode({
-  'tool_input': {'file_path': filePath, 'old_string': '', 'new_string': ''},
+String editInput(
+  String filePath, {
+  String oldString = '',
+  String newString = '',
+}) => jsonEncode({
+  'tool_name': 'Edit',
+  'tool_input': {
+    'file_path': filePath,
+    'old_string': oldString,
+    'new_string': newString,
+  },
 });
 
 void main() {
@@ -57,6 +67,17 @@ void main() {
       // The Dart handler is invoked; it fails open on any issue and exits 0.
       final r = await runScript('pub-add', pubAddInput('flutter pub add http'));
       expect(r.exitCode, 0);
+    });
+
+    test('warn on discontinued package', () async {
+      final r = await runScript(
+        'pub-add',
+        pubAddInput('flutter pub add flutter_markdown'),
+      );
+      expect(r.exitCode, 0);
+      expect(r.stdout, isNotEmpty);
+      expect(r.stdout, contains('flutter_markdown'));
+      expect(r.stdout, contains('discontinued'));
     });
   });
 
@@ -83,5 +104,19 @@ void main() {
         expect(r.exitCode, 0);
       },
     );
+
+    test('warn on discontinued package', () async {
+      final r = await runScript(
+        'pubspec-guard',
+        editInput(
+          'pubspec.yaml',
+          oldString: '\ndependencies:',
+          newString: '\ndependencies:\n  flutter_markdown: any',
+        ),
+      );
+      expect(r.stdout, isNotEmpty);
+      expect(r.stdout, contains('flutter_markdown'));
+      expect(r.stdout, contains('discontinued'));
+    });
   });
 }

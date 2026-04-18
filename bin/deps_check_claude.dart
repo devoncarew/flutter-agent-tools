@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:flutter_slipstream/src/deps/deps_check.dart';
+import 'package:flutter_slipstream/src/deps/claude.dart';
 
 /// PreToolUse hook: validates Dart/Flutter package additions against pub.dev.
 ///
@@ -53,10 +53,7 @@ void main(List<String> args) async {
           : await handlePubspecGuardClaude(input);
 
   if (warnings.isNotEmpty) {
-    print('flutter-slipstream: dependency warnings:');
-    for (final w in warnings) {
-      print(w);
-    }
+    stdout.writeln(jsonEncode(claudeValidationFailure(warnings)));
   }
 
   // We call `exit` explicitly here in case any network calls - to pub? - would

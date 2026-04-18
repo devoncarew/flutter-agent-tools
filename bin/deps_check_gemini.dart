@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:flutter_slipstream/src/deps/deps_check.dart';
+import 'package:flutter_slipstream/src/deps/gemini.dart';
 
 /// BeforeTool hook: validates Dart/Flutter package additions against pub.dev.
 ///
@@ -10,7 +10,6 @@ import 'package:flutter_slipstream/src/deps/deps_check.dart';
 /// emits JSON output ({"systemMessage": "..."}).
 ///
 /// Gemini input differs from Claude input:
-///   - tool arguments are in 'tool_arguments' (not 'tool_input')
 ///   - tool name is 'run_shell_command' / 'write_file' / 'replace'
 ///   - file path key is 'path' (not 'file_path')
 ///
@@ -62,9 +61,7 @@ void main(List<String> args) async {
   }
 
   if (warnings.isNotEmpty) {
-    final message =
-        'flutter-slipstream: dependency warnings:\n${warnings.join('\n')}';
-    stdout.writeln(jsonEncode({'systemMessage': message}));
+    stdout.writeln(jsonEncode(geminiValidationFailure(warnings)));
   }
 
   exit(0);
