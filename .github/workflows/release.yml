@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create GitHub releases
+      pull-requests: write # add labels and comments to PRs
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2 # need HEAD^ for version comparison on main
+
+      - uses: dart-lang/setup-dart@v1
+
+      - run: dart pub get
+
+      # Validate that all version fields are consistent.
+      - name: Check versions
+        run: dart run tool/repo.dart check-versions
+
+      # Detect whether this branch/commit bumps the plugin version vs main.
+      - name: Detect version change
+        id: version
+        run: |
+          CURRENT=$(jq -r '.version' .claude-plugin/plugin.json)
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin main --depth=1
+            BASELINE=$(git show origin/main:.claude-plugin/plugin.json | jq -r '.version')
+          else
+            BASELINE=$(git show HEAD^:.claude-plugin/plugin.json | jq -r '.version')
+          fi
+
+          echo "baseline=$BASELINE" >> "$GITHUB_OUTPUT"
+
+          if [ "$CURRENT" != "$BASELINE" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # --- PR-only steps ---
+
+      - name: Label PR as release
+        if:
+          github.event_name == 'pull_request' && steps.version.outputs.changed
+          == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr edit "${{ github.event.pull_request.number }}" \
+            --add-label "release-pr" || true  # label may not exist yet; fail open
+
+      - name: Comment on PR about release
+        if:
+          github.event_name == 'pull_request' && steps.version.outputs.changed
+          == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.version.outputs.current }}"
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --edit-last --create-if-none \
+            --body "🚀 **Note:** merging this PR will publish version `v${VERSION}`."
+
+      # --- Push-to-main steps ---
+
+      - name: Publish GitHub release
+        if:
+          github.event_name == 'push' && steps.version.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.version.outputs.current }}"
+          NOTES=$(dart run tool/repo.dart extract-changelog "$VERSION")
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --notes "${NOTES}"

@@ -24,15 +24,7 @@ jobs:
       - run: dart pub get
 
       # Validate manifests.
-      - run: dart tool/validate_manifest.dart hooks/hooks.json
-      - run: >-
-          dart run tool/validate_manifest.dart
-          --keys=name,version,description,repository,license,keywords,mcpServers
-          .claude-plugin/plugin.json
-      - run: >-
-          dart run tool/validate_manifest.dart
-          --keys=name,version,description,repository,license,keywords,mcpServers
-          gemini-extension.json
+      - run: dart run tool/repo.dart validate-manifests
 
       # Dart checks.
       - run: dart analyze
