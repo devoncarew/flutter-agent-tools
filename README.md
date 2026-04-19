@@ -1,4 +1,4 @@
-![Flutter Slipstream in action](docs/slipstream-hero-banner.png)
+![Flutter Slipstream in action](docs/slipstream_banner.png)
 
 # Flutter Slipstream
 
