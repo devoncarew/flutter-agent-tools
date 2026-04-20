@@ -63,10 +63,6 @@ class AppSession {
   StreamSubscription<Event>? _vmIsolateEventSubscription;
   StreamSubscription<Event>? _vmExtensionEventSubscription;
 
-  // TODO: We need to null this out when the associated isolate stops (as part
-  // of a hot restart).
-  String? _companionVersion;
-
   // Output buffer — prefixed lines accumulated since the last drain or reload.
   final List<String> _outputBuffer = [];
 
@@ -94,11 +90,11 @@ class AppSession {
   /// Determined by calling `ext.slipstream.ping` after the VM service connects.
   /// False until the first ping completes, then stable until the next hot
   /// restart (after which it is re-determined automatically).
-  bool get hasCompanion => _companionVersion != null;
+  bool get hasCompanion => _serviceExtensions?.companionVersion != null;
 
   /// The slipstream_agent companion version string (e.g. `"0.1.0"`), or null
   /// if the companion is not installed.
-  String? get companionVersion => _companionVersion;
+  String? get companionVersion => _serviceExtensions?.companionVersion;
 
   /// Access to Flutter VM service extensions for this session.
   ///
@@ -503,9 +499,6 @@ class AppSession {
     _vmIsolateEventSubscription = vmService.onIsolateEvent.listen((
       Event event,
     ) {
-      // Also available:
-      //   kIsolateStart, kIsolateRunnable, kIsolateExit, kIsolateReload
-
       if (event.kind == EventKind.kServiceExtensionAdded) {
         final rpcName = event.extensionRPC;
         if (rpcName == 'ext.slipstream.ping') {
@@ -556,8 +549,6 @@ class AppSession {
   /// Best-effort — called on initial connect and after each hot restart.
   void _pingCompanion({Function? ifAvailable}) {
     _serviceExtensions?.pingCompanion().then((version) {
-      _companionVersion = version;
-
       if (ifAvailable != null) {
         ifAvailable();
       }
