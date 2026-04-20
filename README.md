@@ -37,6 +37,30 @@ claude plugin install flutter-slipstream
 gemini extensions install https://github.com/devoncarew/flutter-slipstream
 ```
 
+## Getting Started / Using Slipstream
+
+Install the plugin, then work on Flutter projects as you normally would. No
+special prompting is required — Slipstream works in the background.
+
+**UI development workflow:** When building or debugging UI, ask the agent to run
+the app. It will launch on a desktop device automatically, then iterate using
+hot reload after each source edit. Because the agent can take screenshots and
+inspect the widget tree, it catches overflow errors, layout surprises, and
+rendering regressions on its own — without you having to describe what went
+wrong.
+
+**Package hygiene:** Whenever the agent adds a package — via `pub add` or by
+editing `pubspec.yaml` directly — the hook checks pub.dev and warns if the
+package is discontinued or if the constraint targets an outdated major version.
+The agent sees the warning and can correct course before the bad dependency
+lands.
+
+**Optional: richer instrumentation.** Add
+[`package:slipstream_agent`](https://pub.dev/packages/slipstream_agent) as a
+dependency for finder-based interactions (tap by key, type, or text), scroll
+support, and router-aware navigation. Without it, Slipstream still works well
+via semantics and the Flutter inspector protocol.
+
 ## Tools
 
 ### Flutter UI agent (`inspector`)

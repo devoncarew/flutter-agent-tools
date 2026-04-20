@@ -1,0 +1,39 @@
+name: Integration
+permissions: read-all
+
+on:
+  pull_request:
+    branches: [main]
+
+# TODO: Also test against Flutter beta?
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: devoncarew/setup-flutter-action@v1
+
+      # Clone devoncarew/flutter-slipstream.
+      - uses: actions/checkout@v6
+        with:
+          path: flutter-slipstream
+
+      # Clone devoncarew/slipstream_agent.
+      - uses: actions/checkout@v6
+        with:
+          repository: devoncarew/slipstream_agent
+          path: slipstream_agent
+
+      # Get packages and run the integration test.
+      - run: dart pub get
+        working-directory: flutter-slipstream
+      - run: flutter pub get
+        working-directory: slipstream_agent/slipstream_showcase
+      - run:
+          dart test/integration/inspector_script.dart
+          ../slipstream_agent/slipstream_showcase
+        working-directory: flutter-slipstream
