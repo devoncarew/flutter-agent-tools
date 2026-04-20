@@ -40,10 +40,10 @@ class GetOutputTool extends InspectorTool {
 
       // "get output: 7 lines, 1 error"
       var msg = '∅';
+      final errors =
+          lines.where((line) => line.startsWith('[flutter.error]')).length;
       if (lines.isNotEmpty) {
         msg = lines.length == 1 ? '1 line' : '${lines.length} lines';
-        final errors =
-            lines.where((line) => line.startsWith('[flutter.error]')).length;
         if (errors != 0) {
           final errDesc = errors == 1 ? '1 error' : '$errors errors';
           msg = '$msg, $errDesc';
@@ -51,6 +51,11 @@ class GetOutputTool extends InspectorTool {
       }
 
       extensions.slipstreamLog('get output', kind: 'read', details: msg);
+
+      // Clear the error banner once the agent has seen the errors.
+      if (errors > 0) {
+        extensions.slipstreamClearErrors();
+      }
     }
 
     return CallToolResult(content: [TextContent(text: text)]);

@@ -11,30 +11,34 @@ class PerformScrollUntilVisibleTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'perform_scroll_until_visible',
-    description:
-        'Scrolls a Scrollable widget until a target widget is visible in the '
-        'viewport. Two finders are required: one to locate the target widget, '
-        'and one to locate the Scrollable that contains it.\n\n'
-        'Finders for both: byKey (ValueKey string), byType (widget type name), '
-        'byText (Text widget content), bySemanticsLabel (Semantics label).\n\n'
-        'Example: scroll a ListView (scroll_finder="byType", '
-        'scroll_finder_value="ListView") until item_42 is visible '
-        '(finder="byKey", finder_value="item_42").\n\n'
-        'Requires the slipstream_agent companion package.',
+    description: '''
+Scrolls a Scrollable widget until a target widget is visible in the viewport.
+Two finders are required: one to locate the target widget, and one to locate
+the Scrollable that contains it.
+
+Finders for both: byKey (ValueKey string), byType (widget type name), byText
+(exact Text content), byTextContaining (Text content substring),
+bySemanticsLabel (Semantics label).
+
+Example: scroll a ListView (scroll_finder="byType",
+scroll_finder_value="ListView") until item_42 is visible (finder="byKey",
+finder_value="item_42").
+
+Requires the slipstream_agent companion package.''',
     inputSchema: Schema.object(
       properties: {
         'finder': Schema.string(
           description:
-              'How to find the target widget: "byKey", "byType", "byText", or '
-              '"bySemanticsLabel".',
+              'How to find the target widget: "byKey", "byType", "byText", '
+              '"byTextContaining", or "bySemanticsLabel".',
         ),
         'finder_value': Schema.string(
           description: 'The value to match against the target finder.',
         ),
         'scroll_finder': Schema.string(
           description:
-              'How to find the Scrollable: "byKey", "byType", "byText", or '
-              '"bySemanticsLabel".',
+              'How to find the Scrollable: "byKey", "byType", "byText", '
+              '"byTextContaining", or "bySemanticsLabel".',
         ),
         'scroll_finder_value': Schema.string(
           description: 'The value to match against the scroll finder.',

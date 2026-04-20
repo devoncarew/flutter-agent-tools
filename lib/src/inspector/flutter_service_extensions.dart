@@ -228,6 +228,20 @@ class FlutterServiceExtensions {
     }
   }
 
+  /// Calls `ext.slipstream.clear_errors` to dismiss the persistent
+  /// `flutter.error` banner from the ghost overlay.
+  ///
+  /// Call after draining output that contained `[flutter.error]` lines, or
+  /// whenever the agent has acknowledged the errors. Best-effort: failures are
+  /// silently ignored.
+  Future<void> slipstreamClearErrors() async {
+    try {
+      await _callExtension('ext.slipstream.clear_errors');
+    } catch (_) {
+      // Best-effort — don't let a clear-errors failure break the calling tool.
+    }
+  }
+
   /// Calls `ext.slipstream.overlays` to show or hide Slipstream-managed
   /// overlays (currently the Flutter debug banner).
   ///
