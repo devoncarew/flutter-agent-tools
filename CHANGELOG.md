@@ -1,4 +1,4 @@
-## 1.4.0-wip
+## 1.4.0
 
 - Updated for `package:slipstream_agent` 1.2.0:
   - `get_output` now calls `ext.slipstream.clear_errors` after draining output
