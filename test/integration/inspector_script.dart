@@ -38,9 +38,9 @@ void main(List<String> args) {
     await _startApp(env, projectDir);
   });
 
-  // Wait for 1 second after every test.
+  // Wait a brief period of time between tests.
   tearDown(() async {
-    await Future.delayed(Duration(milliseconds: 500));
+    await Future.delayed(Duration(milliseconds: 300));
   });
 
   // Tear down after all the tests.
@@ -207,8 +207,6 @@ void main(List<String> args) {
         await env.serverConnection.callTool(
           CallToolRequest(name: 'navigate', arguments: {'path': '/widgets'}),
         );
-
-        await smallDelay;
 
         final result = await env.serverConnection.callTool(
           CallToolRequest(name: 'get_route', arguments: {}),
@@ -434,7 +432,6 @@ void main(List<String> args) {
         await env.serverConnection.callTool(
           CallToolRequest(name: 'navigate', arguments: {'path': '/discover'}),
         );
-        await smallDelay;
 
         final result = await env.serverConnection.callTool(
           CallToolRequest(

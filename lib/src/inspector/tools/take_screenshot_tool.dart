@@ -11,14 +11,20 @@ class TakeScreenshotTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'take_screenshot',
-    description:
-        'Captures a PNG screenshot of the running Flutter app. Use '
-        'proactively after a reload to visually confirm UI changes are '
-        'correct, and when diagnosing layout or rendering issues. '
-        'Root widget bounds are resolved automatically. '
-        'Note: only the Flutter view is captured — native system UI such as '
-        'platform share sheets, permission dialogs, or OS-level overlays will '
-        'not appear in the screenshot even if visible on screen.',
+    description: '''
+Captures a PNG screenshot of the running Flutter app. Use proactively after a
+reload to visually confirm UI changes are correct, and when diagnosing layout
+or rendering issues.  Root widget bounds are resolved automatically. 
+
+Note: only the Flutter view is captured — native system UI such as platform
+share sheets, permission dialogs, or OS-level overlays will not appear in the
+screenshot even if visible on screen.
+
+If a red chip reading "flutter.error: <msg>" is visible near the top of the
+screenshot, a Flutter framework error has been caught by the app. Call
+get_output to read the full error (which includes a widget ID for
+inspect_layout), then address the root cause. The banner clears automatically
+after get_output acknowledges the errors.''',
     inputSchema: Schema.object(
       properties: {
         'pixel_ratio': Schema.num(

@@ -4,11 +4,6 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 import '../../utils.dart';
 import '../tool_context.dart';
 
-const _finderDescription =
-    'How to find the Scrollable widget: "byKey", "byType", "byText", or '
-    '"bySemanticsLabel".';
-const _finderValueDescription = 'The value to match against the chosen finder.';
-
 /// Implements the `perform_scroll` MCP tool.
 ///
 /// Scrolls a Scrollable widget by a fixed number of pixels. Requires the
@@ -17,20 +12,28 @@ class PerformScrollTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'perform_scroll',
-    description:
-        'Scrolls a Scrollable widget by a fixed number of logical pixels. '
-        'The finder locates the Scrollable (e.g. ListView, SingleChildScrollView) '
-        'directly. Clamped to the scroll extent bounds.\n\n'
-        'Finders: byKey (ValueKey string), byType (widget type name, e.g. '
-        '"ListView"), byText (Text widget content), bySemanticsLabel '
-        '(Semantics widget label).\n\n'
-        'To bring a specific widget into view, use perform_scroll_until_visible '
-        'instead.\n\n'
-        'Requires the slipstream_agent companion package.',
+    description: '''
+Scrolls a Scrollable widget by a fixed number of logical pixels. The finder
+locates the Scrollable (e.g. ListView, SingleChildScrollView) directly. Clamped
+to the scroll extent bounds.
+
+Finders: byKey (ValueKey string), byType (widget type name, e.g. "ListView"),
+byText (Text widget content), byTextContaining (Text content substring),
+bySemanticsLabel (Semantics widget label).
+
+To bring a specific widget into view, use perform_scroll_until_visible instead.
+
+Requires the slipstream_agent companion package.''',
     inputSchema: Schema.object(
       properties: {
-        'finder': Schema.string(description: _finderDescription),
-        'finder_value': Schema.string(description: _finderValueDescription),
+        'finder': Schema.string(
+          description:
+              'How to find the Scrollable widget: "byKey", "byType", "byText", '
+              '"byTextContaining", or "bySemanticsLabel".',
+        ),
+        'finder_value': Schema.string(
+          description: 'The value to match against the chosen finder.',
+        ),
         'direction': Schema.string(
           description: 'Scroll direction: "up", "down", "left", or "right".',
         ),

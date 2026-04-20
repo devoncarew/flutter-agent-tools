@@ -3,11 +3,6 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../tool_context.dart';
 
-const _finderDescription =
-    'How to find the widget: "byKey", "byType", "byText", or '
-    '"bySemanticsLabel".';
-const _finderValueDescription = 'The value to match against the chosen finder.';
-
 /// Implements the `perform_tap` MCP tool.
 ///
 /// Taps a widget located by a finder. Requires the slipstream_agent companion
@@ -17,19 +12,27 @@ class PerformTapTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'perform_tap',
-    description:
-        'Taps a widget located by a finder. Synthesizes a pointer down/up '
-        'event at the widget\'s center — triggers GestureDetector.onTap, '
-        'InkWell.onTap, and any other gesture recognizers.\n\n'
-        'Finders: byKey (ValueKey string), byType (widget type name, e.g. '
-        '"ElevatedButton"), byText (Text widget content), bySemanticsLabel '
-        '(Semantics widget label).\n\n'
-        'Requires the slipstream_agent companion package. Without it, use '
-        'perform_semantic_action with action "tap" instead.',
+    description: '''
+Taps a widget located by a finder. Synthesizes a pointer down/up event at the
+widget's center — triggers GestureDetector.onTap, InkWell.onTap, and any other
+gesture recognizers.
+
+Finders: byKey (ValueKey string), byType (widget type name, e.g.
+"ElevatedButton"), byText (exact Text content), byTextContaining (Text content
+substring), bySemanticsLabel (Semantics widget label).
+
+Requires the slipstream_agent companion package. Without it, use
+perform_semantic_action with action "tap" instead.''',
     inputSchema: Schema.object(
       properties: {
-        'finder': Schema.string(description: _finderDescription),
-        'finder_value': Schema.string(description: _finderValueDescription),
+        'finder': Schema.string(
+          description:
+              'How to find the widget: "byKey", "byType", "byText", "byTextContaining", '
+              'or "bySemanticsLabel".',
+        ),
+        'finder_value': Schema.string(
+          description: 'The value to match against the chosen finder.',
+        ),
       },
       required: ['finder', 'finder_value'],
     ),

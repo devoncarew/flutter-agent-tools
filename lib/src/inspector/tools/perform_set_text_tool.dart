@@ -3,11 +3,6 @@ import 'package:vm_service/vm_service.dart' show RPCError;
 
 import '../tool_context.dart';
 
-const _finderDescription =
-    'How to find the widget: "byKey", "byType", "byText", or '
-    '"bySemanticsLabel".';
-const _finderValueDescription = 'The value to match against the chosen finder.';
-
 /// Implements the `perform_set_text` MCP tool.
 ///
 /// Sets the text content of a text field located by a finder. Requires the
@@ -17,22 +12,31 @@ class PerformSetTextTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'perform_set_text',
-    description:
-        'Sets the text content of a text field located by a finder. Replaces '
-        'the field\'s current content and fires the field\'s onChanged '
-        'callback. Note: TextInputFormatters are not applied since text is set '
-        'directly without going through the input pipeline.\n\n'
-        'Finders: byKey (ValueKey string), byType (widget type name, e.g. '
-        '"TextField"), byText (Text widget content), bySemanticsLabel '
-        '(Semantics widget label).\n\n'
-        'Tip: call perform_tap on the field first if the app requires focus '
-        'before accepting text input.\n\n'
-        'Requires the slipstream_agent companion package. Without it, use '
-        'perform_semantic_action with action "setText" instead.',
+    description: '''
+Sets the text content of a text field located by a finder. Replaces the field's
+current content and fires the field's onChanged callback. Note:
+TextInputFormatters are not applied since text is set directly without going
+through the input pipeline.
+
+Finders: byKey (ValueKey string), byType (widget type name, e.g. "TextField"),
+byText (exact Text content), byTextContaining (Text content substring),
+bySemanticsLabel (Semantics widget label).
+
+Tip: call perform_tap on the field first if the app requires focus before
+accepting text input.
+
+Requires the slipstream_agent companion package. Without it, use
+perform_semantic_action with action "setText" instead.''',
     inputSchema: Schema.object(
       properties: {
-        'finder': Schema.string(description: _finderDescription),
-        'finder_value': Schema.string(description: _finderValueDescription),
+        'finder': Schema.string(
+          description:
+              'How to find the widget: "byKey", "byType", "byText", "byTextContaining", '
+              'or "bySemanticsLabel".',
+        ),
+        'finder_value': Schema.string(
+          description: 'The value to match against the chosen finder.',
+        ),
         'text': Schema.string(
           description:
               'The text to set. Replaces the field\'s current content.',

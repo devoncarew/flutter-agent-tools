@@ -178,10 +178,17 @@ take_screenshot([pixel_ratio])
 
 Captures a PNG screenshot of the running Flutter app. Use proactively after a
 reload to visually confirm UI changes are correct, and when diagnosing layout or
-rendering issues. Root widget bounds are resolved automatically. Note: only the
-Flutter view is captured — native system UI such as platform share sheets,
-permission dialogs, or OS-level overlays will not appear in the screenshot even
-if visible on screen.
+rendering issues. Root widget bounds are resolved automatically.
+
+Note: only the Flutter view is captured — native system UI such as platform
+share sheets, permission dialogs, or OS-level overlays will not appear in the
+screenshot even if visible on screen.
+
+If a red chip reading "flutter.error: <msg>" is visible near the top of the
+screenshot, a Flutter framework error has been caught by the app. Call
+get_output to read the full error (which includes a widget ID for
+inspect_layout), then address the root cause. The banner clears automatically
+after get_output acknowledges the errors.
 
 - `pixel_ratio`: Device pixel ratio for the screenshot. Higher values produce
   sharper images. Defaults to 1.0.
@@ -267,14 +274,14 @@ widget's center — triggers GestureDetector.onTap, InkWell.onTap, and any other
 gesture recognizers.
 
 Finders: byKey (ValueKey string), byType (widget type name, e.g.
-"ElevatedButton"), byText (Text widget content), bySemanticsLabel (Semantics
-widget label).
+"ElevatedButton"), byText (exact Text content), byTextContaining (Text content
+substring), bySemanticsLabel (Semantics widget label).
 
 Requires the slipstream_agent companion package. Without it, use
 perform_semantic_action with action "tap" instead.
 
-- `finder`: (required) How to find the widget: "byKey", "byType", "byText", or
-  "bySemanticsLabel".
+- `finder`: (required) How to find the widget: "byKey", "byType", "byText",
+  "byTextContaining", or "bySemanticsLabel".
 - `finder_value`: (required) The value to match against the chosen finder.
 
 ### `inspector:perform_set_text`
@@ -289,7 +296,8 @@ TextInputFormatters are not applied since text is set directly without going
 through the input pipeline.
 
 Finders: byKey (ValueKey string), byType (widget type name, e.g. "TextField"),
-byText (Text widget content), bySemanticsLabel (Semantics widget label).
+byText (exact Text content), byTextContaining (Text content substring),
+bySemanticsLabel (Semantics widget label).
 
 Tip: call perform_tap on the field first if the app requires focus before
 accepting text input.
@@ -297,8 +305,8 @@ accepting text input.
 Requires the slipstream_agent companion package. Without it, use
 perform_semantic_action with action "setText" instead.
 
-- `finder`: (required) How to find the widget: "byKey", "byType", "byText", or
-  "bySemanticsLabel".
+- `finder`: (required) How to find the widget: "byKey", "byType", "byText",
+  "byTextContaining", or "bySemanticsLabel".
 - `finder_value`: (required) The value to match against the chosen finder.
 - `text`: (required) The text to set. Replaces the field's current content.
 
@@ -313,14 +321,15 @@ locates the Scrollable (e.g. ListView, SingleChildScrollView) directly. Clamped
 to the scroll extent bounds.
 
 Finders: byKey (ValueKey string), byType (widget type name, e.g. "ListView"),
-byText (Text widget content), bySemanticsLabel (Semantics widget label).
+byText (Text widget content), byTextContaining (Text content substring),
+bySemanticsLabel (Semantics widget label).
 
 To bring a specific widget into view, use perform_scroll_until_visible instead.
 
 Requires the slipstream_agent companion package.
 
 - `finder`: (required) How to find the Scrollable widget: "byKey", "byType",
-  "byText", or "bySemanticsLabel".
+  "byText", "byTextContaining", or "bySemanticsLabel".
 - `finder_value`: (required) The value to match against the chosen finder.
 - `direction`: (required) Scroll direction: "up", "down", "left", or "right".
 - `pixels`: (required) Number of logical pixels to scroll.
@@ -336,7 +345,8 @@ Two finders are required: one to locate the target widget, and one to locate the
 Scrollable that contains it.
 
 Finders for both: byKey (ValueKey string), byType (widget type name), byText
-(Text widget content), bySemanticsLabel (Semantics label).
+(exact Text content), byTextContaining (Text content substring),
+bySemanticsLabel (Semantics label).
 
 Example: scroll a ListView (scroll_finder="byType",
 scroll_finder_value="ListView") until item_42 is visible (finder="byKey",
@@ -345,10 +355,10 @@ finder_value="item_42").
 Requires the slipstream_agent companion package.
 
 - `finder`: (required) How to find the target widget: "byKey", "byType",
-  "byText", or "bySemanticsLabel".
+  "byText", "byTextContaining", or "bySemanticsLabel".
 - `finder_value`: (required) The value to match against the target finder.
 - `scroll_finder`: (required) How to find the Scrollable: "byKey", "byType",
-  "byText", or "bySemanticsLabel".
+  "byText", "byTextContaining", or "bySemanticsLabel".
 - `scroll_finder_value`: (required) The value to match against the scroll
   finder.
 
