@@ -483,6 +483,9 @@ Future<void> _startApp(
   );
 
   // "'Launched. (device ID: zzz)'"
+  if (result.isError == true) {
+    throw result.describe;
+  }
 
   // No real reason for this (prevents flashing open and closed?).
   await Future.delayed(Duration(milliseconds: 500));
