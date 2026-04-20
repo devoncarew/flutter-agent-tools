@@ -5,7 +5,8 @@ on:
   pull_request:
     branches: [main]
 
-# TODO: Also test against Flutter beta?
+# TODO: To test on ubuntu-latest we'd need to install the gtk+-3.0 package for
+# cmake (and potentially do some other setup).
 
 jobs:
   build:
@@ -13,9 +14,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [macos-latest]
+        sdk: [beta, stable]
     steps:
       - uses: devoncarew/setup-flutter-action@v1
+        with:
+          channel: ${{ matrix.sdk }}
 
       # Clone devoncarew/flutter-slipstream.
       - uses: actions/checkout@v6

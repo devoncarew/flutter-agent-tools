@@ -208,6 +208,8 @@ void main(List<String> args) {
           CallToolRequest(name: 'navigate', arguments: {'path': '/widgets'}),
         );
 
+        await smallDelay;
+
         final result = await env.serverConnection.callTool(
           CallToolRequest(name: 'get_route', arguments: {}),
         );
@@ -432,7 +434,7 @@ void main(List<String> args) {
         await env.serverConnection.callTool(
           CallToolRequest(name: 'navigate', arguments: {'path': '/discover'}),
         );
-        await Future.delayed(Duration(milliseconds: 250));
+        await smallDelay;
 
         final result = await env.serverConnection.callTool(
           CallToolRequest(
@@ -442,7 +444,7 @@ void main(List<String> args) {
         );
         expect(result.isError, isNull, reason: result.describe);
 
-        await Future.delayed(Duration(milliseconds: 250));
+        await smallDelay;
 
         final routeResult = await env.serverConnection.callTool(
           CallToolRequest(name: 'get_route', arguments: {}),
@@ -494,3 +496,5 @@ Future<void> _startApp(
 extension on CallToolResult {
   String get describe => content.map((c) => c.toString()).join('\n');
 }
+
+Future<void> get smallDelay => Future.delayed(Duration(milliseconds: 250));
