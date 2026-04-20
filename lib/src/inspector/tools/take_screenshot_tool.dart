@@ -39,7 +39,8 @@ class TakeScreenshotTool extends InspectorTool {
     final session = context.activeSession;
     if (session == null) return context.noActiveSession();
 
-    final pixelRatio = coerceDouble(request.arguments!['pixel_ratio']);
+    context.validateParams(request, definition.inputSchema.required!);
+    final pixelRatio = coerceDouble(request.arguments?['pixel_ratio']);
 
     final extensions = session.serviceExtensions;
     bool overlaysDisabled = false;

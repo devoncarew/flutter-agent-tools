@@ -44,6 +44,7 @@ class PerformTapTool extends InspectorTool {
 
     final session = context.activeSession;
     if (session == null) return context.noActiveSession();
+
     if (!session.hasCompanion) {
       return context.companionNotInstalled('perform_tap');
     }

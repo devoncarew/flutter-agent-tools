@@ -1,0 +1,43 @@
+name: Integration
+permissions: read-all
+
+on:
+  pull_request:
+    branches: [main]
+
+# TODO: To test on ubuntu-latest we'd need to install the gtk+-3.0 package for
+# cmake (and potentially do some other setup).
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest]
+        sdk: [beta, stable]
+    steps:
+      - uses: devoncarew/setup-flutter-action@v1
+        with:
+          channel: ${{ matrix.sdk }}
+
+      # Clone devoncarew/flutter-slipstream.
+      - uses: actions/checkout@v6
+        with:
+          path: flutter-slipstream
+
+      # Clone devoncarew/slipstream_agent.
+      - uses: actions/checkout@v6
+        with:
+          repository: devoncarew/slipstream_agent
+          path: slipstream_agent
+
+      # Get packages and run the integration test.
+      - run: dart pub get
+        working-directory: flutter-slipstream
+      - run: flutter pub get
+        working-directory: slipstream_agent/slipstream_showcase
+      - run:
+          dart test/integration/inspector_script.dart
+          ../slipstream_agent/slipstream_showcase
+        working-directory: flutter-slipstream

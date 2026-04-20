@@ -71,7 +71,10 @@ before launching.
 
 ### slipstream_agent companion (`package:slipstream_agent`)
 
-An optional dependency apps can install for richer instrumentation. When present
+An optional dependency apps can install for richer instrumentation. Although it
+is conceptually a dev-only tool, it must be declared as a regular `dependency:`
+in `pubspec.yaml` (not `dev_dependencies`) because it is imported from `lib/`
+code in this package. When present
 (detected via `ext.slipstream.ping`), the inspector server uses in-process
 service extensions instead of evaluate-based fallbacks:
 
