@@ -92,7 +92,7 @@ class FlutterServiceExtensions {
   /// installed and registered, or `null` if it is not. Never throws — fails
   /// open so the caller does not need to handle the no-companion case specially.
   Future<String?> pingCompanion() async {
-    // Short circuit a call is we already have the agent info.
+    // Short circuit the call when we already have the agent info.
     if (companionVersion != null) {
       return companionVersion;
     }
