@@ -1,10 +1,7 @@
-import 'package:flutter_slipstream/src/deps/deps_check.dart';
 import 'package:flutter_slipstream/src/deps/gemini.dart';
-import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-// A client that throws on any request so tests never hit pub.dev.
-final noNet = _NoNetworkClient();
+import 'support.dart';
 
 void main() {
   group('handlePubAddGemini', () {
@@ -12,7 +9,7 @@ void main() {
       final result = await handlePubAddGemini({
         'tool_name': 'Bash',
         'tool_input': {'command': 'flutter pub add http'},
-      }, httpClient: noNet);
+      }, httpClient: noNetworkClient());
       expect(result, isEmpty);
     });
 
@@ -20,7 +17,7 @@ void main() {
       final result = await handlePubAddGemini({
         'tool_name': 'run_shell_command',
         'tool_input': {'command': 'dart pub get'},
-      }, httpClient: noNet);
+      }, httpClient: noNetworkClient());
       expect(result, isEmpty);
     });
 
@@ -30,7 +27,7 @@ void main() {
       final result = await handlePubAddGemini({
         'tool_name': 'run_shell_command',
         'tool_input': {'command': 'flutter pub add some_pkg'},
-      }, httpClient: noNet);
+      }, httpClient: noNetworkClient());
       // noNet always fails open → no warnings about pub.dev being unreachable
       // (the fail-open path returns a "could not reach pub.dev" warning).
       expect(result, isA<List<String>>());
@@ -39,7 +36,7 @@ void main() {
     test('returns empty list when tool_input is absent', () async {
       final result = await handlePubAddGemini({
         'tool_name': 'run_shell_command',
-      }, httpClient: noNet);
+      }, httpClient: noNetworkClient());
       expect(result, isEmpty);
     });
   });
@@ -49,7 +46,7 @@ void main() {
       final result = await handlePubspecGuardGemini({
         'tool_name': 'Write',
         'tool_input': {'file_path': '/app/pubspec.yaml', 'content': ''},
-      }, httpClient: noNet);
+      }, httpClient: noNetworkClient());
       expect(result, isEmpty);
     });
 
@@ -57,7 +54,7 @@ void main() {
       final result = await handlePubspecGuardGemini({
         'tool_name': 'write_file',
         'tool_input': {'file_path': '/app/lib/main.dart', 'content': ''},
-      }, httpClient: noNet);
+      }, httpClient: noNetworkClient());
       expect(result, isEmpty);
     });
 
@@ -73,7 +70,7 @@ dependencies:
           'file_path': '/nonexistent/pubspec.yaml',
           'content': newPubspec,
         },
-      }, httpClient: noNet);
+      }, httpClient: noNetworkClient());
       // pub.dev is unreachable → fail-open warning for 'http'
       expect(result, isA<List<String>>());
     });
@@ -87,7 +84,7 @@ dependencies:
           'old_string': '',
           'new_string': '',
         },
-      }, httpClient: noNet);
+      }, httpClient: noNetworkClient());
       expect(result, isEmpty);
     });
 
@@ -100,17 +97,8 @@ dependencies:
           'old_string': '',
           'new_string': '',
         },
-      }, httpClient: noNet);
+      }, httpClient: noNetworkClient());
       expect(result, isEmpty);
     });
   });
-}
-
-/// HTTP client that always throws, so tests never make real network calls.
-/// [checkPackages] treats network errors as fail-open.
-class _NoNetworkClient extends http.BaseClient {
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    throw Exception('no network in tests');
-  }
 }

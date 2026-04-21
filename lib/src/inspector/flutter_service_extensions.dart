@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:vm_service/vm_service.dart';
 
 import 'app_session.dart';
@@ -16,9 +18,52 @@ class FlutterServiceExtensions {
 
   final VmService _vmService;
 
-  FlutterServiceExtensions(this._vmService);
+  // Cache from extension RPC name to isolate ID. Populated on first call to
+  // _isolateIdForExtension (full scan) and kept up to date via isolate events.
+  final Map<String, String> _extensionToIsolateId = {};
+  StreamSubscription<Event>? _isolateEventSub;
+
+  // TODO: We need to null this out when the associated isolate stops (as part
+  // of a hot restart).
+  String? companionVersion;
+
+  /// The isolate hosting the companion package;
+  String? _companionIsolateId;
+
+  FlutterServiceExtensions(this._vmService) {
+    // Ensure the kIsolate stream is active (safe to call even if app_session
+    // has already called it — the resulting StreamAlreadySubscribed error is
+    // ignored by the caller there).
+    _vmService.streamListen(EventStreams.kIsolate).ignore();
+    _isolateEventSub = _vmService.onIsolateEvent.listen(_handleIsolateEvent);
+  }
+
+  void _handleIsolateEvent(Event event) {
+    if (event.kind == EventKind.kServiceExtensionAdded) {
+      final ext = event.extensionRPC;
+      final isolateId = event.isolate?.id;
+      if (ext != null && isolateId != null) {
+        _extensionToIsolateId[ext] = isolateId;
+      }
+    } else if (event.kind == EventKind.kIsolateExit) {
+      final isolateId = event.isolate?.id;
+
+      // Remove all related extension methods from the cache.
+      if (isolateId != null) {
+        _extensionToIsolateId.removeWhere((_, id) => id == isolateId);
+      }
+
+      // If the exiting isolate hosts the companion agent, reset that info.
+      if (_companionIsolateId == isolateId) {
+        companionVersion = null;
+        _companionIsolateId = null;
+      }
+    }
+  }
 
   void dispose() {
+    _isolateEventSub?.cancel();
+    _isolateEventSub = null;
     _vmService.dispose();
   }
 
@@ -47,9 +92,19 @@ class FlutterServiceExtensions {
   /// installed and registered, or `null` if it is not. Never throws — fails
   /// open so the caller does not need to handle the no-companion case specially.
   Future<String?> pingCompanion() async {
+    // Short circuit the call when we already have the agent info.
+    if (companionVersion != null) {
+      return companionVersion;
+    }
+
     try {
       final response = await _callExtension('ext.slipstream.ping');
-      return response.json?['version'] as String?;
+      final versionResponse = response.json?['version'] as String?;
+
+      _companionIsolateId = await _isolateIdForExtension('ext.slipstream.ping');
+      companionVersion = versionResponse;
+
+      return versionResponse;
     } catch (_) {
       // Extension not registered — companion not installed. Fail open.
       return null;
@@ -892,24 +947,30 @@ class FlutterServiceExtensions {
     );
   }
 
-  /// Returns the isolate ID of the first isolate that has [extension] registered.
+  /// Returns the isolate ID of the first isolate that has [extensionName]
+  /// registered.
   ///
-  /// TODO: Optimize this — currently it calls getVM() and getIsolate() on every
-  /// invocation. We should cache the isolate ID (keyed by extension) and
-  /// invalidate the cache on hot restart. To do that correctly we'll need to
-  /// listen to VM service events (e.g. IsolateStart / IsolateExit, or the
-  /// Extension event) so we know when isolates change and re-register their
-  /// extensions after a hot restart.
-  Future<String> _isolateIdForExtension(String extension) async {
+  /// Returns immediately from the cache when available. On a cache miss,
+  /// performs a full scan via getVM()/getIsolate() and pre-populates the cache
+  /// with every extension found, so subsequent calls are instant.
+  Future<String> _isolateIdForExtension(String extensionName) async {
+    final cached = _extensionToIsolateId[extensionName];
+    if (cached != null) return cached;
+
+    // Cache miss: scan all isolates and populate the cache fully.
     final VM vm = await _vmService.getVM();
     for (final IsolateRef ref in vm.isolates ?? []) {
       final Isolate isolate = await _vmService.getIsolate(ref.id!);
-      if (isolate.extensionRPCs?.contains(extension) == true) {
-        return ref.id!;
+      for (final ext in isolate.extensionRPCs ?? []) {
+        _extensionToIsolateId[ext] = ref.id!;
       }
     }
+
+    final resolved = _extensionToIsolateId[extensionName];
+    if (resolved != null) return resolved;
+
     throw rpcError(
-      'No isolate found with extension: $extension',
+      'No isolate found with extension: $extensionName',
       fromMethod: '_callExtension',
     );
   }
