@@ -1,0 +1,41 @@
+{
+  "name": "flutter-slipstream-copilot",
+  "version": "0.1.0",
+  "description": "Initial GitHub Copilot plugin manifest for flutter-slipstream (draft).",
+  "homepage_url": "https://github.com/devoncarew/flutter-slipstream",
+  "repository_url": "https://github.com/devoncarew/flutter-slipstream",
+  "publisher": {
+    "name": "devoncarew",
+    "url": "https://github.com/devoncarew"
+  },
+  "manifest_version": "1.0",
+  "tools": [
+    {
+      "id": "packages_mcp",
+      "name": "packages MCP server",
+      "entry": "bin/packages_mcp.dart",
+      "description": "Provides package_summary, library_stub, and class_stub by reading local .pub-cache.",
+      "type": "mcp"
+    },
+    {
+      "id": "inspector_mcp",
+      "name": "inspector MCP server",
+      "entry": "bin/inspector_mcp.dart",
+      "description": "Launches and inspects Flutter apps (run_app, reload, take_screenshot, get_semantics, etc.).",
+      "type": "mcp"
+    },
+    {
+      "id": "deps_check_hook",
+      "name": "deps-check hook",
+      "entry": "bin/deps_check_claude.dart",
+      "description": "Pre-tool hook for package currency checks (pub-add / pubspec edits).",
+      "type": "hook"
+    }
+  ],
+  "permissions": [
+    "run_tools",
+    "read_repository",
+    "read_pub_cache"
+  ],
+  "notes": "This is an initial draft manifest. Update permissions, tool schemas, and hosting/exec details before publishing. See repository README and docs/DESIGN.md for tool contracts."
+}
