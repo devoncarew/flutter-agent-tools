@@ -56,25 +56,27 @@ void main() {
     });
 
     test('returns empty list when toolArgs is absent', () async {
-      final result = await handlePubAddCopilot(
-        {'toolName': 'bash'},
-        httpClient: noNetworkClient(),
-      );
+      final result = await handlePubAddCopilot({
+        'toolName': 'bash',
+      }, httpClient: noNetworkClient());
       expect(result, isEmpty);
     });
 
     test('returns empty list when toolArgs is malformed JSON', () async {
-      final result = await handlePubAddCopilot(
-        {'toolName': 'bash', 'toolArgs': 'not json'},
-        httpClient: noNetworkClient(),
-      );
+      final result = await handlePubAddCopilot({
+        'toolName': 'bash',
+        'toolArgs': 'not json',
+      }, httpClient: noNetworkClient());
       expect(result, isEmpty);
     });
 
     test('warns on discontinued package', () async {
       final result = await handlePubAddCopilot(
         bashInput('flutter pub add flutter_markdown'),
-        httpClient: discontinuedClient('flutter_markdown', 'flutter_markdown_plus'),
+        httpClient: discontinuedClient(
+          'flutter_markdown',
+          'flutter_markdown_plus',
+        ),
       );
       expect(result, isNotEmpty);
       expect(result.first, contains('flutter_markdown'));
@@ -116,10 +118,7 @@ dependencies:
   http: ^1.0.0
 ''';
       final result = await handlePubspecGuardCopilot(
-        editInput(
-          '/nonexistent/pubspec.yaml',
-          newStr: newPubspec,
-        ),
+        editInput('/nonexistent/pubspec.yaml', newStr: newPubspec),
         httpClient: noNetworkClient(),
       );
       expect(result, isA<List<String>>());
@@ -154,7 +153,10 @@ dependencies:
           oldStr: '\ndependencies:',
           newStr: '\ndependencies:\n  flutter_markdown: any',
         ),
-        httpClient: discontinuedClient('flutter_markdown', 'flutter_markdown_plus'),
+        httpClient: discontinuedClient(
+          'flutter_markdown',
+          'flutter_markdown_plus',
+        ),
       );
       expect(result, isNotEmpty);
       expect(result.first, contains('flutter_markdown'));
@@ -162,10 +164,9 @@ dependencies:
     });
 
     test('returns empty list when toolArgs is absent', () async {
-      final result = await handlePubspecGuardCopilot(
-        {'toolName': 'edit'},
-        httpClient: noNetworkClient(),
-      );
+      final result = await handlePubspecGuardCopilot({
+        'toolName': 'edit',
+      }, httpClient: noNetworkClient());
       expect(result, isEmpty);
     });
   });

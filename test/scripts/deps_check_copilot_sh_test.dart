@@ -44,19 +44,16 @@ String pubAddInput(String command) => jsonEncode({
   'toolArgs': jsonEncode({'command': command}),
 });
 
-String editInput(
-  String filePath, {
-  String oldStr = '',
-  String newStr = '',
-}) => jsonEncode({
-  'toolName': 'edit',
-  'cwd': Directory.current.absolute.path,
-  'toolArgs': jsonEncode({
-    'path': filePath,
-    'old_str': oldStr,
-    'new_str': newStr,
-  }),
-});
+String editInput(String filePath, {String oldStr = '', String newStr = ''}) =>
+    jsonEncode({
+      'toolName': 'edit',
+      'cwd': Directory.current.absolute.path,
+      'toolArgs': jsonEncode({
+        'path': filePath,
+        'old_str': oldStr,
+        'new_str': newStr,
+      }),
+    });
 
 String viewInput(String filePath) => jsonEncode({
   'toolName': 'view',
