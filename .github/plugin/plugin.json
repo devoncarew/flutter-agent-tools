@@ -1,0 +1,17 @@
+{
+  "name": "flutter-slipstream",
+  "version": "1.4.0",
+  "description": "Live Flutter app introspection for coding agents: screenshots, widget-tree inspection, tap/type/scroll, and error capture. Dart package API summarization for agents.",
+  "repository": "https://github.com/devoncarew/flutter-slipstream",
+  "license": "BSD-3-Clause license",
+  "keywords": ["dart", "flutter"],
+  "mcpServers": {
+    "packages": {
+      "command": "${PLUGIN_ROOT}/scripts/packages_mcp.sh"
+    },
+    "inspector": {
+      "command": "${PLUGIN_ROOT}/scripts/inspector_mcp.sh"
+    }
+  },
+  "hooks": {}
+}
