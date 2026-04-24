@@ -1,16 +1,22 @@
+## 1.4.1-wip
+
+- Added GitHub Copilot support (including both MCP servers and package
+  validation hooks).
+
 ## 1.4.0
 
 - Updated for `package:slipstream_agent` 1.2.0:
   - `get_output` now calls `ext.slipstream.clear_errors` after draining output
     that contains `[flutter.error]` lines, dismissing the error banner once the
     agent has acknowledged the errors.
-  - Added `byTextContaining` finder support to `perform_tap`, `perform_set_text`,
-    `perform_scroll`, and `perform_scroll_until_visible`. Matches any `Text`
-    widget whose content contains the given value as a substring — useful when
-    displayed text is truncated (e.g. `"Lorem ipsum..."` vs the full string).
+  - Added `byTextContaining` finder support to `perform_tap`,
+    `perform_set_text`, `perform_scroll`, and `perform_scroll_until_visible`.
+    Matches any `Text` widget whose content contains the given value as a
+    substring — useful when displayed text is truncated (e.g. `"Lorem ipsum..."`
+    vs the full string).
   - `take_screenshot` tool description now explains the `flutter.error: <msg>`
-    chip that appears when a Flutter framework error has been caught, and directs
-    the agent to call `get_output` to read the full error.
+    chip that appears when a Flutter framework error has been caught, and
+    directs the agent to call `get_output` to read the full error.
 
 ## 1.3.1
 
