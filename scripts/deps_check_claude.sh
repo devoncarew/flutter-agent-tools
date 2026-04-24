@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Claude PreToolUse hook entry point for dependency health checks.
+# Claude 'PreToolUse' hook entry point for dependency health checks.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

@@ -17,5 +17,12 @@
       "args": []
     }
   },
-  "hooks": {}
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "${PLUGIN_ROOT}/scripts/deps_check_copilot.sh"
+      }
+    ]
+  }
 }
