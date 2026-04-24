@@ -4,10 +4,7 @@
   "description": "Live Flutter app introspection for coding agents: screenshots, widget-tree inspection, tap/type/scroll, and error capture. Dart package API summarization for agents.",
   "repository": "https://github.com/devoncarew/flutter-slipstream",
   "license": "BSD-3-Clause license",
-  "keywords": [
-    "dart",
-    "flutter"
-  ],
+  "keywords": ["dart", "flutter"],
   "mcpServers": {
     "inspector": {
       "command": "${CLAUDE_PLUGIN_ROOT}/scripts/inspector_mcp.sh",
@@ -25,6 +22,7 @@
         "hooks": [
           {
             "type": "command",
+            "if": "Bash(flutter pub add *)",
             "command": "${CLAUDE_PLUGIN_ROOT}/scripts/deps_check_claude.sh --mode=pub-add",
             "description": "Validates packages before flutter pub add runs",
             "cwd": "${CLAUDE_PLUGIN_ROOT}"
@@ -32,10 +30,23 @@
         ]
       },
       {
-        "matcher": "Write|Edit",
+        "matcher": "Edit",
         "hooks": [
           {
             "type": "command",
+            "if": "Edit(*pubspec.yaml)",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/deps_check_claude.sh --mode=pubspec-guard",
+            "description": "Validates packages on direct pubspec.yaml edits",
+            "cwd": "${CLAUDE_PLUGIN_ROOT}"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Write(*pubspec.yaml)",
             "command": "${CLAUDE_PLUGIN_ROOT}/scripts/deps_check_claude.sh --mode=pubspec-guard",
             "description": "Validates packages on direct pubspec.yaml edits",
             "cwd": "${CLAUDE_PLUGIN_ROOT}"

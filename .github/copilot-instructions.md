@@ -11,22 +11,24 @@ Build, test, and lint
 - Static analysis: dart analyze
 - Format code: dart format .
 - Regenerate README docs: dart run tool/repo.dart generate-docs
-- Test deps-check hook manually:
-  echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
-    | dart run bin/deps_check_claude.dart --mode=pub-add
+- Test deps-check hook manually: echo
+  '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
+   | dart run bin/deps_check_claude.dart --mode=pub-add
 
 High-level architecture (short)
 
 - Two Dart MCP servers:
-  - packages (bin/packages_mcp.dart → lib/src/shorthand/packages_mcp.dart)
-    • Provides package_summary, library_stub, class_stub by reading local .pub-cache
-  - inspector (bin/inspector_mcp.dart → lib/src/inspector/inspector_mcp.dart)
-    • Launches Flutter apps (auto device selection), supports run_app, reload,
-      take_screenshot, inspect_layout, evaluate, get_route, get_semantics, and
-      interaction helpers (tap, set_text, scroll). Uses the Dart VM service and
-      the Flutter inspector protocol.
+  - packages (bin/packages_mcp.dart → lib/src/shorthand/packages_mcp.dart) •
+    Provides package_summary, library_stub, class_stub by reading local
+    .pub-cache
+  - inspector (bin/inspector_mcp.dart → lib/src/inspector/inspector_mcp.dart) •
+    Launches Flutter apps (auto device selection), supports run_app, reload,
+    take_screenshot, inspect_layout, evaluate, get_route, get_semantics, and
+    interaction helpers (tap, set_text, scroll). Uses the Dart VM service and
+    the Flutter inspector protocol.
 - Hooks and scripts:
-  - Package-currency hook: bin/deps_check_claude.dart (scripts/deps_check_claude.sh)
+  - Package-currency hook: bin/deps_check_claude.dart
+    (scripts/deps_check_claude.sh)
   - Gemini hook variants in scripts/ and gemini-extension.json
 - Companion package: package:slipstream_agent (optional but must be a regular
   dependency when installed) — enables richer finder-based interactions and
@@ -45,8 +47,9 @@ Key conventions and repo-specific patterns
   - Use ${CLAUDE_PLUGIN_ROOT} for paths in hook commands (do not hardcode).
 
 - packages MCP outputs:
-  - Prefer Dart stub outputs (signatures-only) to avoid token-heavy implementation
-    dumps. Tools provided: package_summary → library_stub → class_stub (progressive detail).
+  - Prefer Dart stub outputs (signatures-only) to avoid token-heavy
+    implementation dumps. Tools provided: package_summary → library_stub →
+    class_stub (progressive detail).
 
 - inspector MCP notes:
   - Auto-selects device (desktop matching host OS is preferred). When device_id
@@ -65,7 +68,8 @@ Where to read more (authoritative source files)
 - README.md — feature overview, tools, and usage notes
 - docs/DESIGN.md — detailed architecture and design rationale
 - CONTRIBUTING.md — development workflow, release process, and conventions
-- lib/src/* — implementation and concrete examples (inspector and packages servers)
+- lib/src/\* — implementation and concrete examples (inspector and packages
+  servers)
 
 Notes for agents
 
@@ -73,10 +77,13 @@ Notes for agents
   pubspec edit) and heed warnings about discontinued or old-major packages.
 - Prefer requesting library_stub/class_stub rather than scanning .pub-cache
   implementation files to get accurate public APIs.
-- For UI debugging, use inspector MCP commands (run_app → reload → take_screenshot
-  → inspect_layout). Use get_semantics to discover interactable elements.
+- For UI debugging, use inspector MCP commands (run_app → reload →
+  take_screenshot → inspect_layout). Use get_semantics to discover interactable
+  elements.
 
-If this file already exists, suggest merging missing high-level details from README.md and docs/DESIGN.md.
+If this file already exists, suggest merging missing high-level details from
+README.md and docs/DESIGN.md.
 
 ---
+
 Generated from README.md, CONTRIBUTING.md, docs/DESIGN.md, and repo metadata.

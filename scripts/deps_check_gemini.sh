@@ -1,16 +1,6 @@
 #!/usr/bin/env bash
 
-# deps_check_gemini.sh
-#
-# BeforeTool hook entry point for dependency health checks (Gemini CLI).
-#
-# Gemini input differs from Claude input: tool names differ ('run_shell_command'
-# vs 'Bash', 'write_file'/'replace' vs 'Write'/'Edit').
-#
-# Uses $0 to locate itself, so it works regardless of how ${extensionPath}
-# is resolved by the host.
-#
-# All arguments are forwarded to deps_check_gemini.dart (e.g. --mode=pub-add).
+# Gemini CLI 'BeforeTool' hook entry point for dependency health checks.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

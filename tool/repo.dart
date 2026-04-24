@@ -33,6 +33,10 @@ void main(List<String> args) async {
   }
 }
 
+final String claudeManifest = '.claude-plugin/plugin.json';
+final String copilotManifest = '.github/plugin/plugin.json';
+final String geminiManifest = 'gemini-extension.json';
+
 // ---------------------------------------------------------------------------
 
 class CheckCommand extends Command<void> {
@@ -48,11 +52,9 @@ class CheckCommand extends Command<void> {
   Future<void> run() async {
     final errors = <String>[];
 
-    final pluginVersion = _readJsonVersion(
-      '.claude-plugin/plugin.json',
-      errors,
-    );
-    final geminiVersion = _readJsonVersion('gemini-extension.json', errors);
+    final claudeVersion = _readJsonVersion(claudeManifest, errors);
+    final copilotVersion = _readJsonVersion(copilotManifest, errors);
+    final geminiVersion = _readJsonVersion(geminiManifest, errors);
     final changelogVersions = _readChangelogVersions('CHANGELOG.md', errors);
 
     if (errors.isNotEmpty) {
@@ -64,12 +66,12 @@ class CheckCommand extends Command<void> {
 
     var failed = false;
 
-    // Versions in the two manifest files must match.
-    if (pluginVersion != geminiVersion) {
+    // Versions in the manifest files must match.
+    if (claudeVersion != copilotVersion || claudeVersion != geminiVersion) {
       stderr.writeln(
-        'error: version mismatch — '
-        '.claude-plugin/plugin.json=$pluginVersion, '
-        'gemini-extension.json=$geminiVersion',
+        'error: version mismatch; $claudeManifest=$claudeVersion, '
+        '$copilotManifest=$copilotVersion, '
+        '$geminiManifest=$geminiVersion',
       );
       failed = true;
     }
@@ -78,9 +80,9 @@ class CheckCommand extends Command<void> {
     // During development the first entry is a "-wip" section; on release it
     // becomes the first entry.
     final window = changelogVersions.take(2).toList();
-    if (!window.contains(pluginVersion)) {
+    if (!window.contains(claudeVersion)) {
       stderr.writeln(
-        'error: plugin version $pluginVersion not found in the first two '
+        'error: plugin version $claudeVersion not found in the first two '
         'CHANGELOG.md entries (found: ${window.join(', ')})',
       );
       failed = true;
@@ -88,9 +90,11 @@ class CheckCommand extends Command<void> {
 
     if (failed) exit(1);
 
+    final all = [claudeManifest, copilotManifest, geminiManifest];
+
     print(
-      'ok — version $pluginVersion is consistent across '
-      'plugin.json, gemini-extension.json, and CHANGELOG.md',
+      'ok — version $claudeVersion is consistent across '
+      '${all.join(', ')}, and CHANGELOG.md',
     );
   }
 }
@@ -123,8 +127,9 @@ class ValidateManifestsCommand extends Command<void> {
     failed |= _validateJson('hooks/hooks-gemini.json', const []);
 
     // .claude-plugin/plugin.json and gemini-extension.json — full key check.
-    failed |= _validateJson('.claude-plugin/plugin.json', _manifestKeys);
-    failed |= _validateJson('gemini-extension.json', _manifestKeys);
+    failed |= _validateJson(claudeManifest, _manifestKeys);
+    failed |= _validateJson(copilotManifest, _manifestKeys);
+    failed |= _validateJson(geminiManifest, _manifestKeys);
 
     if (failed) exit(1);
     print('ok — all manifests are valid');
@@ -254,9 +259,10 @@ class BumpVersionCommand extends Command<void> {
       version = argResults!.rest.first;
     }
 
-    // Update both manifest files.
-    _bumpJsonVersion('.claude-plugin/plugin.json', version);
-    _bumpJsonVersion('gemini-extension.json', version);
+    // Update both manifest files and the optional GitHub plugin manifest.
+    _bumpJsonVersion(claudeManifest, version);
+    _bumpJsonVersion(copilotManifest, version);
+    _bumpJsonVersion(geminiManifest, version);
 
     // Rename the -wip heading in CHANGELOG.md.
     _bumpChangelog('CHANGELOG.md', version);
