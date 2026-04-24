@@ -7,10 +7,14 @@
   "keywords": ["dart", "flutter"],
   "mcpServers": {
     "packages": {
-      "command": "${PLUGIN_ROOT}/scripts/packages_mcp.sh"
+      "type": "local",
+      "command": "${PLUGIN_ROOT}/scripts/packages_mcp.sh",
+      "args": []
     },
     "inspector": {
-      "command": "${PLUGIN_ROOT}/scripts/inspector_mcp.sh"
+      "type": "local",
+      "command": "${PLUGIN_ROOT}/scripts/inspector_mcp.sh",
+      "args": []
     }
   },
   "hooks": {}
