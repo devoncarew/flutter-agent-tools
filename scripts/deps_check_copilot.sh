@@ -8,10 +8,10 @@ PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 INPUT=$(cat)
 
 # Detect mode from the hook input JSON (Copilot has no native matcher/if filtering).
-if printf '%s' "$INPUT" | grep -qF '"toolName": "bash"' && \
+if printf '%s' "$INPUT" | grep -qF '"toolName":"bash"' && \
    printf '%s' "$INPUT" | grep -qF 'pub add'; then
   MODE=pub-add
-elif printf '%s' "$INPUT" | grep -qF '"toolName": "edit"' && \
+elif printf '%s' "$INPUT" | grep -qF '"toolName":"edit"' && \
      printf '%s' "$INPUT" | grep -qF 'pubspec.yaml'; then
   MODE=pubspec-guard
 else
