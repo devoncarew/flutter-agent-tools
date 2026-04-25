@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_flutter-slipstream_*",
+      "Bash(dart *)",
+      "Bash(flutter *)",
+      "Bash(gh api:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh release:*)",
+      "Bash(gh run:*)",
+      "Bash(git add:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git diff:*)",
+      "Bash(git fetch:*)",
+      "Bash(git log:*)",
+      "Bash(git mv:*)",
+      "Bash(git pull:*)",
+      "Bash(git rebase:*)",
+      "Bash(git remote:*)",
+      "Bash(git reset:*)",
+      "Bash(git show:*)",
+      "Bash(git stash:*)",
+      "Bash(git status:*)",
+      "Bash(git tag:*)"
+    ]
+  }
+}

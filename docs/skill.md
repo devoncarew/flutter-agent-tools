@@ -1,7 +1,6 @@
 # flutter-slipstream Skill
 
-> [!NOTE]
-> Status: We have not shipped a skill with this plugin but periodically
+> [!NOTE] Status: We have not shipped a skill with this plugin but periodically
 > re-evaluate doing so. This draft skill should be maintained as we encounter
 > useful info.
 
@@ -31,8 +30,8 @@ run_app → get_output → take_screenshot
 2. `get_route` — see the navigator stack, current screen widget names, and
    source file locations. Use this before editing to confirm which screen is
    active.
-3. `get_semantics` — see the interactive elements. Node IDs from this output
-   can be passed to `perform_semantic_action`.
+3. `get_semantics` — see the interactive elements. Node IDs from this output can
+   be passed to `perform_semantic_action`.
 
 ## Interacting with the app
 
@@ -54,10 +53,10 @@ synchronise on a rendered frame, then call `get_semantics`.
 
 ### Tooltip text is not a semantics label
 
-Flutter's built-in widgets sometimes set a `Tooltip` (e.g. the Drawer
-hamburger button gets "Open navigation menu") but that tooltip string does **not**
-appear as a semantics label in `get_semantics` output. If `get_semantics` shows
-a button with no label, use its numeric node ID with `perform_semantic_action`.
+Flutter's built-in widgets sometimes set a `Tooltip` (e.g. the Drawer hamburger
+button gets "Open navigation menu") but that tooltip string does **not** appear
+as a semantics label in `get_semantics` output. If `get_semantics` shows a
+button with no label, use its numeric node ID with `perform_semantic_action`.
 
 ### `perform_scroll_until_visible` and lazy lists
 
@@ -73,8 +72,8 @@ Use the `packages` server before writing code that uses an unfamiliar package:
 
 1. `package_summary` — entry-point import, exported name groups, README excerpt.
    Start here to orient.
-2. `library_stub` — full public API as Dart signatures (no bodies). Use when
-   you need to know exact parameter names or method shapes.
+2. `library_stub` — full public API as Dart signatures (no bodies). Use when you
+   need to know exact parameter names or method shapes.
 3. `class_stub` — single class or mixin. Use for deep dives once
    `package_summary` has identified the class of interest.
 

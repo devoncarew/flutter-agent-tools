@@ -364,16 +364,16 @@ class GenerateDocsCommand extends Command<void> {
     );
     _writeServerDocs(buf, initializeResult, tools);
 
-    docFile.writeAsStringSync(buf.toString());
-    print('README.md, ${docFile.path} updated.');
+    // TODO: Delete this path, or, have a CLI flag to emit it to stdout.
+    // ignore: dead_code
+    if (false) {
+      docFile.writeAsStringSync(buf.toString());
+      print('README.md, ${docFile.path} updated.');
+      Process.runSync('npx', ['prettier', '--write', 'docs/slipstream_doc.md']);
+    }
 
     // After generation, as a best effort, run the prettier npm tool.
-    final result = Process.runSync('npx', [
-      'prettier',
-      '--write',
-      'docs/slipstream_doc.md',
-      'README.md',
-    ]);
+    final result = Process.runSync('npx', ['prettier', '--write', 'README.md']);
     print('npx prettier: ${result.exitCode}');
     if (result.exitCode != 0) {
       print(result.stdout);
