@@ -19,4 +19,4 @@ else
 fi
 
 if ! command -v dart &>/dev/null; then exit 0; fi
-printf '%s' "$INPUT" | (cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check_copilot.dart" "--mode=$MODE")
+printf '%s' "$INPUT" | (cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check.dart" --agent=copilot "--mode=$MODE")

@@ -14,9 +14,10 @@ Flutter app.
 - Dart API MCP server entry point: `bin/packages_mcp.dart`; logic:
   `lib/src/shorthand/packages_mcp.dart`. Declared in
   `.claude-plugin/plugin.json`.
-- Package currency hook: `bin/deps_check_claude.dart`, invoked via
-  `scripts/deps_check_claude.sh --mode=pub-add|pubspec-guard`. Configured in
-  `.claude-plugin/plugin.json`.
+- Package currency hook: `bin/deps_check.dart`, invoked via agent-specific
+  shell scripts in `scripts/` (e.g. `deps_check_claude.sh --mode=pub-add`).
+  Each script passes `--agent=<name>` to select the input/output format.
+  Configured in `.claude-plugin/plugin.json`.
 - Hooks receive tool input as JSON on stdin; exit 0 always (warnings only —
   hard-blocking is reserved for cases where proceeding would be clearly wrong).
 - Use `${CLAUDE_PLUGIN_ROOT}` for all paths in hook commands — never hardcode.
@@ -94,7 +95,7 @@ tool code.
 ## Current Status
 
 - Plugin scaffold: done
-- Package currency hook (`bin/deps_check_claude.dart`): functional — discontinued
+- Package currency hook (`bin/deps_check.dart`): functional — discontinued
   check, old major version check, pubspec-guard mode all implemented
 - packages MCP server: functional — `package_summary`, `library_stub`, and
   `class_stub` all implemented
@@ -111,7 +112,7 @@ dart test
 
 # Test the deps-check hook manually:
 echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
-  | dart run bin/deps_check_claude.dart --mode=pub-add
+  | dart run bin/deps_check.dart --agent=claude --mode=pub-add
 
 # Load the plugin locally:
 claude --plugin-dir /path/to/flutter-slipstream
