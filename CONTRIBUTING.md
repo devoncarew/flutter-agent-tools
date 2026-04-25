@@ -23,13 +23,6 @@ Run all tests:
 dart test
 ```
 
-Test the deps-check hook manually:
-
-```sh
-echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
-  | dart run bin/deps_check_claude.dart --mode=pub-add
-```
-
 Regenerate the README command tables:
 
 ```sh
@@ -47,10 +40,8 @@ dart run tool/repo.dart generate-docs
 
 - Follow standard Dart conventions (`dart format`, `dart analyze`).
 - Prefer explicit types on class fields.
-- Fail open on infrastructure errors (network timeouts, etc.) — don't block the
-  agent over tooling failures.
-- Hooks exit 0 always; hard-blocking is reserved for cases where proceeding
-  would be clearly wrong.
+- Hooks: exit 0 always; hard-blocking is reserved for cases where proceeding
+  would be clearly wrong, and fail open on infrastructure errors (network timeouts, etc.).
 
 ## Releasing
 
@@ -59,12 +50,12 @@ prepare a release:
 
 1. Update `CHANGELOG.md` — rename the `X.Y.Z-wip` section to `X.Y.Z` and add a
    new `X+1.Y.Z-wip` section at the top.
-2. Bump the `version` field in both `.claude-plugin/plugin.json` and
-   `gemini-extension.json` to match.
+2. Bump the `version` field in `.claude-plugin/plugin.json`,
+   `gemini-extension.json`, and `.github/plugin/plugn.json` to match.
 3. Open a PR. CI will detect the version bump, label it `release-pr`, and post a
    comment confirming the version that will be published.
 4. Once the PR lands, CI creates a GitHub release tagged `vX.Y.Z` with the
    matching changelog section as the release notes.
 
-`dart run tool/repo.dart check-versions` validates that the three files are in
-sync before you open the PR.
+`dart run tool/repo.dart check-versions` validates that the file version infomation is
+in sync.

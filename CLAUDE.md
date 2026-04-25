@@ -126,4 +126,4 @@ dart run tool/repo.dart generate-docs
 
 See `docs/DESIGN.md` for the full architecture and planned tool designs.
 
-See `docs/inspector.md` for a Flutter runtime inspection guide for AI agents.
+See `docs/research/inspector.md` for a Flutter runtime inspection guide for AI agents.

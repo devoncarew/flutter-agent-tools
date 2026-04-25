@@ -1,5 +1,10 @@
 # flutter-slipstream Skill
 
+> [!NOTE]
+> Status: We have not shipped a skill with this plugin but periodically
+> re-evaluate doing so. This draft skill should be maintained as we encounter
+> useful info.
+
 Practical guidance for AI agents using the flutter-slipstream plugin. This
 document captures things that are non-obvious from individual tool descriptions
 alone — gotchas, preferred workflows, and when to choose one tool over another.

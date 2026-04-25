@@ -15,5 +15,5 @@
       "cwd": "${extensionPath}"
     }
   },
-  "contextFileName": "GEMINI.md"
+  "contextFileName": ".gemini-extension/GEMINI.md"
 }
