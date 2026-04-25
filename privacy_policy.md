@@ -1,6 +1,7 @@
 # Privacy Policy
 
 **Flutter Slipstream**
+
 Last updated: April 2026
 
 ## Overview
@@ -37,7 +38,3 @@ updated and a note will appear in the
 
 Questions or concerns? Open an issue at
 <https://github.com/devoncarew/flutter-slipstream/issues>.
-
----
-
-*Flutter Slipstream is maintained by Devon Carew.*
