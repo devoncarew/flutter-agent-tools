@@ -1,5 +1,11 @@
 # Design: Flutter Slipstream
 
+System design overview for flutter-slipstream: why it exists, how it's
+distributed, and the rationale behind each tool. Read this for architectural
+context before adding or changing any tool. For inspector-specific
+implementation details (device selection, `get_route` capabilities and
+limitations, go_router path enrichment), see `docs/inspector_design.md`.
+
 ## Problem Statement
 
 AI coding agents working on Dart and Flutter projects face two structural
@@ -16,403 +22,116 @@ failure modes:
 
 ## Distribution
 
-The suite is distributed as a Claude Code plugin, installable with a single
-command. This gives:
+Shipped as a Claude Code plugin, a Gemini CLI extension, and a GitHub Copilot
+extension. Each distribution registers the same MCP servers and hooks — the
+agent-facing tool surface is identical across all three.
 
-- **Developers:** low-friction installation; no manual server setup or prompt
-  engineering required.
-- **Agents:** tools are automatically available via native Claude Code
-  primitives (Hooks, MCP) without requiring explicit instruction.
+Low-friction installation: no manual server setup or prompt engineering
+required. Tools are automatically available via native primitives (Hooks, MCP)
+without requiring explicit agent instruction.
 
 ## Tool 1: Package Currency Hook
 
-**Mechanism:** Claude Code `PreToolUse` hook
+**Mechanism:** `PreToolUse` hook on `Bash` (matching `flutter pub add` /
+`dart pub add`) and `Write`/`Edit` (targeting `pubspec.yaml`).
 
-**Trigger points:**
+**Behavior:** All checks are warnings (exit 0) — the agent sees the message and
+decides whether to proceed. The hook never hard-blocks, because the agent may
+have legitimate reasons to override (e.g. a private package not on pub.dev).
 
-- `Bash` tool calls matching `flutter pub add` or `dart pub add`
-- `Write`/`Edit` tool calls targeting `pubspec.yaml`
+- **Discontinued:** `isDiscontinued == true` on pub.dev → warns with official
+  replacement if listed.
+- **Old major version:** constraint targets an older major than pub.dev's
+  current (e.g. `http:^0.13.0` when latest is `1.x`) → warns and suggests
+  current major.
+- **Not found:** package doesn't exist on pub.dev → warns (private package or
+  typo).
+- **Fails open:** network errors or any infrastructure failure → exits cleanly.
 
-**Behavior:**
+**Entry point:** `bin/deps_check.dart`, invoked via `scripts/deps_check.js`. The
+Node.js script handles fast-exit filtering and is the registered entry point in
+all agent manifests. Mode selected via `--mode=pub-add` or
+`--mode=pubspec-guard`; the pubspec-guard mode diffs YAML before and after an
+edit to find newly added packages.
 
-All checks are warnings (exit 0) — the agent sees the message and decides
-whether to proceed. The hook never hard-blocks, because the agent may have
-legitimate reasons to override (e.g. a private package not on pub.dev).
+## Tool 2: Package API Retrieval (packages MCP)
 
-- **Discontinued:** if `isDiscontinued == true` on pub.dev, warns with the
-  official replacement if one is listed.
-- **Old major version:** if the requested constraint targets an older major
-  version than what pub.dev currently publishes (e.g. `http:^0.13.0` when latest
-  is `1.x`), warns and suggests the current major.
-- **Not found:** if the package name doesn't exist on pub.dev, warns — could be
-  a private package or a typo.
-- **Fails open:** on network errors or any other infrastructure failure, the
-  hook exits cleanly without blocking.
-
-**Unofficial blocklist:**
-
-The two failure modes seen in practice are discontinued packages and old major
-versions — both covered above. A third case exists: packages that are
-effectively abandoned but not officially marked `isDiscontinued` on pub.dev
-(e.g. packages that have been superseded by a community fork). A small curated
-blocklist in `lib/src/deps/blocklist.dart` would cover these. Each entry should
-name the package, a reason, and the recommended alternative.
-
-**Implementation:** Dart CLIs (`bin/deps_check_claude.dart` / `bin/deps_check_gemini.dart`) invoked via thin shell
-launchers (`scripts/deps_check_claude.sh` / `scripts/deps_check_gemini.sh`). Reads tool input JSON from stdin; mode
-selected via `--mode=pub-add` or `--mode=pubspec-guard`. The pubspec-guard mode
-diffs the YAML before and after the edit to find newly added packages and runs
-the same checks.
-
-**Current state:** Both modes functional.
-
-## Tool 2: Package API Retrieval and Summarization
-
-MCP server name: `packages` | Entry point: `bin/packages_mcp.dart`
-
-### Motivation
-
-Agents working on Dart and Flutter projects need accurate package API
-information, but their two natural paths to get it are both expensive:
+**Motivation:** Agents need accurate package API information, but their two
+natural paths are both expensive:
 
 - **Reading `.pub-cache` source directly** is token-inefficient — they read
   implementation files, private members, and method bodies, none of which are
   needed.
 - **Relying on training-data summaries** produces subtly wrong results —
   incorrect parameter names, missing required vs. optional distinctions, wrong
-  constructor shapes. This causes first-attempt code to fail, triggering a
-  correction loop that consumes more tokens than reading the source would have.
+  constructor shapes. Causes first-attempt failures and correction loops that
+  consume more tokens than reading the source would have.
 
-This tool eliminates both problems by retrieving the public API surface from the
-local pub cache and summarizing it into a compact, accurate form.
+Observed during development: for `dart_mcp`, `flutter_daemon`, and
+`unique_names_generator`, training-data summaries had meaningful errors each
+time. Accurate signatures up front would have eliminated the correction step.
 
-Observed agent behaviour during development of this plugin: we needed the APIs
-for `dart_mcp`, `flutter_daemon`, and `unique_names_generator`. In each case:
-
-1. Agent produced a training-data summary — approximately right but with
-   meaningful errors (wrong `registerTool` signature, wrong `log()` signature,
-   missing name clash with `dart:developer`).
-2. We had to go back to the pub cache to read actual source and fix the errors.
-
-Retrieving accurate signatures up front would have eliminated step 2 each time.
-
-### Output format: simplified Dart stubs
-
-Responses are Dart source files with method bodies removed and private
-declarations omitted — analogous to TypeScript's `.d.ts` declaration files. This
-format is preferred over Markdown because:
+**Output format — Dart stubs:** Responses are `.d.ts` analogues for Dart: public
+API with signatures only, no bodies, no private members. Preferred over Markdown
+because:
 
 - The agent is writing Dart; no translation step means fewer transcription
-  errors. Seeing `Future<void> restart({bool? fullRestart, String? reason})` is
+  errors. `Future<void> restart({bool? fullRestart, String? reason})` is
   unambiguous in a way that a prose description is not.
-- Dart's type system captures nullability, required vs. optional, positional vs.
-  named, generic bounds, and function types exactly. Markdown approximates them.
+- Dart's type system captures nullability, required/optional, generics, and
+  function types exactly. Markdown approximates them.
 - Import lines appear as literal Dart imports — the exact lines the agent will
   write.
-- Doc comments and `/// ```dart` usage examples are co-located with their
-  declarations, matching how Dart packages already document themselves.
 
-### Interaction model: agent-directed, progressive detail
+**Interaction model — progressive detail:**
 
-Rather than returning a single large dump, three separate tools let the agent
-request only what it needs at each step:
+| Tool              | Returns                                                             |
+| ----------------- | ------------------------------------------------------------------- |
+| `package_summary` | Version, import, README excerpt, library list, exported name groups |
+| `library_stub`    | Full public API for one library as a Dart stub                      |
+| `class_stub`      | Stub for a single named class, mixin, or extension                  |
 
-| Tool              | Returns                                                                                                                                                                                                                |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `package_summary` | Version, entry-point import, one-paragraph README orientation, list of public libraries and top-level exported names. Enough to orient and decide what to look at next.                                                |
-| `library_stub`    | Full public API for one library as a Dart stub file: all exported classes, mixins, extensions, top-level functions and constants, with signatures but no bodies. Mixin-contributed methods are inlined and attributed. |
-| `class_stub`      | Stub for a single named class/mixin/extension, including inherited and mixin-contributed members. Useful when the agent knows exactly what it needs.                                                                   |
+Source: `.pub-cache` only — already downloaded, always matches `pubspec.lock`,
+no network required.
 
-The typical call sequence for an unfamiliar package:
+**Limitation:** Does not cover string constants used as protocol/event
+identifiers (e.g. `'app.started'` in the Flutter daemon protocol). These live in
+implementation code, not the public API surface.
 
-1. `package_summary` — orient, identify the relevant library.
-2. `library_stub` — get all signatures for that library.
-3. `class_stub` — drill into a specific class if signatures alone aren't enough.
+## Tool 3: Flutter UI Agent (inspector MCP)
 
-Inputs:
+A Playwright analogue for Flutter. Enables agents to observe and interact with a
+running Flutter app for layout debugging, state verification, and workflow
+validation.
 
-- `package_summary`: `package` (required), `project_directory` (required).
-- `library_stub`: `package` (required), `project_directory` (required),
-  `library_uri` (required).
-- `class_stub`: `package` (required), `project_directory` (required),
-  `library_uri` (required), `class` (required).
+Key design decisions:
 
-Source: `.pub-cache` only — already downloaded, always matches the resolved
-version, no network required.
+- **Pull-based output:** `get_output` drains a server-side buffer rather than
+  streaming. Agents call it explicitly after each operation. `_serverLog` is
+  diagnostic-only and never agent-visible.
+- **Device auto-selection:** `run_app` selects the best available device
+  automatically — desktop first (fast builds, full inspector support), then
+  simulator/emulator if already running, then physical device. Web is
+  deprioritized. See `docs/inspector_design.md` for full logic.
+- **Companion detection:** `ext.slipstream.ping` at session start. When the
+  companion is present, tools route through in-process service extensions; when
+  absent, they fall back to VM service evaluate strings. The fallback always
+  works — companion presence is never required.
 
-What this tool does NOT cover:
+See `docs/inspector_design.md` for device selection logic, `get_route`
+capabilities and limitations, and the go_router path enrichment implementation.
 
-- String constants used as protocol/event identifiers (e.g. `'app.started'` in
-  the Flutter daemon protocol). These live in implementation code, not the
-  public API surface.
-- Runtime behaviour, error conditions, or semantic nuance not captured in
-  signatures or doc comments.
+## Architecture
 
-## Tool 3: Flutter UI Agent
+Tools 2 and 3 are separate Dart MCP servers (`packages` and `inspector`). Dart
+is the natural fit for this domain and avoids introducing a Node.js runtime
+dependency. Separate servers give independent lifecycles and failure modes: the
+`packages` server is stateless; the `inspector` server is stateful and
+subprocess-heavy.
 
-Mechanism: MCP server commands
+## Open Questions
 
-Motivation: A Playwright analogue for Flutter. Enables agents to observe and
-interact with a running Flutter app for layout debugging, state verification,
-and end-to-end workflow validation.
-
-### Launch and device selection:
-
-- Automatically builds and launches the Flutter app without manual setup from
-  the developer.
-- Returns a session ID used by subsequent commands.
-- **Device auto-selection:** When `device_id` is omitted, the server runs
-  `flutter devices --machine` and picks the best available device using the
-  preference order below. The goal is zero-configuration launch on any
-  workstation.
-
-  Preference order:
-  1. **Desktop matching host OS** (macOS / windows / linux) — always available
-     on the host platform, fast to build (no Xcode/Gradle overhead), supports
-     hot reload + inspector + screenshots. Best default for agent use.
-  2. **iOS Simulator** (if already running, macOS only) — better mobile fidelity
-     but requires Xcode; the server discovers a booted simulator but never
-     launches one (takes 30+ seconds, and the agent can't know if the user wants
-     it).
-  3. **Android emulator** (if already running) — same rationale as iOS.
-  4. **Connected physical device** — least predictable, but usable.
-  5. **Web (Chrome)** — deprioritized; web doesn't support
-     `ext.flutter.inspector.screenshot` or VM service `evaluate` the same way.
-
-  **Platform-support check:** Before selecting a device, the server verifies the
-  project has the corresponding platform folder (e.g. `macos/` for
-  desktop-macOS). A missing folder means `flutter run -d macos` would fail, so
-  that device is skipped.
-
-  **Actionable errors:** If no usable device is found, the error includes the
-  full device list and a concrete suggestion (e.g. "Run
-  `flutter create --platforms=macos .` to enable desktop, or start an iOS
-  simulator.").
-
-  **Explicit override:** When `device_id` is provided, auto-selection is
-  bypassed entirely — the value is passed through to `flutter run --device-id`.
-
-  **Why not a separate `flutter_list_devices` tool?** Auto-selection handles the
-  happy path, and the error path handles discovery. A separate list command adds
-  a step agents would need to learn to call first — more friction, not less. If
-  a need emerges later, it can be added without changing the launch flow.
-
-### Introspection and interaction (via Dart VM Service):
-
-- Query semantic/interactive elements (rather than dumping the full widget tree,
-  which is token-heavy).
-- Tap an element by semantics label.
-- Inject text into a field.
-- Scroll to bring off-screen elements into view.
-- Pull unhandled exceptions from the runtime.
-
-Design references:
-
-- [Playwright MCP](https://playwright.dev/docs/getting-started-mcp) — overall
-  model.
-- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17)
-  — use cases and requirements.
-
-### `evaluate`
-
-Runs an arbitrary Dart expression on the main isolate via the VM service
-`evaluate` RPC and returns the result as a string.
-
-This covers a class of debugging questions that inspector extensions cannot
-answer — specifically, binding-layer and platform-layer state that exists below
-the widget tree:
-
-- `WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio.toString()`
-- `MediaQuery.of(context).toString()` — requires a valid `BuildContext`
-- Any `FlutterView` property (`physicalSize`, `padding`, `viewInsets`)
-
-The inspector tree shows widget and render-object state; `evaluate` covers
-everything else. We already use this internally for `getPhysicalWindowSize()`;
-exposing it as a tool gives agents direct access without requiring a dedicated
-method for every possible query.
-
-### `get_route`
-
-Returns the current navigator route stack with screen widget names and source
-locations. Low token cost; answers the most common orientation question ("what
-screen is the app on?"). Enriches the stack with the current go_router path when
-the app uses go_router.
-
-### `get_semantics`
-
-Returns a flat list of visible semantics nodes from the running Flutter app.
-Most token-efficient for "what can I interact with?" questions — the Flutter
-framework filters out invisible and internal nodes. Each node includes its role,
-ID, state flags, supported actions, label, and size.
-
-Node IDs from this output can be passed directly to `tap`, `set_text`, and
-`scroll_to` (planned).
-
-### `flutter_widget_tree` _(planned)_
-
-Returns a summary widget tree filtered to user-written widgets (omits Flutter
-internals). Adds structural context (nesting, widget types) at higher token cost
-than `get_semantics`. Source: `getRootWidgetTree(isSummaryTree: true)`.
-
-A sample semantics node from a real app:
-
-```
-SemanticsNode#6
-  Rect.fromLTRB(0.0, 0.0, 379.0, 80.0)
-  actions: focus, tap
-  flags: isButton, hasEnabledState, isEnabled, isFocusable, hasSelectedState
-  label: "Betelgeuse\nRed supergiant · 700 solar radii"
-  textDirection: ltr
-```
-
-The semantics tree requires calling `RendererBinding.instance.ensureSemantics()`
-once to enable it; after that, nodes are maintained by the framework. The tree
-will not be present on apps built in release mode.
-
-#### `route` mode — capabilities and limitations
-
-The `route` mode traverses the summary widget tree to find `Navigator` nodes and
-resolves each stack entry to the first locally-defined screen widget (i.e. not
-from `.pub-cache`). Navigators whose entire stack resolves to private-named
-widgets (e.g. go_router's `_AppShell` shell-route wrapper) are suppressed.
-
-What it is good for:
-
-- Orientation: confirming which screen is currently on top.
-- Back-stack context: understanding how the user arrived at the current screen.
-- Pointing the agent at the right source file (`lib/app/routes.dart:56`) before
-  it reads or edits routing code.
-
-Limitations:
-
-- **Route path (non-go_router apps).** For apps not using go_router, the output
-  contains widget class names only, not route strings. An agent that needs to
-  call `context.go(...)` still has to read the routes file to discover valid
-  paths and their required parameters. go_router apps get the actual URI via
-  `GoRouter.state.uri` (see enrichment section below).
-- **Summary tree depth.** The widget tree is fetched with `isSummaryTree: true`,
-  which omits internal Flutter widgets. If a project wraps all screens in a
-  private class, those wrappers may be the first locally-created widget found,
-  hiding the real screen name.
-- **Multiple navigators.** Nested navigator setups (shell routes, dialog
-  overlays, bottom-sheet navigators) each appear as a separate stack. The tool
-  suppresses navigators composed entirely of private widgets but cannot
-  automatically determine which navigator is "primary" in all cases.
-
-Route path enrichment via go_router:
-
-For apps using go_router, the actual current URI is extracted by locating
-`InheritedGoRouter` in the widget tree and evaluating against its instance:
-
-1. Walk the summary tree → find `InheritedGoRouter` node → read its `valueId`
-   (e.g. `inspector-29`).
-2. `inspectorIdToVmObjectId(valueId)` → resolve the inspector handle to a raw VM
-   object ID (`objects/1234`) by evaluating
-   `WidgetInspectorService.instance.toObject(id)` in the inspector library scope
-   (see `FlutterServiceExtensions.inspectorIdToVmObjectId`). Note: this returns
-   the `InheritedElement`, not the widget itself.
-3. `evaluateOnObject(vmId, 'widget.goRouter.state.uri.toString()')` → `.widget`
-   reaches the `InheritedGoRouter` widget; `.goRouter` is its field (not
-   `.notifier`); `.state.uri` gives the live current path, e.g.
-   `/podcast/787ae263b723`.
-
-Detection: presence of `InheritedGoRouter` in the summary tree is sufficient to
-identify a go_router app. Other popular routers (auto_route, beamer) follow the
-same InheritedWidget pattern but with different field names; they can be added
-as separate cases when needed.
-
-This enrichment is best-effort: if evaluation fails (e.g. older go_router
-version, or app doesn't use go_router), the route stack is still returned
-without the `Current path:` line.
-
-Programmatic navigation via go_router [planned]:
-
-Once we have the GoRouter instance via `evaluateOnObject`, we can call
-navigation methods on it directly. Note the field path: the VM object is an
-`InheritedElement`, so `.widget` is needed to reach the `InheritedGoRouter`,
-then `.goRouter` for the `GoRouter` instance:
-
-```dart
-// Navigate to a new route:
-evaluateOnObject(vmId, 'widget.goRouter.go("/podcast/123")')
-
-// Named location (requires knowing the route name):
-evaluateOnObject(vmId, 'widget.goRouter.namedLocation("podcast", pathParameters: {"id": "123"})')
-```
-
-`go()` returns void, so the handler needs to treat a null/void `InstanceRef`
-result as success rather than an error. The `navigate` tool wraps this pattern:
-locate the router, call `go()`, wait for a `Flutter.Navigation` event or the
-next `Flutter.Frame`, then optionally re-fetch the route stack to confirm.
-
-The agent still needs to know valid route paths and their parameters, which
-means reading the app's route definition file first. This is an acceptable
-prerequisite — the agent already has access to source files.
-
-### Open questions:
-
-- The semantics tree is disabled by default to save resources. We need to
-  evaluate whether the one-time enable call has observable performance impact on
-  typical development-mode apps.
-- App state and authentication: navigating apps that require login or seeded
-  data before reaching the UI under test is unsolved.
-
-## MCP Server Architecture
-
-Tools 2 and 3 are separate Dart MCP servers (`packages` and `inspector`). Using
-Dart is the natural fit given the domain and avoids introducing a Node.js
-runtime dependency. Separate servers give independent lifecycles and failure
-modes — the API retrieval server is stateless; the runtime inspection server is
-stateful and subprocess-heavy.
-
-Tool surface (✓ = implemented, [planned] = not yet):
-
-```
-// packages server (Tool 2)
-✓ package_summary(package, project_directory) → String
-✓ library_stub(package, project_directory, library_uri) → String
-✓ class_stub(package, project_directory, library_uri, class) → String
-
-// inspector server (Tool 3) — session lifecycle
-✓ run_app(working_directory, target?, device?) → session_id
-✓ reload(session_id, full_restart?) → void
-✓ close_app(session_id) → void
-
-// inspector server (Tool 3) — inspection (high value)
-✓ take_screenshot(session_id, pixel_ratio?) → PNG
-✓ flutter.error log events  // push; includes widget IDs for inspect_layout
-✓ inspect_layout(session_id, widget_id?) → String  // widget_id=null → root
-✓ evaluate(session_id, expression) → String  // arbitrary Dart on main isolate
-✓ get_route(session_id) → String             // navigator stack + go_router path enrichment
-✓ get_semantics(session_id) → String         // flat list of visible semantics nodes
-[planned] flutter_widget_tree(session_id) → String   // summary widget tree (user widgets only)
-
-// inspector server (Tool 3) — app interaction (useful but lower priority for coding agents)
-✓ navigate(session_id, path) → void          // go_router: via InheritedGoRouter + evaluateOnObject
-✓ tap(session_id, node_id?, label?) → void
-✓ set_text(session_id, text, node_id?, label?) → void
-[planned] scroll_to(session_id, node_id?, label?) → void
-```
-
-## Deferred / Open Questions
-
-- App state and authentication (Tool 3): Navigating apps that require login or
+- **App state and authentication:** Navigating apps that require login or
   specific seeded data before reaching the UI under test is unsolved. A future
   design may define an `.agent_state.md` convention for specifying startup
   states, mock data, or auth bypasses.
-- pubspec.yaml guard (Tool 1): The Write/Edit hook path requires diffing file
-  content to extract newly added packages. Needs a dedicated design pass.
-- Abandonment heuristics (Tool 1): The dependency-graph signal (checking a
-  package's own deps for staleness) is more reliable than publish date and
-  should replace it as the primary heuristic.
-- Plugin marketplace publication: Distribution mechanism beyond `--plugin-dir`
-  local testing is not yet planned.
-
-## References
-
-- [flight_check issue #17](https://github.com/devoncarew/flight_check/issues/17)
-  — Flutter UI agent use cases
-- [flight_check issue #2](https://github.com/devoncarew/flight_check/issues/2) —
-  pub outdated hook generalization
-- [Playwright MCP](https://playwright.dev/docs/getting-started-mcp)
-- [Playwright MCP (Simon Willison walkthrough)](https://til.simonwillison.net/claude-code/playwright-mcp-claude-code)

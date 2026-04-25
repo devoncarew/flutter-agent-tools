@@ -1,3 +1,3 @@
-## Contents
+## GitHub Copilot specific files
 
-GitHub Copilot plugin manifest and configuration.
+- .github/plugin/plugin.json
