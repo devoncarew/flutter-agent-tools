@@ -4,10 +4,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-final _scriptPath = path.join(
-  Directory.current.path,
-  'scripts/deps_check.js',
-);
+final _scriptPath = path.join(Directory.current.path, 'scripts/deps_check.js');
 
 /// Runs deps_check.js with [args] and [stdin], returning (exitCode, stdout).
 ///
@@ -89,11 +86,12 @@ String geminiPubAddInput(String command) => jsonEncode({
   'tool_input': {'command': command},
 });
 
-String geminiWriteFileInput(String filePath, {String content = ''}) => jsonEncode({
-  'tool_name': 'write_file',
-  'cwd': Directory.current.absolute.path,
-  'tool_input': {'file_path': filePath, 'content': content},
-});
+String geminiWriteFileInput(String filePath, {String content = ''}) =>
+    jsonEncode({
+      'tool_name': 'write_file',
+      'cwd': Directory.current.absolute.path,
+      'tool_input': {'file_path': filePath, 'content': content},
+    });
 
 void main() {
   // -------------------------------------------------------------------------
@@ -102,27 +100,27 @@ void main() {
 
   group('deps_check.js --agent=claude --mode=pub-add', () {
     test('filtered: non-pub-add command exits with no output', () async {
-      final r = await runScript(
-        ['--agent=claude', '--mode=pub-add'],
-        claudePubAddInput('dart pub get'),
-      );
+      final r = await runScript([
+        '--agent=claude',
+        '--mode=pub-add',
+      ], claudePubAddInput('dart pub get'));
       expect(r.exitCode, 0);
       expect(r.stdout, isEmpty);
     });
 
     test('pass-through: pub add command reaches Dart and exits 0', () async {
-      final r = await runScript(
-        ['--agent=claude', '--mode=pub-add'],
-        claudePubAddInput('flutter pub add http'),
-      );
+      final r = await runScript([
+        '--agent=claude',
+        '--mode=pub-add',
+      ], claudePubAddInput('flutter pub add http'));
       expect(r.exitCode, 0);
     });
 
     test('warn on discontinued package', () async {
-      final r = await runScript(
-        ['--agent=claude', '--mode=pub-add'],
-        claudePubAddInput('flutter pub add flutter_markdown'),
-      );
+      final r = await runScript([
+        '--agent=claude',
+        '--mode=pub-add',
+      ], claudePubAddInput('flutter pub add flutter_markdown'));
       expect(r.exitCode, 0);
       expect(r.stdout, isNotEmpty);
       expect(r.stdout, contains('flutter_markdown'));
@@ -132,21 +130,24 @@ void main() {
 
   group('deps_check.js --agent=claude --mode=pubspec-guard', () {
     test('filtered: edit to non-pubspec file exits with no output', () async {
-      final r = await runScript(
-        ['--agent=claude', '--mode=pubspec-guard'],
-        claudeEditInput('/app/lib/main.dart'),
-      );
+      final r = await runScript([
+        '--agent=claude',
+        '--mode=pubspec-guard',
+      ], claudeEditInput('/app/lib/main.dart'));
       expect(r.exitCode, 0);
       expect(r.stdout, isEmpty);
     });
 
-    test('pass-through: edit to pubspec.yaml reaches Dart and exits 0', () async {
-      final r = await runScript(
-        ['--agent=claude', '--mode=pubspec-guard'],
-        claudeEditInput('/app/pubspec.yaml'),
-      );
-      expect(r.exitCode, 0);
-    });
+    test(
+      'pass-through: edit to pubspec.yaml reaches Dart and exits 0',
+      () async {
+        final r = await runScript([
+          '--agent=claude',
+          '--mode=pubspec-guard',
+        ], claudeEditInput('/app/pubspec.yaml'));
+        expect(r.exitCode, 0);
+      },
+    );
 
     test('warn on discontinued package', () async {
       final r = await runScript(
@@ -170,36 +171,32 @@ void main() {
 
   group('deps_check.js --agent=copilot (pub-add detection)', () {
     test('filtered: non-pub-add bash command exits with no output', () async {
-      final r = await runScript(
-        ['--agent=copilot'],
-        copilotPubAddInput('dart pub get'),
-      );
+      final r = await runScript([
+        '--agent=copilot',
+      ], copilotPubAddInput('dart pub get'));
       expect(r.exitCode, 0);
       expect(r.stdout, isEmpty);
     });
 
     test('filtered: unrecognised tool exits with no output', () async {
-      final r = await runScript(
-        ['--agent=copilot'],
-        copilotViewInput('/app/pubspec.yaml'),
-      );
+      final r = await runScript([
+        '--agent=copilot',
+      ], copilotViewInput('/app/pubspec.yaml'));
       expect(r.exitCode, 0);
       expect(r.stdout, isEmpty);
     });
 
     test('pass-through: pub add command reaches Dart and exits 0', () async {
-      final r = await runScript(
-        ['--agent=copilot'],
-        copilotPubAddInput('flutter pub add http'),
-      );
+      final r = await runScript([
+        '--agent=copilot',
+      ], copilotPubAddInput('flutter pub add http'));
       expect(r.exitCode, 0);
     });
 
     test('warn on discontinued package', () async {
-      final r = await runScript(
-        ['--agent=copilot'],
-        copilotPubAddInput('flutter pub add flutter_markdown'),
-      );
+      final r = await runScript([
+        '--agent=copilot',
+      ], copilotPubAddInput('flutter pub add flutter_markdown'));
       expect(r.exitCode, 0);
       expect(r.stdout, isNotEmpty);
       expect(r.stdout, contains('flutter_markdown'));
@@ -209,21 +206,22 @@ void main() {
 
   group('deps_check.js --agent=copilot (pubspec-guard detection)', () {
     test('filtered: edit to non-pubspec file exits with no output', () async {
-      final r = await runScript(
-        ['--agent=copilot'],
-        copilotEditInput('/app/lib/main.dart'),
-      );
+      final r = await runScript([
+        '--agent=copilot',
+      ], copilotEditInput('/app/lib/main.dart'));
       expect(r.exitCode, 0);
       expect(r.stdout, isEmpty);
     });
 
-    test('pass-through: edit to pubspec.yaml reaches Dart and exits 0', () async {
-      final r = await runScript(
-        ['--agent=copilot'],
-        copilotEditInput('/app/pubspec.yaml'),
-      );
-      expect(r.exitCode, 0);
-    });
+    test(
+      'pass-through: edit to pubspec.yaml reaches Dart and exits 0',
+      () async {
+        final r = await runScript([
+          '--agent=copilot',
+        ], copilotEditInput('/app/pubspec.yaml'));
+        expect(r.exitCode, 0);
+      },
+    );
 
     test('warn on discontinued package', () async {
       final r = await runScript(
@@ -247,27 +245,27 @@ void main() {
 
   group('deps_check.js --agent=gemini --mode=pub-add', () {
     test('filtered: non-pub-add shell command exits with no output', () async {
-      final r = await runScript(
-        ['--agent=gemini', '--mode=pub-add'],
-        geminiPubAddInput('dart pub get'),
-      );
+      final r = await runScript([
+        '--agent=gemini',
+        '--mode=pub-add',
+      ], geminiPubAddInput('dart pub get'));
       expect(r.exitCode, 0);
       expect(r.stdout, isEmpty);
     });
 
     test('pass-through: pub add command reaches Dart and exits 0', () async {
-      final r = await runScript(
-        ['--agent=gemini', '--mode=pub-add'],
-        geminiPubAddInput('flutter pub add http'),
-      );
+      final r = await runScript([
+        '--agent=gemini',
+        '--mode=pub-add',
+      ], geminiPubAddInput('flutter pub add http'));
       expect(r.exitCode, 0);
     });
 
     test('warn on discontinued package', () async {
-      final r = await runScript(
-        ['--agent=gemini', '--mode=pub-add'],
-        geminiPubAddInput('flutter pub add flutter_markdown'),
-      );
+      final r = await runScript([
+        '--agent=gemini',
+        '--mode=pub-add',
+      ], geminiPubAddInput('flutter pub add flutter_markdown'));
       expect(r.exitCode, 0);
       expect(r.stdout, isNotEmpty);
       expect(r.stdout, contains('flutter_markdown'));
@@ -277,21 +275,24 @@ void main() {
 
   group('deps_check.js --agent=gemini --mode=pubspec-guard', () {
     test('filtered: write to non-pubspec file exits with no output', () async {
-      final r = await runScript(
-        ['--agent=gemini', '--mode=pubspec-guard'],
-        geminiWriteFileInput('/app/lib/main.dart'),
-      );
+      final r = await runScript([
+        '--agent=gemini',
+        '--mode=pubspec-guard',
+      ], geminiWriteFileInput('/app/lib/main.dart'));
       expect(r.exitCode, 0);
       expect(r.stdout, isEmpty);
     });
 
-    test('pass-through: write to pubspec.yaml reaches Dart and exits 0', () async {
-      final r = await runScript(
-        ['--agent=gemini', '--mode=pubspec-guard'],
-        geminiWriteFileInput('/app/pubspec.yaml'),
-      );
-      expect(r.exitCode, 0);
-    });
+    test(
+      'pass-through: write to pubspec.yaml reaches Dart and exits 0',
+      () async {
+        final r = await runScript([
+          '--agent=gemini',
+          '--mode=pubspec-guard',
+        ], geminiWriteFileInput('/app/pubspec.yaml'));
+        expect(r.exitCode, 0);
+      },
+    );
 
     test('warn on discontinued package', () async {
       var content = File('pubspec.yaml').readAsStringSync();
@@ -299,10 +300,10 @@ void main() {
         '\ndependencies:',
         '\ndependencies:\n  flutter_markdown: any',
       );
-      final r = await runScript(
-        ['--agent=gemini', '--mode=pubspec-guard'],
-        geminiWriteFileInput('pubspec.yaml', content: content),
-      );
+      final r = await runScript([
+        '--agent=gemini',
+        '--mode=pubspec-guard',
+      ], geminiWriteFileInput('pubspec.yaml', content: content));
       expect(r.exitCode, 0);
       expect(r.stdout, isNotEmpty);
       expect(r.stdout, contains('flutter_markdown'));
