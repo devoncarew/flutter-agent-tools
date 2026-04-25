@@ -13,4 +13,4 @@ if [[ "$*" == *"--mode=pub-add"* ]] && ! printf '%s' "$INPUT" | grep -qF 'pub ad
 fi
 
 if ! command -v dart &>/dev/null; then exit 0; fi
-printf '%s' "$INPUT" | (cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check_claude.dart" "$@")
+printf '%s' "$INPUT" | (cd "$PLUGIN_ROOT" && exec dart run "bin/deps_check.dart" --agent=claude "$@")
