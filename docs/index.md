@@ -37,16 +37,14 @@ to read it.
 
 ## Agent Guidance
 
-- [skill.md](skill.md) — Draft skill document with practical agent workflows,
-  tool selection guidance, and non-obvious gotchas. Read when authoring or
-  updating the plugin skill.
-
-- [smoke-test.md](smoke-test.md) — Prompt for smoke-testing the plugin end to
-  end. Used for regression testing and onboarding new testers.
-
-- [study-setup.md](study-setup.md) — Setup script and prompt for user studies.
-  Creates a fresh Flutter app and walks through the full plugin workflow.
+- [skill.md](skill.md) — Draft of a user-facing skill: practical workflows,
+  tool selection guidance, and non-obvious gotchas for agents *using* the
+  plugin tools. Read when deciding what guidance to ship to end-user agents.
 
 ## Other
 
 - [privacy_policy.md](privacy_policy.md) — Plugin privacy policy.
+- [smoke-test.md](smoke-test.md) — Human-facing prompt for smoke-testing the
+  plugin end to end.
+- [study-setup.md](study-setup.md) — Human-facing setup script and prompt for
+  user studies.

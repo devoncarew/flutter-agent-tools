@@ -1,8 +1,10 @@
 # flutter-slipstream Skill
 
-> [!NOTE] Status: We have not shipped a skill with this plugin but periodically
-> re-evaluate doing so. This draft skill should be maintained as we encounter
-> useful info.
+> [!NOTE] This is a draft of a **user-facing skill** — guidance for agents that
+> have the plugin installed and are using its tools. It is distinct from the
+> developer skill at `.claude/skills/mcp-tools/SKILL.md`, which is a reference
+> for agents working on this codebase. We have not yet shipped this user-facing
+> skill; maintain it as we discover useful patterns.
 
 Practical guidance for AI agents using the flutter-slipstream plugin. This
 document captures things that are non-obvious from individual tool descriptions

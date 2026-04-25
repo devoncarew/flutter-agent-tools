@@ -135,7 +135,3 @@ subprocess-heavy.
   specific seeded data before reaching the UI under test is unsolved. A future
   design may define an `.agent_state.md` convention for specifying startup
   states, mock data, or auth bypasses.
-- **Abandonment heuristics:** Packages that are effectively abandoned but not
-  officially marked `isDiscontinued` on pub.dev (superseded by community forks)
-  are not currently detected. A curated blocklist in
-  `lib/src/deps/blocklist.dart` would cover the most important cases.
