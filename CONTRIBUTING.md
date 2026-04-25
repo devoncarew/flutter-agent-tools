@@ -41,7 +41,8 @@ dart run tool/repo.dart generate-docs
 - Follow standard Dart conventions (`dart format`, `dart analyze`).
 - Prefer explicit types on class fields.
 - Hooks: exit 0 always; hard-blocking is reserved for cases where proceeding
-  would be clearly wrong, and fail open on infrastructure errors (network timeouts, etc.).
+  would be clearly wrong, and fail open on infrastructure errors (network
+  timeouts, etc.).
 
 ## Releasing
 
@@ -57,5 +58,5 @@ prepare a release:
 4. Once the PR lands, CI creates a GitHub release tagged `vX.Y.Z` with the
    matching changelog section as the release notes.
 
-`dart run tool/repo.dart check-versions` validates that the file version infomation is
-in sync.
+`dart run tool/repo.dart check-versions` validates that the file version
+infomation is in sync.

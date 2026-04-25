@@ -1,3 +1,11 @@
+---
+name: flutter-slipstream
+description: >-
+  Practical guidance for AI agents using the flutter-slipstream plugin. This
+  captures things that are non-obvious from individual tool descriptions alone —
+  gotchas, preferred workflows, and when to choose one tool over another.
+---
+
 # flutter-slipstream Skill
 
 > [!NOTE] This is a draft of a **user-facing skill** — guidance for agents that
