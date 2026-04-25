@@ -14,10 +14,11 @@ Flutter app.
 - Dart API MCP server entry point: `bin/packages_mcp.dart`; logic:
   `lib/src/shorthand/packages_mcp.dart`. Declared in
   `.claude-plugin/plugin.json`.
-- Package currency hook: `bin/deps_check.dart`, invoked via agent-specific
-  shell scripts in `scripts/` (e.g. `deps_check_claude.sh --mode=pub-add`).
-  Each script passes `--agent=<name>` to select the input/output format.
-  Configured in `.claude-plugin/plugin.json`.
+- Package currency hook: `bin/deps_check.dart`, invoked via
+  `scripts/deps_check.js --agent=claude|copilot|gemini --mode=pub-add|pubspec-guard`.
+  The Node.js script handles fast-exit filtering and is the registered entry
+  point in all agent manifests. Configured in `.claude-plugin/plugin.json`,
+  `.github/plugin/plugin.json`, and `hooks/hooks-gemini.json`.
 - Hooks receive tool input as JSON on stdin; exit 0 always (warnings only —
   hard-blocking is reserved for cases where proceeding would be clearly wrong).
 - Use `${CLAUDE_PLUGIN_ROOT}` for all paths in hook commands — never hardcode.
@@ -75,9 +76,9 @@ before launching.
 An optional dependency apps can install for richer instrumentation. Although it
 is conceptually a dev-only tool, it must be declared as a regular `dependency:`
 in `pubspec.yaml` (not `dev_dependencies`) because it is imported from `lib/`
-code in this package. When present
-(detected via `ext.slipstream.ping`), the inspector server uses in-process
-service extensions instead of evaluate-based fallbacks:
+code in this package. When present (detected via `ext.slipstream.ping`), the
+inspector server uses in-process service extensions instead of evaluate-based
+fallbacks:
 
 - `ext.slipstream.perform_action` — finder-based
   tap/set_text/scroll/scroll_until_visible
@@ -112,7 +113,7 @@ dart test
 
 # Test the deps-check hook manually:
 echo '{"tool_name":"Bash","tool_input":{"command":"flutter pub add http"}}' \
-  | dart run bin/deps_check.dart --agent=claude --mode=pub-add
+  | node scripts/deps_check.js --agent=claude --mode=pub-add
 
 # Load the plugin locally:
 claude --plugin-dir /path/to/flutter-slipstream

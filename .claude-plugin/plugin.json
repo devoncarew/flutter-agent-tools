@@ -23,7 +23,7 @@
           {
             "type": "command",
             "if": "Bash(flutter pub add *)",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/deps_check_claude.sh --mode=pub-add",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/deps_check.js --agent=claude --mode=pub-add",
             "description": "Validates packages before flutter pub add runs",
             "cwd": "${CLAUDE_PLUGIN_ROOT}"
           }
@@ -35,7 +35,7 @@
           {
             "type": "command",
             "if": "Edit(*pubspec.yaml)",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/deps_check_claude.sh --mode=pubspec-guard",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/deps_check.js --agent=claude --mode=pubspec-guard",
             "description": "Validates packages on direct pubspec.yaml edits",
             "cwd": "${CLAUDE_PLUGIN_ROOT}"
           }
@@ -47,7 +47,7 @@
           {
             "type": "command",
             "if": "Write(*pubspec.yaml)",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/deps_check_claude.sh --mode=pubspec-guard",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/deps_check.js --agent=claude --mode=pubspec-guard",
             "description": "Validates packages on direct pubspec.yaml edits",
             "cwd": "${CLAUDE_PLUGIN_ROOT}"
           }
