@@ -1,3 +1,7 @@
+# smoke-test.md
+
+A script to use to run smoke tests on the tool.
+
 ## Smoke test prompt
 
 Hi! You'll be smoke-testing **flutter-slipstream**, a Claude plugin with two MCP

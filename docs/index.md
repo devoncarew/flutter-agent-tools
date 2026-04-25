@@ -37,13 +37,13 @@ to read it.
 
 ## Agent Guidance
 
-- [skill.md](skill.md) — Draft of a user-facing skill: practical workflows,
-  tool selection guidance, and non-obvious gotchas for agents *using* the
-  plugin tools. Read when deciding what guidance to ship to end-user agents.
+- [skill.md](skill.md) — Draft of a user-facing skill: practical workflows, tool
+  selection guidance, and non-obvious gotchas for agents _using_ the plugin
+  tools. Read when deciding what guidance to ship to end-user agents.
 
 ## Other
 
-- [privacy_policy.md](privacy_policy.md) — Plugin privacy policy.
+- [privacy_policy.md](../privacy_policy.md) — Plugin privacy policy.
 - [smoke-test.md](smoke-test.md) — Human-facing prompt for smoke-testing the
   plugin end to end.
 - [study-setup.md](study-setup.md) — Human-facing setup script and prompt for

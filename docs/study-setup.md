@@ -1,3 +1,7 @@
+# study-setup.md
+
+A script to use to run periodic user studies on the tool.
+
 ## Setup
 
 ```bash

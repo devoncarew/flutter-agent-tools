@@ -30,9 +30,8 @@ machine via the Dart VM service. No data leaves the machine.
 
 ## Changes
 
-If this policy changes materially, the "Last updated" date above will be
-updated and a note will appear in the
-[changelog](../CHANGELOG.md).
+If this policy changes materially, the "Last updated" date above will be updated
+and a note will appear in the [changelog](CHANGELOG.md).
 
 ## Contact
 

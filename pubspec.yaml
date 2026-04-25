@@ -2,7 +2,7 @@ name: flutter_slipstream
 description: >-
   A tool to make AI coding agents more effective for Dart and Flutter projects.
 
-# Versioning is tracked at .claude-plugin/plugin.json and gemini-extension.json.
+# Version is tracked at .claude-plugin/plugin.json.
 publish_to: none
 
 repository: https://github.com/devoncarew/flutter-slipstream
