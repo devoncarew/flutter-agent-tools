@@ -16,9 +16,6 @@ jobs:
       - uses: dart-lang/setup-dart@v1
 
       # Check the shell scripts.
-      - run: bash -n scripts/deps_check_claude.sh
-      - run: bash -n scripts/deps_check_copilot.sh
-      - run: bash -n scripts/deps_check_gemini.sh
       - run: bash -n scripts/inspector_mcp.sh
       - run: bash -n scripts/packages_mcp.sh
 

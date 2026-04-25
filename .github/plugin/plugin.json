@@ -21,8 +21,8 @@
     "preToolUse": [
       {
         "type": "command",
-        "bash": "${PLUGIN_ROOT}/scripts/deps_check_copilot.sh",
-        "powershell": "${PLUGIN_ROOT}/scripts/deps_check_copilot.ps1"
+        "bash": "node ${PLUGIN_ROOT}/scripts/deps_check.js --agent=copilot",
+        "powershell": "node ${PLUGIN_ROOT}/scripts/deps_check.js --agent=copilot"
       }
     ]
   }

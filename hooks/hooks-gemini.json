@@ -7,7 +7,7 @@
           {
             "name": "deps-check-pub-add",
             "type": "command",
-            "command": "${extensionPath}/scripts/deps_check_gemini.sh --mode=pub-add",
+            "command": "node ${extensionPath}/scripts/deps_check.js --agent=gemini --mode=pub-add",
             "description": "Validates packages before flutter pub add runs"
           }
         ]
@@ -18,7 +18,7 @@
           {
             "name": "deps-check-pubspec-guard",
             "type": "command",
-            "command": "${extensionPath}/scripts/deps_check_gemini.sh --mode=pubspec-guard",
+            "command": "node ${extensionPath}/scripts/deps_check.js --agent=gemini --mode=pubspec-guard",
             "description": "Validates packages on direct pubspec.yaml edits"
           }
         ]
