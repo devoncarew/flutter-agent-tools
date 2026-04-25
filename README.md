@@ -29,12 +29,15 @@ the widget tree, or verify that a state change took effect.
 **Claude Code:**
 
 ```sh
-claude plugin install flutter-slipstream
+claude plugin marketplace add devoncarew/slipstream
+claude plugin install flutter-slipstream@slipstream
 ```
 
 **GitHub Copilot:**
 
-Coming soon — marketplace installation support is in progress.
+```sh
+copilot plugin install devoncarew/flutter-slipstream
+```
 
 **Gemini CLI:**
 

@@ -1,7 +1,9 @@
 ## 1.4.1-wip
 
-- Added GitHub Copilot support (including both MCP servers and package
+- Added GitHub Copilot support (including both MCP servers and the package
   validation hooks).
+- Added installation instructions for GitHub Copilot.
+- Updated the installation instructions for Claude Code.
 
 ## 1.4.0
 
