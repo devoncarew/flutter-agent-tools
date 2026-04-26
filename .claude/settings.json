@@ -26,5 +26,8 @@
       "Bash(git status:*)",
       "Bash(git tag:*)"
     ]
+  },
+  "enabledPlugins": {
+    "plugin-dev@claude-plugins-official": true
   }
 }

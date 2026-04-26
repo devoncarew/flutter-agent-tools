@@ -1,9 +1,12 @@
-## 1.4.1-wip
+## 1.5.0-wip
 
 - Added GitHub Copilot support (including both MCP servers and the package
   validation hooks).
 - Added installation instructions for GitHub Copilot.
 - Updated the installation instructions for Claude Code.
+- Added a skill - 'flutter-slipstream' - to help the agent know when to use the
+  MCP servers, to document recommended workflows, and to make agents aware of
+  common gotchas when inspecting Flutter apps.
 
 ## 1.4.0
 
