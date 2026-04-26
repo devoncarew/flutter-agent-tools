@@ -27,5 +27,5 @@ jobs:
 
       # Dart checks.
       - run: dart analyze
-      - run: dart format --output=none --set-exit-if-changed bin/ lib/ test/
+      - run: dart format --output=none --set-exit-if-changed .
       - run: dart test
