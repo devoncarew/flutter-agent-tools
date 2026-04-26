@@ -12,7 +12,8 @@ class PerformSetTextTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'perform_set_text',
-    description: 'Sets the text content of a text field located by a finder. '
+    description:
+        'Sets the text content of a text field located by a finder. '
         'Replaces current content and fires onChanged. TextInputFormatters are '
         'not applied. Call perform_tap on the field first if focus is required. '
         'Requires slipstream_agent; without it use perform_semantic_action '
@@ -20,7 +21,8 @@ class PerformSetTextTool extends InspectorTool {
     inputSchema: Schema.object(
       properties: {
         'finder': Schema.string(
-          description: 'Finder type: "byKey", "byType", "byText", '
+          description:
+              'Finder type: "byKey", "byType", "byText", '
               '"byTextContaining", or "bySemanticsLabel".',
         ),
         'finder_value': Schema.string(

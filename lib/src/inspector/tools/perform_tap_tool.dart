@@ -12,14 +12,16 @@ class PerformTapTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'perform_tap',
-    description: 'Taps a widget located by a finder. Synthesizes a pointer '
+    description:
+        'Taps a widget located by a finder. Synthesizes a pointer '
         'down/up at the widget\'s center, triggering onTap gesture recognizers. '
         'Requires slipstream_agent; without it use perform_semantic_action '
         'with action "tap".',
     inputSchema: Schema.object(
       properties: {
         'finder': Schema.string(
-          description: 'Finder type: "byKey", "byType", "byText", '
+          description:
+              'Finder type: "byKey", "byType", "byText", '
               '"byTextContaining", or "bySemanticsLabel".',
         ),
         'finder_value': Schema.string(

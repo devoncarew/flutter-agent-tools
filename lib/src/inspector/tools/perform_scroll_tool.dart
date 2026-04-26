@@ -12,14 +12,16 @@ class PerformScrollTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'perform_scroll',
-    description: 'Scrolls a Scrollable widget by a fixed number of logical '
+    description:
+        'Scrolls a Scrollable widget by a fixed number of logical '
         'pixels. Clamped to scroll extent bounds. To bring a specific widget '
         'into view, use perform_scroll_until_visible instead. '
         'Requires slipstream_agent.',
     inputSchema: Schema.object(
       properties: {
         'finder': Schema.string(
-          description: 'Finder type for the Scrollable: "byKey", "byType", '
+          description:
+              'Finder type for the Scrollable: "byKey", "byType", '
               '"byText", "byTextContaining", or "bySemanticsLabel".',
         ),
         'finder_value': Schema.string(

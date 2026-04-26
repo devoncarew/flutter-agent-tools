@@ -20,7 +20,8 @@ first (the chip disappears once errors are acknowledged).''',
     inputSchema: Schema.object(
       properties: {
         'pixel_ratio': Schema.num(
-          description: 'Device pixel ratio. Higher values produce sharper '
+          description:
+              'Device pixel ratio. Higher values produce sharper '
               'images. Defaults to 1.0.',
         ),
       },

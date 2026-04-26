@@ -11,13 +11,15 @@ class PerformScrollUntilVisibleTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'perform_scroll_until_visible',
-    description: 'Scrolls a Scrollable until a target widget is visible in '
+    description:
+        'Scrolls a Scrollable until a target widget is visible in '
         'the viewport. Two finders required: one for the target widget, one '
         'for the Scrollable. Requires slipstream_agent.',
     inputSchema: Schema.object(
       properties: {
         'finder': Schema.string(
-          description: 'Finder type for the target widget: "byKey", "byType", '
+          description:
+              'Finder type for the target widget: "byKey", "byType", '
               '"byText", "byTextContaining", or "bySemanticsLabel".',
         ),
         'finder_value': Schema.string(

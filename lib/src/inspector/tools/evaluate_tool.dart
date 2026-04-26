@@ -11,7 +11,8 @@ class EvaluateTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'evaluate',
-    description: 'Evaluates a Dart expression on the running app\'s main '
+    description:
+        'Evaluates a Dart expression on the running app\'s main '
         'isolate and returns the result as a string. Use for runtime state '
         'not visible in the widget tree: FlutterView properties, '
         'MediaQueryData, controller state, etc. Runs in the root library '
@@ -19,12 +20,14 @@ class EvaluateTool extends InspectorTool {
     inputSchema: Schema.object(
       properties: {
         'expression': Schema.string(
-          description: 'Dart expression to evaluate. Example: '
+          description:
+              'Dart expression to evaluate. Example: '
               '"WidgetsBinding.instance.platformDispatcher'
               '.views.first.devicePixelRatio.toString()"',
         ),
         'library_uri': Schema.string(
-          description: 'Library scope for evaluation. Defaults to main.dart. '
+          description:
+              'Library scope for evaluation. Defaults to main.dart. '
               'Use "package:flutter/src/widgets/widget_inspector.dart" for '
               'RendererBinding, SemanticsNode, CheckedState, and Tristate.',
         ),
