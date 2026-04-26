@@ -12,34 +12,22 @@ class PerformSetTextTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'perform_set_text',
-    description: '''
-Sets the text content of a text field located by a finder. Replaces the field's
-current content and fires the field's onChanged callback. Note:
-TextInputFormatters are not applied since text is set directly without going
-through the input pipeline.
-
-Finders: byKey (ValueKey string), byType (widget type name, e.g. "TextField"),
-byText (exact Text content), byTextContaining (Text content substring),
-bySemanticsLabel (Semantics widget label).
-
-Tip: call perform_tap on the field first if the app requires focus before
-accepting text input.
-
-Requires the slipstream_agent companion package. Without it, use
-perform_semantic_action with action "setText" instead.''',
+    description: 'Sets the text content of a text field located by a finder. '
+        'Replaces current content and fires onChanged. TextInputFormatters are '
+        'not applied. Call perform_tap on the field first if focus is required. '
+        'Requires slipstream_agent; without it use perform_semantic_action '
+        'with action "setText".',
     inputSchema: Schema.object(
       properties: {
         'finder': Schema.string(
-          description:
-              'How to find the widget: "byKey", "byType", "byText", "byTextContaining", '
-              'or "bySemanticsLabel".',
+          description: 'Finder type: "byKey", "byType", "byText", '
+              '"byTextContaining", or "bySemanticsLabel".',
         ),
         'finder_value': Schema.string(
-          description: 'The value to match against the chosen finder.',
+          description: 'Value to match against the finder.',
         ),
         'text': Schema.string(
-          description:
-              'The text to set. Replaces the field\'s current content.',
+          description: 'Text to set. Replaces the current content.',
         ),
       },
       required: ['finder', 'finder_value', 'text'],
