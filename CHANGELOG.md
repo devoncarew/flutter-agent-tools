@@ -1,4 +1,4 @@
-## 1.5.0-wip
+## 1.5.0
 
 - Added GitHub Copilot support (including both MCP servers and the package
   validation hooks).
