@@ -12,27 +12,20 @@ class PerformScrollTool extends InspectorTool {
   @override
   final Tool definition = Tool(
     name: 'perform_scroll',
-    description: '''
-Scrolls a Scrollable widget by a fixed number of logical pixels. The finder
-locates the Scrollable (e.g. ListView, SingleChildScrollView) directly. Clamped
-to the scroll extent bounds.
-
-Finders: byKey (ValueKey string), byType (widget type name, e.g. "ListView"),
-byText (Text widget content), byTextContaining (Text content substring),
-bySemanticsLabel (Semantics widget label).
-
-To bring a specific widget into view, use perform_scroll_until_visible instead.
-
-Requires the slipstream_agent companion package.''',
+    description:
+        'Scrolls a Scrollable widget by a fixed number of logical '
+        'pixels. Clamped to scroll extent bounds. To bring a specific widget '
+        'into view, use perform_scroll_until_visible instead. '
+        'Requires slipstream_agent.',
     inputSchema: Schema.object(
       properties: {
         'finder': Schema.string(
           description:
-              'How to find the Scrollable widget: "byKey", "byType", "byText", '
-              '"byTextContaining", or "bySemanticsLabel".',
+              'Finder type for the Scrollable: "byKey", "byType", '
+              '"byText", "byTextContaining", or "bySemanticsLabel".',
         ),
         'finder_value': Schema.string(
-          description: 'The value to match against the chosen finder.',
+          description: 'Value to match against the finder.',
         ),
         'direction': Schema.string(
           description: 'Scroll direction: "up", "down", "left", or "right".',

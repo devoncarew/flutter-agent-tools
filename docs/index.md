@@ -37,9 +37,10 @@ to read it.
 
 ## Agent Guidance
 
-- [skill.md](skill.md) — Draft of a user-facing skill: practical workflows, tool
-  selection guidance, and non-obvious gotchas for agents _using_ the plugin
-  tools. Read when deciding what guidance to ship to end-user agents.
+- [../skills/flutter-slipstream/SKILL.md](../skills/flutter-slipstream/SKILL.md) —
+  Shipped user-facing skill: when to use `run_app` vs. terminal commands,
+  recommended workflows, and non-obvious gotchas for agents using the plugin
+  tools. Read when improving guidance shipped to end-user agents.
 
 ## Other
 
@@ -48,3 +49,5 @@ to read it.
   plugin end to end.
 - [study-setup.md](study-setup.md) — Human-facing setup script and prompt for
   user studies.
+- [../AGENTS.md](../AGENTS.md) - Used by agents working on this repo; not used
+  by consumers of this plugin.

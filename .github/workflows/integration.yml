@@ -26,17 +26,27 @@ jobs:
         with:
           path: flutter-slipstream
 
+      # Get packages for flutter-slipstream.
+      - run: dart pub get
+        working-directory: flutter-slipstream
+
+      # Fast-fail checks.
+      - run: dart analyze
+        working-directory: flutter-slipstream
+      - run: dart format --output=none --set-exit-if-changed .
+        working-directory: flutter-slipstream
+
       # Clone devoncarew/slipstream_agent.
       - uses: actions/checkout@v6
         with:
           repository: devoncarew/slipstream_agent
           path: slipstream_agent
 
-      # Get packages and run the integration test.
-      - run: dart pub get
-        working-directory: flutter-slipstream
+      # Get packages for slipstream_showcase.
       - run: flutter pub get
         working-directory: slipstream_agent/slipstream_showcase
+
+      # Run the integration test.
       - run:
           dart test/integration/inspector_script.dart
           ../slipstream_agent/slipstream_showcase

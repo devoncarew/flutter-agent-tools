@@ -23,6 +23,8 @@ the widget tree, or verify that a state change took effect.
   implementation noise.
 - **Package validation hooks** — catch discontinued packages and outdated major
   versions before they land in `pubspec.yaml`.
+- **Bundled agent skill** — guides agents to use Slipstream tools instead of
+  terminal commands, covers recommended workflows, and documents common gotchas.
 
 ## Installation
 
@@ -32,6 +34,12 @@ the widget tree, or verify that a state change took effect.
 claude plugin marketplace add devoncarew/slipstream
 claude plugin install flutter-slipstream@slipstream
 ```
+
+> [!NOTE]  
+> If you see a "Failed to install plugin ... No ED25519 host key is known for
+> github.com ... Host key verification failed" error, see
+> anthropics/claude-code/issues/26588 / anthropics/claude-code/issues/50725 for
+> possible workarounds.
 
 **GitHub Copilot:**
 
@@ -93,9 +101,9 @@ expressions, and observe runtime errors with widget IDs.
 | `perform_tap` | Taps a widget located by a finder. |
 | `perform_set_text` | Sets the text content of a text field located by a finder. |
 | `perform_scroll` | Scrolls a Scrollable widget by a fixed number of logical pixels. |
-| `perform_scroll_until_visible` | Scrolls a Scrollable widget until a target widget is visible in the viewport. |
+| `perform_scroll_until_visible` | Scrolls a Scrollable until a target widget is visible in the viewport. |
 | `get_semantics` | Returns a flat list of visible semantics nodes from the running Flutter app. |
-| `perform_semantic_action` | Dispatches a semantics action on a widget by its semantics node ID or label. |
+| `perform_semantic_action` | Dispatches a semantics action on a widget by semantics node ID or label. |
 | `close_app` | Stops the running Flutter app and releases its session. |
 <!-- prettier-ignore-end -->
 <!-- inspector -->

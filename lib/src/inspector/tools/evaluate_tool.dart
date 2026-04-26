@@ -12,30 +12,23 @@ class EvaluateTool extends InspectorTool {
   final Tool definition = Tool(
     name: 'evaluate',
     description:
-        'Evaluates a Dart expression on the running app\'s main isolate and '
-        'returns the result as a string. Use for binding-layer and '
-        'platform-layer state not visible in the widget tree: FlutterView '
-        'properties (physicalSize, devicePixelRatio), MediaQueryData, '
-        'or any runtime value. By default runs in the root library scope '
-        '(main.dart), so top-level declarations and globals are in scope. '
-        'Pass library_uri to evaluate in a different library scope — for '
-        'example, "package:flutter/src/widgets/widget_inspector.dart" makes '
-        'RendererBinding, SemanticsNode, CheckedState, and Tristate available.',
+        'Evaluates a Dart expression on the running app\'s main '
+        'isolate and returns the result as a string. Use for runtime state '
+        'not visible in the widget tree: FlutterView properties, '
+        'MediaQueryData, controller state, etc. Runs in the root library '
+        'scope (main.dart) by default; pass library_uri for a different scope.',
     inputSchema: Schema.object(
       properties: {
         'expression': Schema.string(
           description:
-              'The Dart expression to evaluate. Must produce a value with a '
-              'useful toString(). Example: '
+              'Dart expression to evaluate. Example: '
               '"WidgetsBinding.instance.platformDispatcher'
               '.views.first.devicePixelRatio.toString()"',
         ),
         'library_uri': Schema.string(
           description:
-              'Optional. The URI of the library scope in which to evaluate '
-              'the expression. Defaults to the app\'s root library (main.dart). '
-              'Use "package:flutter/src/widgets/widget_inspector.dart" to '
-              'access Flutter rendering and semantics APIs such as '
+              'Library scope for evaluation. Defaults to main.dart. '
+              'Use "package:flutter/src/widgets/widget_inspector.dart" for '
               'RendererBinding, SemanticsNode, CheckedState, and Tristate.',
         ),
       },
