@@ -21,30 +21,21 @@ resolves the pubspec correctly.
 }
 ```
 
-## Hooks
+## Distribution
 
-Event name: `PreToolUse` (Pascal case). Hooks are nested — the outer array
-holds `{ matcher, hooks[] }` objects; each inner hook has `type`, `if`,
-`command`, `description`, and optionally `cwd`.
+Distribution is via the https://github.com/devoncarew/slipstream marketplace.
 
-The `if` field takes a pattern of the form `ToolName(glob)`, e.g.
-`Bash(flutter pub add *)`. `matcher` is the tool name that gates whether the
-hook list is even consulted.
-
-```json
-"hooks": {
-  "PreToolUse": [
-    {
-      "matcher": "Bash",
-      "hooks": [
-        {
-          "type": "command",
-          "if": "Bash(some command pattern *)",
-          "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/your_hook.js",
-          "cwd": "${CLAUDE_PLUGIN_ROOT}"
-        }
-      ]
-    }
-  ]
-}
 ```
+claude plugin marketplace add devoncarew/slipstream
+claude plugin install flutter-slipstream@slipstream
+```
+
+## Running locally
+
+Load the Claude Code plugin locally:
+
+```
+claude --plugin-dir /path/to/flutter-slipstream
+```
+
+Verify with `claude plugins list`.

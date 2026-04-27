@@ -25,20 +25,27 @@ because Dart resolves the pubspec by walking up from the script file's location.
 }
 ```
 
-## Hooks
+## Distribution
 
-Event name: `preToolUse` (camel case). Each hook specifies `bash` and
-`powershell` fields for cross-platform support. There is no per-hook matcher —
-the hook fires for all tool uses.
+Distribution is via the https://github.com/devoncarew/slipstream marketplace.
 
-```json
-"hooks": {
-  "preToolUse": [
-    {
-      "type": "command",
-      "bash": "node ${PLUGIN_ROOT}/scripts/your_hook.js",
-      "powershell": "node ${PLUGIN_ROOT}/scripts/your_hook.js"
-    }
-  ]
-}
+```
+copilot plugin marketplace add devoncarew/slipstream
+copilot plugin install flutter-slipstream@slipstream
+```
+
+## Running locally
+
+Run:
+
+```
+copilot plugin install ./my-plugin
+```
+
+Then verify with `copilot plugin list`.
+
+And uninstall with:
+
+```
+copilot plugin uninstall flutter-slipstream
 ```

@@ -4,7 +4,7 @@ A script to use to run smoke tests on the tool.
 
 ## Smoke test prompt
 
-Hi! You'll be smoke-testing **flutter-slipstream**, a Claude plugin with two MCP
+Hi! You'll be smoke-testing **flutter-slipstream**, a plugin with two MCP
 servers: `inspector` (launch, reload, screenshot, and interact with a running
 Flutter app) and `packages` (accurate API signatures from the local pub cache).
 The goal is to catch regressions and rough edges across the main workflows. This
