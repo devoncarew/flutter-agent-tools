@@ -35,12 +35,28 @@ to read it.
   handling, and VM service extension event list. Read when implementing or
   debugging inspector protocol calls.
 
+## MCP Tool Reference
+
+- [packages_mcp.md](packages_mcp.md) — Packages MCP server tool reference:
+  `package_summary`, `library_stub`, `class_stub`, call sequence, and parameter
+  details. Read when working on or debugging the packages server.
+
+- [inspector_mcp.md](inspector_mcp.md) — Inspector MCP server tool reference:
+  session lifecycle, standard workflow, all tool parameters, and the
+  `slipstream_agent` companion extension mapping. Read when working on or
+  debugging the inspector server.
+
 ## Agent Guidance
 
-- [../skills/flutter-slipstream/SKILL.md](../skills/flutter-slipstream/SKILL.md) —
-  Shipped user-facing skill: when to use `run_app` vs. terminal commands,
+- [../skills/flutter-slipstream/SKILL.md](../skills/flutter-slipstream/SKILL.md)
+  — Shipped user-facing skill: when to use `run_app` vs. terminal commands,
   recommended workflows, and non-obvious gotchas for agents using the plugin
   tools. Read when improving guidance shipped to end-user agents.
+
+- [../skills/add-package/SKILL.md](../skills/add-package/SKILL.md) — Shipped
+  skill for safely adding Dart/Flutter package dependencies: preferred `pub add`
+  workflow, reading pub output for discontinued-package and outdated-version
+  warnings, and corrective actions for each. Read when improving this guidance.
 
 ## Other
 

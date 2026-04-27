@@ -38,24 +38,25 @@ about to add a Dart or Flutter package dependency (via `flutter pub add`,
 `dart pub add`, or a direct `pubspec.yaml` edit). For Gemini CLI, equivalent
 guidance is embedded in `.gemini-extension/GEMINI.md`.
 
-**Behavior:** The skill instructs the agent to use `flutter pub add` (not
-direct pubspec edits) so that pub output is always visible, then to read that
-output carefully before proceeding:
+**Behavior:** The skill instructs the agent to use `flutter pub add` (not direct
+pubspec edits) so that pub output is always visible, then to read that output
+carefully before proceeding:
 
-- **Discontinued:** `(discontinued replaced by X)` in pub output → agent
-  removes the package and adds the replacement instead.
-- **Old major version:** `(X.Y.Z available)` on a direct dependency just added
-  → agent runs `flutter pub outdated` to confirm the gap, then updates the
+- **Discontinued:** `(discontinued replaced by X)` in pub output → agent removes
+  the package and adds the replacement instead.
+- **Old major version:** `(X.Y.Z available)` on a direct dependency just added →
+  agent runs `flutter pub outdated` to confirm the gap, then updates the
   constraint to the current major.
 - Transitive dependency gaps are flagged as informational only.
 
 **Rationale for skill over hooks:** Hooks required per-agent syntax variations
 (different event names, field shapes, and shell-vs-JSON invocation across Claude
 Code, Gemini CLI, and GitHub Copilot) and had inconsistent surfacing — some
-agents showed the warning to the user but not the LLM, and `permissionDecision:
-ask` was silently ignored in some tool contexts. The pub command already outputs
-exactly the information the agent needs; the skill teaches the agent to read and
-act on it, which gives richer corrective guidance than a pre-add intercept.
+agents showed the warning to the user but not the LLM, and
+`permissionDecision: ask` was silently ignored in some tool contexts. The pub
+command already outputs exactly the information the agent needs; the skill
+teaches the agent to read and act on it, which gives richer corrective guidance
+than a pre-add intercept.
 
 ## Tool 2: Package API Retrieval (packages MCP)
 
