@@ -14,6 +14,25 @@ This extension provides tools for Dart/Flutter development:
 3. Use `class_stub` to drill into specific classes when needed. _This avoids
    reading large implementation files and provides accurate signatures._
 
+## Adding Package Dependencies
+
+Use `flutter pub add <package>` (or `dart pub add`) rather than editing
+`pubspec.yaml` directly. After every `pub add`, read the full output before
+proceeding:
+
+- **`(discontinued replaced by X)`** on a package you just added: remove it and
+  add `X` instead. A summary line `N package(s) are discontinued` confirms the
+  count.
+- **`(X.Y.Z available)`** on a package you just added: you've pinned an older
+  version. Run `flutter pub outdated` and check the `Latest` column. If a direct
+  dependency is behind by a major version, update the constraint (e.g.
+  `flutter pub add 'lints:^6.0.0'`).
+- Transitive dependency gaps are generally not actionable — note them but don't
+  block on them.
+
+If you edit `pubspec.yaml` directly instead of using `pub add`, run
+`flutter pub get` immediately after and apply the same rules to the output.
+
 ## `inspector` Workflow
 
 1. **Launch**: `run_app` to start the Flutter app.

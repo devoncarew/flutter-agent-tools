@@ -17,14 +17,7 @@ reports, or any other personal or identifying information.
 
 ## Network requests
 
-The package-currency hook contacts [pub.dev](https://pub.dev) to check whether
-packages referenced in a project's `pubspec.yaml` are current. The only
-information sent is package names (e.g. `http`, `provider`) and version
-constraints. No user identity, project name, file paths, or other metadata are
-included. These requests are subject to
-[Google's privacy policy](https://policies.google.com/privacy).
-
-All other operations — widget tree inspection, screenshots, evaluate, semantics
+All operations — widget tree inspection, screenshots, evaluate, semantics
 queries — communicate exclusively with the Flutter app running on the local
 machine via the Dart VM service. No data leaves the machine.
 

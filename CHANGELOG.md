@@ -2,6 +2,15 @@
 
 - Remove the Bash MCP entrypoint scripts in favor of calling the Dart MCP
   entrypoints directly.
+- Replace the per-agent package validation hooks with a single `add-package`
+  skill. The skill fires when an agent is about to add a Dart or Flutter package
+  and instructs it to read `flutter pub add` output for discontinued-package and
+  outdated-version warnings. Equivalent guidance is embedded in the Gemini CLI
+  context file. This eliminates the per-agent hook infrastructure (different
+  event names, field shapes, and invocation styles across Claude Code, Gemini
+  CLI, and GitHub Copilot) and the external pub.dev network calls at hook time.
+- Updated the privacy policy to note that we no longer make calls to
+  https://pub.dev for package metadata.
 
 ## 1.5.0
 

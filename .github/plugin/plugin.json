@@ -17,14 +17,5 @@
       "command": "dart",
       "args": ["run", "${PLUGIN_ROOT}/bin/inspector_mcp.dart"]
     }
-  },
-  "hooks": {
-    "preToolUse": [
-      {
-        "type": "command",
-        "bash": "node ${PLUGIN_ROOT}/scripts/deps_check.js --agent=copilot",
-        "powershell": "node ${PLUGIN_ROOT}/scripts/deps_check.js --agent=copilot"
-      }
-    ]
   }
 }

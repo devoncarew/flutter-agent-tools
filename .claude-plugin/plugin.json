@@ -15,45 +15,5 @@
       "command": "dart run ${CLAUDE_PLUGIN_ROOT}/bin/inspector_mcp.dart",
       "cwd": "${CLAUDE_PLUGIN_ROOT}"
     }
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "if": "Bash(flutter pub add *)",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/deps_check.js --agent=claude --mode=pub-add",
-            "description": "Validates packages before flutter pub add runs",
-            "cwd": "${CLAUDE_PLUGIN_ROOT}"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "if": "Edit(*pubspec.yaml)",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/deps_check.js --agent=claude --mode=pubspec-guard",
-            "description": "Validates packages on direct pubspec.yaml edits",
-            "cwd": "${CLAUDE_PLUGIN_ROOT}"
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "if": "Write(*pubspec.yaml)",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/deps_check.js --agent=claude --mode=pubspec-guard",
-            "description": "Validates packages on direct pubspec.yaml edits",
-            "cwd": "${CLAUDE_PLUGIN_ROOT}"
-          }
-        ]
-      }
-    ]
   }
 }

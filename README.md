@@ -21,8 +21,9 @@ the widget tree, or verify that a state change took effect.
 - **Accurate package APIs** — retrieve any package's public API directly from
   the local pub cache as a compact Dart stub, version-matched and free of
   implementation noise.
-- **Package validation hooks** — catch discontinued packages and outdated major
-  versions before they land in `pubspec.yaml`.
+- **Package safety guidance** — the bundled skill instructs agents to read pub
+  command output for discontinued packages and outdated major versions, and take
+  corrective action before bad dependencies land.
 - **Bundled agent skill** — guides agents to use Slipstream tools instead of
   terminal commands, covers recommended workflows, and documents common gotchas.
 
@@ -54,11 +55,10 @@ inspect the widget tree, it catches overflow errors, layout surprises, and
 rendering regressions on its own — without you having to describe what went
 wrong.
 
-**Package hygiene:** Whenever the agent adds a package — via `pub add` or by
-editing `pubspec.yaml` directly — the hook checks pub.dev and warns if the
-package is discontinued or if the constraint targets an outdated major version.
-The agent sees the warning and can correct course before the bad dependency
-lands.
+**Package hygiene:** When an agent adds a package, the bundled skill guides it
+to read `flutter pub add` output for discontinued-package and outdated-version
+warnings, and to take corrective action (switching to the replacement package,
+or updating the version constraint) before the bad dependency lands.
 
 **Optional: richer instrumentation.** Add
 [`package:slipstream_agent`](https://pub.dev/packages/slipstream_agent) as a
@@ -114,17 +114,18 @@ raw source files or relying on training-data summaries.
 <!-- prettier-ignore-end -->
 <!-- packages -->
 
-### Package validation hooks
+### Package safety skill
 
-A `PreToolUse` hook that fires when an agent adds a package via
-`flutter pub add` / `dart pub add` or edits `pubspec.yaml` directly. Emits
-advisory warnings and lets the agent decide; never hard-blocks.
+The `add-package` skill fires automatically when an agent is about to add a
+Dart or Flutter package dependency. It instructs the agent to:
 
-Checks:
-
-- **Discontinued:** warns with the official replacement if one is listed.
-- **Old major version:** warns when the constraint targets an older major than
-  what pub.dev currently publishes (e.g. `http:^0.13.0` vs latest `1.x`).
+- Use `flutter pub add` rather than editing `pubspec.yaml` directly, so pub
+  output is always visible.
+- Read `pub add` output for `(discontinued replaced by X)` annotations and
+  switch to the replacement package.
+- Read `pub add` output for `(X.Y.Z available)` annotations on newly added
+  direct dependencies, and run `flutter pub outdated` to confirm a major-version
+  gap before proceeding.
 
 ## Contributing
 
