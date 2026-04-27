@@ -3,7 +3,6 @@
 ## Implementation specific files
 
 - gemini-extension.json
-- hooks/hooks-gemini.json
 - .gemini-extension/GEMINI.md
 
 ## MCP servers
@@ -32,7 +31,7 @@ CLAUDE.md):
 
 ## Hooks
 
-Hooks live in a separate file (`hooks/hooks-gemini.json`), not inline in
+Hooks live in a separate file (e.g. `hooks/hooks-gemini.json`), not inline in
 `gemini-extension.json`.
 
 Event name: `BeforeTool` (not `PreToolUse`). Matchers are tool name patterns
@@ -47,9 +46,9 @@ own tool names rather than MCP tool names.
         "matcher": "run_shell_command",
         "hooks": [
           {
-            "name": "deps-check-pub-add",
+            "name": "my-hook",
             "type": "command",
-            "command": "node ${extensionPath}/scripts/deps_check.js --agent=gemini --mode=pub-add"
+            "command": "node ${extensionPath}/scripts/your_hook.js"
           }
         ]
       }

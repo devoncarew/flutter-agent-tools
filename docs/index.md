@@ -7,8 +7,8 @@ to read it.
 
 - [DESIGN.md](DESIGN.md) — System overview: problem statement, distribution
   (Claude Code / Gemini CLI / GitHub Copilot), and rationale for each of the
-  three tools (deps hook, packages MCP, inspector MCP). Read first for
-  architectural context before adding or changing any tool.
+  three tools (package safety skill, packages MCP, inspector MCP). Read first
+  for architectural context before adding or changing any tool.
 
 - [inspector_design.md](inspector_design.md) — Inspector MCP implementation
   details: device auto-selection logic, `get_route` capabilities and

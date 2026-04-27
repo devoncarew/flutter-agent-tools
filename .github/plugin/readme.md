@@ -36,8 +36,8 @@ the hook fires for all tool uses.
   "preToolUse": [
     {
       "type": "command",
-      "bash": "node ${PLUGIN_ROOT}/scripts/deps_check.js --agent=copilot",
-      "powershell": "node ${PLUGIN_ROOT}/scripts/deps_check.js --agent=copilot"
+      "bash": "node ${PLUGIN_ROOT}/scripts/your_hook.js",
+      "powershell": "node ${PLUGIN_ROOT}/scripts/your_hook.js"
     }
   ]
 }

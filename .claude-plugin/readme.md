@@ -39,8 +39,8 @@ hook list is even consulted.
       "hooks": [
         {
           "type": "command",
-          "if": "Bash(flutter pub add *)",
-          "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/deps_check.js --agent=claude --mode=pub-add",
+          "if": "Bash(some command pattern *)",
+          "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/your_hook.js",
           "cwd": "${CLAUDE_PLUGIN_ROOT}"
         }
       ]

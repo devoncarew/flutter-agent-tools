@@ -23,36 +23,39 @@ failure modes:
 ## Distribution
 
 Shipped as a Claude Code plugin, a Gemini CLI extension, and a GitHub Copilot
-extension. Each distribution registers the same MCP servers and hooks — the
-agent-facing tool surface is identical across all three.
+extension. Each distribution registers the same MCP servers and a skill that
+guides package safety — the agent-facing tool surface is identical across all
+three.
 
 Low-friction installation: no manual server setup or prompt engineering
 required. Tools are automatically available via native primitives (Hooks, MCP)
 without requiring explicit agent instruction.
 
-## Tool 1: Package Currency Hook
+## Tool 1: Package Safety Skill
 
-**Mechanism:** `PreToolUse` hook on `Bash` (matching `flutter pub add` /
-`dart pub add`) and `Write`/`Edit` (targeting `pubspec.yaml`).
+**Mechanism:** An `add-package` skill that fires automatically when an agent is
+about to add a Dart or Flutter package dependency (via `flutter pub add`,
+`dart pub add`, or a direct `pubspec.yaml` edit). For Gemini CLI, equivalent
+guidance is embedded in `.gemini-extension/GEMINI.md`.
 
-**Behavior:** All checks are warnings (exit 0) — the agent sees the message and
-decides whether to proceed. The hook never hard-blocks, because the agent may
-have legitimate reasons to override (e.g. a private package not on pub.dev).
+**Behavior:** The skill instructs the agent to use `flutter pub add` (not
+direct pubspec edits) so that pub output is always visible, then to read that
+output carefully before proceeding:
 
-- **Discontinued:** `isDiscontinued == true` on pub.dev → warns with official
-  replacement if listed.
-- **Old major version:** constraint targets an older major than pub.dev's
-  current (e.g. `http:^0.13.0` when latest is `1.x`) → warns and suggests
-  current major.
-- **Not found:** package doesn't exist on pub.dev → warns (private package or
-  typo).
-- **Fails open:** network errors or any infrastructure failure → exits cleanly.
+- **Discontinued:** `(discontinued replaced by X)` in pub output → agent
+  removes the package and adds the replacement instead.
+- **Old major version:** `(X.Y.Z available)` on a direct dependency just added
+  → agent runs `flutter pub outdated` to confirm the gap, then updates the
+  constraint to the current major.
+- Transitive dependency gaps are flagged as informational only.
 
-**Entry point:** `bin/deps_check.dart`, invoked via `scripts/deps_check.js`. The
-Node.js script handles fast-exit filtering and is the registered entry point in
-all agent manifests. Mode selected via `--mode=pub-add` or
-`--mode=pubspec-guard`; the pubspec-guard mode diffs YAML before and after an
-edit to find newly added packages.
+**Rationale for skill over hooks:** Hooks required per-agent syntax variations
+(different event names, field shapes, and shell-vs-JSON invocation across Claude
+Code, Gemini CLI, and GitHub Copilot) and had inconsistent surfacing — some
+agents showed the warning to the user but not the LLM, and `permissionDecision:
+ask` was silently ignored in some tool contexts. The pub command already outputs
+exactly the information the agent needs; the skill teaches the agent to read and
+act on it, which gives richer corrective guidance than a pre-add intercept.
 
 ## Tool 2: Package API Retrieval (packages MCP)
 
