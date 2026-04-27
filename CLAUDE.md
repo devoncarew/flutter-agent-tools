@@ -8,8 +8,9 @@ index.
 ## MCP Tools
 
 For the full tool reference (packages server, inspector server, and
-slipstream_agent companion extensions), see the `mcp-tools` skill
-([SKILL.md](.claude/skills/mcp-tools/SKILL.md)).
+slipstream_agent companion extensions), see
+[docs/packages_mcp.md](docs/packages_mcp.md) and
+[docs/inspector_mcp.md](docs/inspector_mcp.md).
 
 ## Key Conventions
 
