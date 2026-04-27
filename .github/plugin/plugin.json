@@ -9,13 +9,13 @@
   "mcpServers": {
     "packages": {
       "type": "local",
-      "command": "${PLUGIN_ROOT}/scripts/packages_mcp.sh",
-      "args": []
+      "command": "dart",
+      "args": ["run", "${PLUGIN_ROOT}/bin/packages_mcp.dart"]
     },
     "inspector": {
       "type": "local",
-      "command": "${PLUGIN_ROOT}/scripts/inspector_mcp.sh",
-      "args": []
+      "command": "dart",
+      "args": ["run", "${PLUGIN_ROOT}/bin/inspector_mcp.dart"]
     }
   },
   "hooks": {

@@ -6,12 +6,11 @@ import 'package:test/test.dart';
 import 'support.dart';
 
 void main() {
-  final scriptsDir = path.join(Directory.current.path, 'scripts');
-
-  group('packages_mcp.sh', () {
+  group('packages_mcp.dart', () {
     test('starts and lists expected tools', () async {
-      final process = await Process.start('bash', [
-        path.join(scriptsDir, 'packages_mcp.sh'),
+      final process = await Process.start(Platform.resolvedExecutable, [
+        'run',
+        path.join('bin', 'packages_mcp.dart'),
       ]);
       addTearDown(process.kill);
 

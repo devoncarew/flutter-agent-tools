@@ -7,12 +7,12 @@
   "license": "BSD-3-Clause",
   "keywords": ["dart", "flutter"],
   "mcpServers": {
-    "inspector": {
-      "command": "${extensionPath}/scripts/inspector_mcp.sh",
+    "packages": {
+      "command": "dart run ${extensionPath}/bin/packages_mcp.dart",
       "cwd": "${extensionPath}"
     },
-    "packages": {
-      "command": "${extensionPath}/scripts/packages_mcp.sh",
+    "inspector": {
+      "command": "dart run ${extensionPath}/bin/inspector_mcp.dart",
       "cwd": "${extensionPath}"
     }
   },
