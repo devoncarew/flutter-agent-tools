@@ -38,8 +38,8 @@ the widget tree, or verify that a state change took effect.
 | Gemini CLI     | `gemini extensions install https://github.com/devoncarew/flutter-slipstream`                                       |
 
 > [!NOTE]
-> If you see a "Failed to install plugin ... No ED25519 host key is known for
-> github.com ... Host key verification failed" error, see
+> If you see a "Failed to install plugin ... No ED25519 host key is
+> known for github.com ... Host key verification failed" error, see
 > anthropics/claude-code/issues/26588 / anthropics/claude-code/issues/50725 for
 > possible workarounds.
 
@@ -116,8 +116,8 @@ raw source files or relying on training-data summaries.
 
 ### Package safety skill
 
-The `add-package` skill fires automatically when an agent is about to add a
-Dart or Flutter package dependency. It instructs the agent to:
+The `add-package` skill fires automatically when an agent is about to add a Dart
+or Flutter package dependency. It instructs the agent to:
 
 - Use `flutter pub add` rather than editing `pubspec.yaml` directly, so pub
   output is always visible.
