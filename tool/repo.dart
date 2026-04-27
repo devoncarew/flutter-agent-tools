@@ -123,10 +123,7 @@ class ValidateManifestsCommand extends Command<void> {
   void run() {
     var failed = false;
 
-    // hooks/hooks-gemini.json — valid JSON, no required keys.
-    failed |= _validateJson('hooks/hooks-gemini.json', const []);
-
-    // .claude-plugin/plugin.json and gemini-extension.json — full key check.
+    // Validate the plugin manifests.
     failed |= _validateJson(claudeManifest, _manifestKeys);
     failed |= _validateJson(copilotManifest, _manifestKeys);
     failed |= _validateJson(geminiManifest, _manifestKeys);
