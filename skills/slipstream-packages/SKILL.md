@@ -5,8 +5,8 @@ description: >-
   into a pub package whose API is uncertain — the package is unfamiliar, or its
   version in pubspec.lock may be newer than training data. Also load when
   hitting an unexpected compile error or type mismatch on a package import. Skip
-  for code that only uses the Dart SDK (dart:*) or Flutter framework
-  (package:flutter/*), and packages already verified this session.
+  for code that only uses the Dart SDK (dart:*) and packages already verified
+  this session.
 user-invocable: false
 ---
 
