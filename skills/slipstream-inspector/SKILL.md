@@ -1,5 +1,5 @@
 ---
-name: flutter-slipstream
+name: slipstream-inspector
 description: >-
   This skill should be used when the user asks to "run the Flutter app",
   "flutter run", "start the app", "launch the app", "test the UI", "take a
@@ -7,6 +7,7 @@ description: >-
   any request involving launching, observing, or interacting with a running
   Flutter app. When the flutter-slipstream plugin is installed, MCP tools
   replace terminal commands for all Flutter app interaction.
+user-invocable: false
 ---
 
 # flutter-slipstream
@@ -105,13 +106,3 @@ retaking.
 - Increase `subtree_depth` when the relevant widget is several levels down.
 - `evaluate` is useful for exact runtime values (`MediaQuery.of(...)`,
   controller state) that don't appear in the layout tree.
-
-## Learning a package API
-
-Use the `packages` tools before writing code that uses an unfamiliar package —
-they are faster and more accurate than reading `.pub-cache` source or relying on
-training-data summaries:
-
-1. `package_summary` — orient: version, entry-point import, exported names.
-2. `library_stub` — full public API as Dart signatures for one library.
-3. `class_stub` — single class when you know exactly what you need.

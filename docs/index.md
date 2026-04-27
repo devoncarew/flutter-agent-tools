@@ -48,15 +48,20 @@ to read it.
 
 ## Agent Guidance
 
-- [../skills/flutter-slipstream/SKILL.md](../skills/flutter-slipstream/SKILL.md)
-  — Shipped user-facing skill: when to use `run_app` vs. terminal commands,
-  recommended workflows, and non-obvious gotchas for agents using the plugin
-  tools. Read when improving guidance shipped to end-user agents.
-
 - [../skills/add-package/SKILL.md](../skills/add-package/SKILL.md) — Shipped
   skill for safely adding Dart/Flutter package dependencies: preferred `pub add`
   workflow, reading pub output for discontinued-package and outdated-version
   warnings, and corrective actions for each. Read when improving this guidance.
+
+- [../skills/slipstream-inspector/SKILL.md](../skills/slipstream-inspector/SKILL.md)
+  — Shipped skill: when to use `run_app` vs. terminal commands, recommended
+  workflows, and non-obvious gotchas for agents using the inspector tools. Read
+  when improving guidance shipped to end-user agents.
+
+- [../skills/slipstream-packages/SKILL.md](../skills/slipstream-packages/SKILL.md)
+  — Shipped skill that instructs agents to use the packages MCP tools when
+  writing code against an unfamiliar package or one that may be newer than
+  training data. Read when improving this guidance.
 
 ## Other
 
