@@ -15,10 +15,6 @@ jobs:
       - uses: actions/checkout@v6
       - uses: dart-lang/setup-dart@v1
 
-      # Check the shell scripts.
-      - run: bash -n scripts/inspector_mcp.sh
-      - run: bash -n scripts/packages_mcp.sh
-
       # Get packages.
       - run: dart pub get
 

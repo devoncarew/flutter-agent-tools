@@ -1,3 +1,8 @@
+## 1.5.1-wip
+
+- Remove the Bash MCP entrypoint scripts in favor of calling the Dart MCP
+  entrypoints directly.
+
 ## 1.5.0
 
 - Added GitHub Copilot support (including both MCP servers and the package
