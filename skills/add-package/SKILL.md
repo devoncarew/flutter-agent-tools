@@ -1,16 +1,12 @@
 ---
 name: add-package
-description: >
-  Safe workflow for adding a Dart or Flutter package dependency. Covers how to
-  read pub command output for discontinued and outdated-version warnings, and
-  what corrective action to take for each.
+description: >-
+  This skill should be used when about to add a Dart or Flutter package
+  dependency — running flutter pub add, dart pub add, or editing pubspec.yaml to
+  introduce a new package. Also load when choosing a specific version constraint
+  for a new package. Skip for upgrading existing packages (pub upgrade),
+  removing packages, or pub commands that don't introduce a new dependency.
 user-invocable: false
-trigger: >
-  TRIGGER when: about to add a Dart or Flutter package dependency — running
-  flutter pub add, dart pub add, or editing pubspec.yaml to add a new package.
-  Also trigger when choosing a specific version constraint for a package. SKIP:
-  upgrading existing packages (pub upgrade), removing packages, or pub commands
-  that don't introduce a new dependency.
 ---
 
 # Adding a Dart/Flutter Package Dependency
