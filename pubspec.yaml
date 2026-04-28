@@ -1,6 +1,8 @@
 name: flutter_slipstream
 description: >-
-  A tool to make AI coding agents more effective for Dart and Flutter projects.
+  Live Flutter app introspection for coding agents: screenshots, widget-tree
+  inspection, tap/type/scroll, and error capture. Dart package API summarization
+  for agents.
 
 # Version is tracked at .claude-plugin/plugin.json.
 publish_to: none

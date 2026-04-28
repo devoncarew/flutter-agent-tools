@@ -2,14 +2,18 @@
 
 # Flutter Slipstream
 
-Flutter Slipstream makes AI coding agents more effective on Dart and Flutter
-projects. Available as a [Claude Code](https://claude.ai/code) plugin, a
-[GitHub Copilot](https://github.com/features/copilot) plugin, and a
-[Gemini CLI](https://github.com/google-gemini/gemini-cli) extension: Slipstream
-addresses two structural problems agents face. A training cutoff that leads to
-stale package choices and subtly wrong API signatures, and a lack of runtime
-visibility into a running Flutter app — agents can't see screenshots, inspect
-the widget tree, or verify that a state change took effect.
+Flutter Slipstream is an agentic plugin that makes AI coding agents more
+effective for Dart and Flutter projects. It enables live app introspection for
+Flutter apps: screenshots, widget-tree inspection, tap/type/scroll interaction,
+and error capture, as well as Dart package API summarization for agents.
+
+This addresses two structural problems that agents face:
+
+- a lack of runtime visibility into a running Flutter app — agents can't see
+  screenshots, inspect the widget tree, or verify that a state change took
+  effect
+- training cutoffs that leads to stale package choices and subtly wrong API
+  signatures
 
 ## Features
 
@@ -24,10 +28,6 @@ the widget tree, or verify that a state change took effect.
 - **Package safety guidance** — the bundled skill instructs agents to read pub
   command output for discontinued packages and outdated major versions, and take
   corrective action before bad dependencies land.
-- **Bundled agent skill** — guides agents to use Slipstream tools instead of
-  terminal commands, covers recommended workflows, and documents common gotchas.
-
-## Installation
 
 ## Installation
 
@@ -38,8 +38,9 @@ the widget tree, or verify that a state change took effect.
 | Gemini CLI     | `gemini extensions install https://github.com/devoncarew/flutter-slipstream`                                       |
 
 > [!NOTE]
-> If you see a "Failed to install plugin ... No ED25519 host key is
-> known for github.com ... Host key verification failed" error, see
+>
+> If you see a "Failed to install plugin ... No ED25519 host key is known for
+> github.com ... Host key verification failed" error, see
 > anthropics/claude-code/issues/26588 / anthropics/claude-code/issues/50725 for
 > possible workarounds.
 
