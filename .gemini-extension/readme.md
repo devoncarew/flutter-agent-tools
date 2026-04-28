@@ -5,13 +5,19 @@
 - gemini-extension.json
 - .gemini-extension/GEMINI.md
 
+The `contextFileName` field sets the agent context file (equivalent to
+CLAUDE.md). Not certain that we need it for this plugin.
+
+```json
+"contextFileName": ".gemini-extension/GEMINI.md"
+```
+
 ## MCP servers
 
 Variable for the plugin root: `${extensionPath}`
 
-`command` is a shell string — spaces and inline args are supported. `cwd`
-should be set to `${extensionPath}` so that `dart run` resolves the pubspec
-correctly.
+`command` is a shell string — spaces and inline args are supported. `cwd` should
+be set to `${extensionPath}` so that `dart run` resolves the pubspec correctly.
 
 ```json
 "mcpServers": {
@@ -22,37 +28,20 @@ correctly.
 }
 ```
 
-The `contextFileName` field sets the agent context file (equivalent to
-CLAUDE.md):
+## Distribution
 
-```json
-"contextFileName": ".gemini-extension/GEMINI.md"
+Distribution is via direct install.
+
+```
+gemini extensions install https://github.com/devoncarew/flutter-slipstream
 ```
 
-## Hooks
+## Running locally
 
-Hooks live in a separate file (e.g. `hooks/hooks-gemini.json`), not inline in
-`gemini-extension.json`.
+Load the Gemini CLI extension locally:
 
-Event name: `BeforeTool` (not `PreToolUse`). Matchers are tool name patterns
-(pipe-separated for alternation, e.g. `write_file|replace`), using Gemini CLI's
-own tool names rather than MCP tool names.
-
-```json
-{
-  "hooks": {
-    "BeforeTool": [
-      {
-        "matcher": "run_shell_command",
-        "hooks": [
-          {
-            "name": "my-hook",
-            "type": "command",
-            "command": "node ${extensionPath}/scripts/your_hook.js"
-          }
-        ]
-      }
-    ]
-  }
-}
+```sh
+gemini extensions link /path/to/flutter-slipstream
 ```
+
+Verify with `gemini --list-extensions`.

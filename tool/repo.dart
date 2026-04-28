@@ -34,6 +34,7 @@ void main(List<String> args) async {
 }
 
 final String claudeManifest = '.claude-plugin/plugin.json';
+final String cursorManifest = '.cursor-plugin/plugin.json';
 final String copilotManifest = '.github/plugin/plugin.json';
 final String geminiManifest = 'gemini-extension.json';
 
@@ -53,6 +54,7 @@ class CheckCommand extends Command<void> {
     final errors = <String>[];
 
     final claudeVersion = _readJsonVersion(claudeManifest, errors);
+    final cursorVersion = _readJsonVersion(cursorManifest, errors);
     final copilotVersion = _readJsonVersion(copilotManifest, errors);
     final geminiVersion = _readJsonVersion(geminiManifest, errors);
     final changelogVersions = _readChangelogVersions('CHANGELOG.md', errors);
@@ -67,9 +69,12 @@ class CheckCommand extends Command<void> {
     var failed = false;
 
     // Versions in the manifest files must match.
-    if (claudeVersion != copilotVersion || claudeVersion != geminiVersion) {
+    if (claudeVersion != copilotVersion ||
+        claudeVersion != geminiVersion ||
+        claudeVersion != cursorVersion) {
       stderr.writeln(
         'error: version mismatch; $claudeManifest=$claudeVersion, '
+        '$cursorManifest=$cursorVersion, '
         '$copilotManifest=$copilotVersion, '
         '$geminiManifest=$geminiVersion',
       );
@@ -90,7 +95,12 @@ class CheckCommand extends Command<void> {
 
     if (failed) exit(1);
 
-    final all = [claudeManifest, copilotManifest, geminiManifest];
+    final all = [
+      claudeManifest,
+      cursorManifest,
+      copilotManifest,
+      geminiManifest,
+    ];
 
     print(
       'ok — version $claudeVersion is consistent across '
@@ -125,6 +135,7 @@ class ValidateManifestsCommand extends Command<void> {
 
     // Validate the plugin manifests.
     failed |= _validateJson(claudeManifest, _manifestKeys);
+    failed |= _validateJson(cursorManifest, _manifestKeys);
     failed |= _validateJson(copilotManifest, _manifestKeys);
     failed |= _validateJson(geminiManifest, _manifestKeys);
 
@@ -258,6 +269,7 @@ class BumpVersionCommand extends Command<void> {
 
     // Update both manifest files and the optional GitHub plugin manifest.
     _bumpJsonVersion(claudeManifest, version);
+    _bumpJsonVersion(cursorManifest, version);
     _bumpJsonVersion(copilotManifest, version);
     _bumpJsonVersion(geminiManifest, version);
 

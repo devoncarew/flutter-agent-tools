@@ -71,11 +71,11 @@ flutter create --platforms=android,ios,macos,web showcase && \
 
 ## Study Prompt
 
-Hi! You'll be building a Flutter widget-showcase app to test a new Claude
-plugin. The plugin — **flutter-slipstream** — has two MCP servers: `inspector`
-(launch, reload, screenshot, and interact with a running Flutter app) and
-`packages` (accurate API signatures pulled from the local pub cache). Take a
-moment to read the available tools before starting.
+Hi! You'll be building a Flutter widget-showcase app to test a new plugin. The
+plugin — **flutter-slipstream** — has two MCP servers: `inspector` (launch,
+reload, screenshot, and interact with a running Flutter app) and `packages`
+(accurate API signatures pulled from the local pub cache). Take a moment to read
+the available tools before starting.
 
 Use `provider` for state and `go_router` for routing. Add `slipstream_agent` as
 a dependency and call `SlipstreamAgent.init()` in `main` — this unlocks
