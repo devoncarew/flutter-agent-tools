@@ -1,6 +1,6 @@
-## 1.6.0-wip
+## 1.6.0
 
-- Added initial support for Cursor (not yet in cursor.com/marketplace /
+- Added support for Cursor (note: not yet in cursor.com/marketplace /
   cursor.directory).
 - Replaced the per-agent package validation hooks with a single `add-package`
   skill. The skill fires when an agent is about to add a Dart or Flutter package

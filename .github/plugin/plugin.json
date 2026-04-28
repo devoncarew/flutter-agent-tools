@@ -1,21 +1,30 @@
 {
   "_comment": "GitHub Copilot manifest",
   "name": "flutter-slipstream",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Live Flutter app introspection for coding agents: screenshots, widget-tree inspection, tap/type/scroll, and error capture. Dart package API summarization for agents.",
   "repository": "https://github.com/devoncarew/flutter-slipstream",
   "license": "BSD-3-Clause",
-  "keywords": ["dart", "flutter"],
+  "keywords": [
+    "dart",
+    "flutter"
+  ],
   "mcpServers": {
     "packages": {
       "type": "local",
       "command": "dart",
-      "args": ["run", "${PLUGIN_ROOT}/bin/packages_mcp.dart"]
+      "args": [
+        "run",
+        "${PLUGIN_ROOT}/bin/packages_mcp.dart"
+      ]
     },
     "inspector": {
       "type": "local",
       "command": "dart",
-      "args": ["run", "${PLUGIN_ROOT}/bin/inspector_mcp.dart"]
+      "args": [
+        "run",
+        "${PLUGIN_ROOT}/bin/inspector_mcp.dart"
+      ]
     }
   }
 }
