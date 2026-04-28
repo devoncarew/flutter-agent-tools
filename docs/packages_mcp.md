@@ -6,6 +6,11 @@ Tools for querying Dart and Flutter package APIs from the local pub cache.
 Source is `.pub-cache` — already downloaded, always matches the resolved version
 in `pubspec.lock`, no network required.
 
+## Code layout
+
+Each tool is one class per file in `lib/src/shorthand/tools/`. The server is
+`lib/src/shorthand/packages_mcp.dart`.
+
 ## Typical call sequence
 
 1. `package_summary` — orient: version, library list, exported names.

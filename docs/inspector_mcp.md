@@ -4,6 +4,12 @@ Server entry point: `bin/inspector_mcp.dart`
 
 Tools for launching, inspecting, and interacting with a running Flutter app.
 
+## Code layout
+
+Each tool is one class per file in `lib/src/inspector/tools/`, implementing the
+`InspectorTool` abstract class (`lib/src/inspector/tool_context.dart`). The
+server registers each tool in `lib/src/inspector/inspector_mcp.dart`.
+
 ## Session lifecycle
 
 `run_app` starts a session; `close_app` ends it. Only one session is active at a

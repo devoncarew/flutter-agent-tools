@@ -1,31 +1,46 @@
 # flutter-slipstream
 
-A Claude Code plugin, Gemini CLI extension, and GitHub Copilot extension that
-makes AI coding agents more effective when working on Dart and Flutter projects.
-Feature complete. See [index.md](docs/index.md) for the full documentation
-index.
+- an agentic tooling plugin to make coding agents more effective for Dart and
+  Flutter projects
+- full documentation index at @docs/index.md
+- user facing docs at @README.md
 
-## MCP Tools
+## Feature: Flutter UI agent
 
-For the full tool reference (packages server, inspector server, and
-slipstream_agent companion extensions), see
-[docs/packages_mcp.md](docs/packages_mcp.md) and
-[docs/inspector_mcp.md](docs/inspector_mcp.md).
+- `inspector` MCP server for launching, inspecting, and interacting with a
+  running Flutter app
+- take screenshots, inspect the widget tree, evaluate arbitrary Dart
+  expressions, and observe runtime errors with widget IDs
+- implementation reference at @docs/inspector_mcp.md
+- 'slipstream-inspector' skill at @skills/slipstream-inspector/SKILL.md used to
+  help agents trigger on 'flutter run' and document workflows and gotchas
+- has an optional in-process companion package, slipstream_agent;
+  @docs/slipstream_agent.md
 
-## Key Conventions
+## Feature: Package API retrieval
 
-- The plugin manifests are: `.claude-plugin/plugin.json`,
-  `gemini-extension.json`, and `.github/plugin/plugin.json`. All three plus
-  `CHANGELOG.md` must be bumped together on release — see
-  [CONTRIBUTING.md](CONTRIBUTING.md).
-- Inspector tools are one-class-per-file in `lib/src/inspector/tools/`,
-  implementing `InspectorTool`. Packages tools follow the same pattern in
-  `lib/src/shorthand/tools/`.
+- `packages` MCP server returns package APIs as token efficient stubs
+- call `package_summary`to orient on a package and `library_stub` and
+  `class_stub` for details
+- related 'slipstream-packages' skill at @skills/slipstream-packages/SKILL.md
+- implementation reference at @docs/packages_mcp.md
+
+## Feature: Package safety skill
+
+- `add-package` skill at @skills/add-package/SKILL.md
+- fires when an agent is about to add a Dart or Flutter package dependency
+- prevents adding a dependency on discontinued packages
+- prevents adding a dependency on outdated versions (older major versions)
+
+## Supported Coding Agents
+
+- Claude Code implementation notes at @.claude-plugin/readme.md
+- Cursor implementation notes at @.cursor-plugin/readme.md
+- Gemini CLI implementation notes at @.gemini-extension/readme.md
+- GitHub Copilot implementation notes at @.github/plugin/readme.md
 
 ## Development
 
-```sh
-dart test                              # unit tests; test/scripts/ runs full MCP servers as subprocesses
-dart analyze && dart format .
-dart run tool/repo.dart generate-docs  # regenerate README command tables
-```
+- `dart analyze` for linting
+- `dart test` for unit tests
+- `dart format .` before committing
